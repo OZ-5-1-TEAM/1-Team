@@ -17,7 +17,7 @@
 
 <table align="center">
   <tr>
-    <th>FE. 박정훈</th>
+    <th>FE. 박종훈</th>
     <th>FE. 이지연</th>
     <th>FE. 최준원</th>
   </tr>
