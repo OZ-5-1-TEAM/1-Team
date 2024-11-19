@@ -1,0 +1,147 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "test@naver.com",
+      "password": "test@1234",
+      "username": "test",
+      "profileImage": "https://example.com/profiles/user1.jpg",
+      "bio": "강아지 산책 좋아해요!",
+      "dogInfo": {
+        "name": "토니",
+        "breed": "장모치와와",
+        "age": 5,
+        "weight": 3,
+        "notes": "친절하고 사람을 좋아함",
+        "image": "https://example.com/dogs/dog1.jpg"
+      },
+      "friends": [2],
+      "notifications": [1, 2],
+      "createdAt": "2024-01-01T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "email": "janedoe@example.com",
+      "password": "hashed_password",
+      "username": "janedoe",
+      "profileImage": "https://example.com/profiles/user2.jpg",
+      "bio": "강아지 산책 메이트 구해요",
+      "dogInfo": {
+        "name": "초코",
+        "breed": "골든 리트리버",
+        "age": 2,
+        "weight": 30,
+        "notes": "활발하고 친근함",
+        "image": "https://example.com/dogs/dog2.jpg"
+      },
+      "friends": [1],
+      "notifications": [],
+      "createdAt": "2024-01-05T15:30:00Z"
+    }
+  ],
+
+  "posts": [
+    {
+      "id": 1,
+      "authorId": 1,
+      "title": "오늘 저녁 산책 메이트 구해요!",
+      "tag": { "district": "강남구", "neighborhood": "역삼동" },
+      "content": "강아지 산책하실 분 구합니다.",
+      "images": [
+        "https://example.com/posts/post1.jpg"
+      ],
+      "likes": 12,
+      "comments": [1, 2],
+      "createdAt": "2024-11-18T10:30:00Z"
+    }
+  ],
+
+  "comments": [
+    {
+      "id": 1,
+      "postId": 1,
+      "userId": 2,
+      "content": "저도 같이 산책할래요!",
+      "createdAt": "2024-11-18T12:00:00Z",
+      "replies": [1]
+    },
+    {
+      "id": 2,
+      "postId": 1,
+      "userId": 1,
+      "content": "좋아요! 연락 주세요~",
+      "createdAt": "2024-11-18T12:10:00Z"
+    }
+  ],
+
+  "replies": [
+    {
+      "id": 1,
+      "commentId": 1,
+      "userId": 1,
+      "content": "네, 오후 7시 어떠세요?",
+      "createdAt": "2024-11-18T12:05:00Z"
+    }
+  ],
+
+  "messages": [
+    {
+      "id": 1,
+      "senderId": 1,
+      "receiverId": 2,
+      "content": "산책 같이 할래요?",
+      "isRead": false,
+      "createdAt": "2024-11-18T12:30:00Z"
+    }
+  ],
+
+  "notifications": [
+    {
+      "id": 1,
+      "userId": 1,
+      "content": "새로운 댓글이 달렸습니다.",
+      "isRead": false,
+      "createdAt": "2024-11-18T13:00:00Z"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "content": "친구 요청을 받았습니다.",
+      "isRead": true,
+      "createdAt": "2024-11-18T13:15:00Z"
+    }
+  ],
+
+  "friendRequests": [
+    {
+      "id": 1,
+      "senderId": 2,
+      "receiverId": 1,
+      "status": "pending",
+      "createdAt": "2024-11-18T14:00:00Z"
+    }
+  ],
+
+  "dogs": [
+    {
+      "id": 1,
+      "userId": 1,
+      "name": "바둑이",
+      "breed": "푸들",
+      "age": 3,
+      "weight": 5,
+      "notes": "친절하고 사람을 좋아함",
+      "image": "https://example.com/dogs/dog1.jpg"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "name": "초코",
+      "breed": "골든 리트리버",
+      "age": 2,
+      "weight": 30,
+      "notes": "활발하고 친근함",
+      "image": "https://example.com/dogs/dog2.jpg"
+    }
+  ]
+}
