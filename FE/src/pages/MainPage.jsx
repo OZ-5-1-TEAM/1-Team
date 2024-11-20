@@ -2,8 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import Footer from '../components/Footer';
-import Navbar from '../components/Navbar';
 
 const MainPageWrapper = styled.div`
   padding-top: 140px;
@@ -33,7 +31,6 @@ const MainPage = () => {
       <ContentSection>
         {
           <>
-            <Navbar />
             <Header title='GAERANGMARI' />
             <MainWording />
             <MainBanner />
@@ -41,7 +38,6 @@ const MainPage = () => {
             <WeatherSection />
             <NoticeSection />
             <CustomerService />
-            <Footer />
           </>
         }
 
