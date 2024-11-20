@@ -48,12 +48,12 @@ const UserProfileCircle = styled.div`
   background-color: #ffd700;
 `;
 
-const Header = () => {
+const Header = ({ title }) => {
   const navigate = useNavigate();
 
   return (
     <HeaderContainer>
-      <CommunityTitle onClick={() => navigate('./')}>COMMUNITY</CommunityTitle>
+      <CommunityTitle onClick={() => navigate('./')}>{title}</CommunityTitle>
       <UserProfileWrapper onClick={() => navigate('./')}>
         <UserName>USER NAME</UserName>
         <UserProfileCircle />

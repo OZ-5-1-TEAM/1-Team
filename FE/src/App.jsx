@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import MainPage from './pages/MainPage';
 import Navbar from './components/Navbar';
-import Header from './components/Header';
 import Footer from './components/Footer';
 
 const theme = createTheme({
@@ -28,7 +27,6 @@ function App() {
         }}
       >
         <Navbar />
-        <Header />
         <Routes>
           <Route path='/' element={<MainPage />} />
           {/* 경로를 소문자로 통일하십쇼 */}
