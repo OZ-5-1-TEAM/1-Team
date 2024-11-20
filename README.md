@@ -135,7 +135,7 @@ npm run dev
 ## 🔄 브랜치, Commit, PR, 협업 전략
 1. 브랜치 규칙
 `main`,`develop` 브랜치는 보호된 브랜치입니다. 직접 푸시할 수 없으며, 모든 변경 사항은 **Pull Request (PR)**를 통해 병합해야 합니다.
-새로운 기능 또는 버그 수정 시, 별도의 브랜치를 생성하여 작업해주세요.
+새로운 기능 또는 버그 수정 시, 별도의 브랜치를 생성하여 작업해야 하니 생성 전 팀장한테 브랜치 생성을 요청한 뒤에 작업해주세요.
 브랜치 이름 예시: feature/기능-이름, fix/버그-수정
   
 2. Pull Request 작성 가이드
@@ -192,12 +192,10 @@ PR 생성 후 팀장의 리뷰 및 승인을 받아야 합니다.
 #### Code Convention
  - [ ] FE
    - 코드 스타일 유지를 위해 **ESLint와 Prettier**가 설정되어 있습니다.
-   - styled-Component 변수명 S + 변수명 (ex. Swrap)
+   - styled-Component 각 단어 첫번째 글짜 대문자로 나머진 소문자
    - styled-Component는 return문 위에 작성
-   - 크게는 styled-Component, 그 안에서 className 사용
    - Event handler 사용 (ex. handle ~)
    - export방식 (ex. export default ~)
-   - 화살표 함수 사용
       
  - [ ] BE
    - 패키지명 전체 소문자
