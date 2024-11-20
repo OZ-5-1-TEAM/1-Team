@@ -29,11 +29,70 @@ function MainPage() {
     <MainPageWrapper>
       <Header title='Home' />
       <ContentSection>
-        {/* 여기에 메인 컨텐츠 추가 */}
-        <p>메인 컨텐츠를 여기에 추가하세요.</p>
+        {
+          <>
+            <Header title='GAERANGMARI' />
+            <MainWording />
+            <MainBanner />
+            <CommunityList />
+            <WeatherSection />
+            <NoticeSection />
+            <CustomerService />
+          </>
+        }
+
+        <p></p>
       </ContentSection>
     </MainPageWrapper>
   );
 }
 
 export default MainPage;
+
+const MainWording = () => {
+  return (
+    <>
+      <p>Main Wording</p>
+    </>
+  );
+};
+
+const MainBanner = () => {
+  return (
+    <>
+      <p>Main Banner</p>
+    </>
+  );
+};
+
+const CommunityList = () => {
+  return (
+    <>
+      <p>Main CommunityList</p>
+    </>
+  );
+};
+
+const WeatherSection = () => {
+  return (
+    <>
+      <p>Main WeatherSection</p>
+    </>
+  );
+};
+
+const NoticeSection = () => {
+  return (
+    <>
+      <p>Main NoticeSection</p>
+    </>
+  );
+};
+
+const CustomerService = () => {
+  return (
+    <>
+      <p>Main CustomerService</p>
+    </>
+  );
+};
