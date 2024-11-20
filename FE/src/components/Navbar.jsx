@@ -37,9 +37,8 @@ const Title = styled.div`
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(location.pathname);
 
-  // BackButton을 숨길 경로를 설정
+  // BackButton을 숨길 경로를 설정(현재는 메인페이지에서만 Back 버튼 숨김)
   const hideBackButton =
     location.pathname === '/' || location.pathname === '/index.html';
 
