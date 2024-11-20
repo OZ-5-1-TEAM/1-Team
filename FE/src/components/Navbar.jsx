@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 
 const NavbarContainer = styled.nav`
@@ -36,14 +36,21 @@ const Title = styled.div`
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  console.log(location.pathname);
+
+  // BackButton을 숨길 경로를 설정
+  const hideBackButton =
+    location.pathname === '/' || location.pathname === '/index.html';
 
   return (
     <NavbarContainer>
-      <BackButton onClick={() => navigate(-1)}>{'<'} Back</BackButton>
+      {!hideBackButton && (
+        <BackButton onClick={() => navigate(-1)}>{'<'} Back</BackButton>
+      )}
       <Title onClick={() => navigate('/')}>GAERANGMARI</Title>
     </NavbarContainer>
   );
 };
 
 export default Navbar;
-``;
