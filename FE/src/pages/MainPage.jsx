@@ -2,6 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 
 const MainPageWrapper = styled.div`
   padding-top: 140px;
@@ -22,18 +24,79 @@ const ContentSection = styled.section`
   box-sizing: border-box;
 `;
 
-function MainPage() {
+const MainPage = () => {
   const navigate = useNavigate();
 
   return (
     <MainPageWrapper>
       <Header title='Home' />
       <ContentSection>
-        {/* 여기에 메인 컨텐츠 추가 */}
-        <p>메인 컨텐츠를 여기에 추가하세요.</p>
+        {
+          <>
+            <Navbar />
+            <Header title='GAERANGMARI' />
+            <MainWording />
+            <MainBanner />
+            <CommunityList />
+            <WeatherSection />
+            <NoticeSection />
+            <CustomerService />
+            <Footer />
+          </>
+        }
+
+        <p></p>
       </ContentSection>
     </MainPageWrapper>
   );
-}
+};
 
 export default MainPage;
+
+const MainWording = () => {
+  return (
+    <>
+      <p>Main Wording Component</p>
+    </>
+  );
+};
+
+const MainBanner = () => {
+  return (
+    <>
+      <p>Main Banner Component</p>
+    </>
+  );
+};
+
+const CommunityList = () => {
+  return (
+    <>
+      <p>Main CommunityList Component</p>
+    </>
+  );
+};
+
+const WeatherSection = () => {
+  return (
+    <>
+      <p>Main WeatherSection Component</p>
+    </>
+  );
+};
+
+const NoticeSection = () => {
+  return (
+    <>
+      <p>Main NoticeSection Component</p>
+    </>
+  );
+};
+
+const CustomerService = () => {
+  return (
+    <>
+      <p>Main CustomerService Component</p>
+    </>
+  );
+};
