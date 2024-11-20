@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 
 const MainPageWrapper = styled.div`
   padding-top: 140px;
@@ -26,6 +27,7 @@ function MainPage() {
 
   return (
     <MainPageWrapper>
+      <Header title='Home' />
       <ContentSection>
         {/* 여기에 메인 컨텐츠 추가 */}
         <p>메인 컨텐츠를 여기에 추가하세요.</p>
