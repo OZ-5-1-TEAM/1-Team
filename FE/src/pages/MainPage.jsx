@@ -22,7 +22,7 @@ const ContentSection = styled.section`
   box-sizing: border-box;
 `;
 
-const MainPage = () => {
+function MainPage() {
   const navigate = useNavigate();
 
   return (
@@ -45,7 +45,7 @@ const MainPage = () => {
       </ContentSection>
     </MainPageWrapper>
   );
-};
+}
 
 export default MainPage;
 
