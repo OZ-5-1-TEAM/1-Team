@@ -56,7 +56,7 @@ export default MainPage;
 const MainWording = () => {
   return (
     <>
-      <p>Main Wording Component</p>
+      <p>Main Wording</p>
     </>
   );
 };
@@ -64,7 +64,7 @@ const MainWording = () => {
 const MainBanner = () => {
   return (
     <>
-      <p>Main Banner Component</p>
+      <p>Main Banner</p>
     </>
   );
 };
@@ -72,7 +72,7 @@ const MainBanner = () => {
 const CommunityList = () => {
   return (
     <>
-      <p>Main CommunityList Component</p>
+      <p>Main CommunityList</p>
     </>
   );
 };
@@ -80,7 +80,7 @@ const CommunityList = () => {
 const WeatherSection = () => {
   return (
     <>
-      <p>Main WeatherSection Component</p>
+      <p>Main WeatherSection</p>
     </>
   );
 };
@@ -88,7 +88,7 @@ const WeatherSection = () => {
 const NoticeSection = () => {
   return (
     <>
-      <p>Main NoticeSection Component</p>
+      <p>Main NoticeSection</p>
     </>
   );
 };
@@ -96,7 +96,7 @@ const NoticeSection = () => {
 const CustomerService = () => {
   return (
     <>
-      <p>Main CustomerService Component</p>
+      <p>Main CustomerService</p>
     </>
   );
 };
