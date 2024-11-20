@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import dog1 from '../assets/images/강아지1.jpg';
+import dog2 from '../assets/images/강아지2.jpg';
+import dog3 from '../assets/images/강아지3.jpg';
+import dog4 from '../assets/images/강아지4.jpg';
 
 const MainPageWrapper = styled.div`
   padding-top: 140px;
@@ -36,6 +40,31 @@ const BannerContainer = styled.section`
 const Wording = styled.div`
   text-align: center;
   font-size: 17px;
+`;
+
+const SlideImageContainer = styled.div`
+  width: 550px;
+  height: 250px;
+  margin: 10px auto;
+  overflow: hidden;
+  position: relative;
+`;
+
+const SlideTrack = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'imagePosition',
+})`
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  transform: translateX(${(props) => props.imagePosition}%);
+`;
+
+const SlideImage = styled.img`
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  object-fit: cover;
+  object-position: bottom;
+  border-radius: 10px;
 `;
 
 function MainPage() {
@@ -94,7 +123,30 @@ const MainWording = () => {
 };
 
 const MainBanner = () => {
-  return <></>;
+  const images = [dog1, dog2, dog3, dog4];
+
+  const [imageIndex, setImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  const imagePosition = -imageIndex * 100;
+
+  return (
+    <>
+      <SlideImageContainer>
+        <SlideTrack imagePosition={imagePosition}>
+          {images.map((image, i) => (
+            <SlideImage key={i} src={image} alt={`Slide ${i + 1}`}></SlideImage>
+          ))}
+        </SlideTrack>
+      </SlideImageContainer>
+    </>
+  );
 };
 
 const CommunityList = () => {
