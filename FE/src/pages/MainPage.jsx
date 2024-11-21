@@ -56,6 +56,8 @@ const SlideTrack = styled.div.withConfig({
   display: flex;
   transition: transform 0.5s ease-in-out;
   transform: translateX(${(props) => props.imagePosition}%);
+  will-change: transform;
+  //브라우저가 transform 속성의 변경을 예상하고 성능 최적화를 미리 준비하도록 돕는 CSS 속성 추가
 `;
 
 const SlideImage = styled.img`
@@ -65,6 +67,62 @@ const SlideImage = styled.img`
   object-fit: cover;
   object-position: bottom;
   border-radius: 10px;
+`;
+
+const CommunityHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin-bottom: 20px 0px 15px 0px;
+`;
+
+const CommunityTitle = styled.h2`
+  font-size: 22px;
+  font-weight: bold;
+  color: #ff9900;
+  margin: 10px;
+  cursor: pointer;
+`;
+
+const CommunityArrow = styled.div`
+  font-size: 22px;
+  font-weight: bold;
+  color: #ff9900;
+  cursor: pointer;
+`;
+
+const CommunityItem = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f9f9f9;
+  }
+`;
+
+const CommunityIcon = styled.div`
+  width: 50px;
+  height: 50px;
+  background-color: #eee;
+  border-radius: 5px;
+  margin-right: 15px;
+`;
+
+const CommunityCategory = styled.p`
+  font-size: 11px;
+  color: #dfa700;
+  margin: 0;
+`;
+
+const CommunityPostTitle = styled.p`
+  font-size: 17px;
+  color: #8f8e94;
+  margin: 5px 0 0 0;
 `;
 
 function MainPage() {
@@ -141,7 +199,12 @@ const MainBanner = () => {
       <SlideImageContainer>
         <SlideTrack imagePosition={imagePosition}>
           {images.map((image, i) => (
-            <SlideImage key={i} src={image} alt={`Slide ${i + 1}`}></SlideImage>
+            <SlideImage
+              key={i}
+              src={image}
+              alt={`강아지 사진 ${i + 1}`}
+              //강아지 사진 설명 수정 alt slide -> '강아지 사진'
+            ></SlideImage>
           ))}
         </SlideTrack>
       </SlideImageContainer>
@@ -149,10 +212,38 @@ const MainBanner = () => {
   );
 };
 
+// community 섹션 추가(정적 데이터)
 const CommunityList = () => {
+  const navigate = useNavigate();
+
+  const communities = [
+    { id: 1, category: 'COMMUNITY NAME', postTitle: 'TITLE', path: '/post/1' },
+    { id: 2, category: 'COMMUNITY NAME', postTitle: 'TITLE', path: '/post/2' },
+    { id: 3, category: 'COMMUNITY NAME', postTitle: 'TITLE', path: '/post/3' },
+  ];
+
   return (
     <>
-      <p>Main CommunityList</p>
+      <CommunityHeader>
+        <CommunityTitle onClick={() => navigate('/community')}>
+          커뮤니티
+        </CommunityTitle>
+        <CommunityArrow onClick={() => navigate('/community')}>
+          ›
+        </CommunityArrow>
+      </CommunityHeader>
+      {communities.map((community) => (
+        <CommunityItem
+          key={community.id}
+          onClick={() => navigate(community.path)}
+        >
+          <CommunityIcon />
+          <div>
+            <CommunityCategory>{community.category}</CommunityCategory>
+            <CommunityPostTitle>{community.postTitle}</CommunityPostTitle>
+          </div>
+        </CommunityItem>
+      ))}
     </>
   );
 };
