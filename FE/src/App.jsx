@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import MainPage from './pages/MainPage';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import NoticePage from './pages/NoticePage';
 
 const theme = createTheme({
   palette: {
@@ -29,6 +30,7 @@ function App() {
         <Navbar />
         <Routes>
           <Route path='/' element={<MainPage />} />
+          <Route path='/notice' element={<NoticePage />} />
           {/* 경로를 소문자로 통일하십쇼 */}
           {/* 예시) path부분 소문자 통일 <Route path="/community" element={<Community />} /> */}
         </Routes>
