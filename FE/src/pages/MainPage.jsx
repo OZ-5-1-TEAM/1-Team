@@ -8,6 +8,7 @@ import dog3 from '../assets/images/강아지3.jpg';
 import dog4 from '../assets/images/강아지4.jpg';
 
 const MainPageWrapper = styled.div`
+  box-sizing: border-box;
   padding-top: 140px;
   width: 600px;
   height: 1200px;
@@ -15,7 +16,6 @@ const MainPageWrapper = styled.div`
   flex-direction: column;
   margin: 0 auto;
   background-color: #ffffff;
-  padding-bottom: 63px;
 `;
 
 const ContentSection = styled.section`
@@ -28,18 +28,20 @@ const ContentSection = styled.section`
 
 const BannerContainer = styled.section`
   width: 100%;
-  padding: 10px 10px;
+  padding: 10px;
   background-color: #fff8e1;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  border-radius: 20px;
+  border-radius: 10px;
 `;
 
 const Wording = styled.div`
   text-align: center;
+  font-weight: bold;
   font-size: 17px;
+  align-items: center;
+  color: #ff9900;
 `;
 
 const SlideImageContainer = styled.div`
@@ -74,14 +76,14 @@ const CommunityHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  margin-bottom: 20px 0px 15px 0px;
+  margin: 0px;
 `;
 
 const CommunityTitle = styled.h2`
   font-size: 22px;
   font-weight: bold;
   color: #ff9900;
-  margin: 10px;
+  margin: 5px;
   cursor: pointer;
 `;
 
@@ -129,6 +131,137 @@ const CommunityPostTitle = styled.p`
   margin: 5px 0 0 0;
 `;
 
+const WeatherContainer = styled.section`
+  margin: 20px;
+  padding: 10px;
+  cursor: pointer;
+  background-color: #fff8e1;
+  border-radius: 10px;
+  transition: transform 0.2s ease;
+  &:hover {
+    transform: scale(1.02);
+  }
+`;
+
+const Title = styled.h2`
+  font-size: 22px;
+  font-weight: bold;
+  color: #ff9900;
+  margin: 10px;
+`;
+
+const WeatherInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+`;
+
+const WeatherRow = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const WeatherIcon = styled.span`
+  color: #ff9900;
+  font-size: 30px;
+  margin-right: 10px;
+`;
+
+const Temperature = styled.span`
+  font-size: 22px;
+  font-weight: bold;
+  color: #ff9900;
+  margin-right: 10px;
+`;
+
+const Description = styled.span`
+  font-size: 17px;
+  font-weight: bold;
+  color: #ff9900;
+`;
+
+const NoticeHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin: 0px;
+`;
+
+const NoticeTitle = styled.h2`
+  font-size: 22px;
+  font-weight: bold;
+  color: #ff9900;
+  margin: 5px;
+  cursor: pointer;
+`;
+
+const NoticeArrow = styled.div`
+  font-size: 22px;
+  font-weight: bold;
+  color: #ff9900;
+  cursor: pointer;
+`;
+
+const NoticePostItem = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f9f9f9;
+  }
+`;
+
+const NoticeIcon = styled.div`
+  width: 50px;
+  height: 50px;
+  background-color: #eee;
+  border-radius: 5px;
+  margin-right: 15px;
+  background-image: url('/placeholder-image.png'); /* 기본 이미지 설정 */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+`;
+
+const NoticePostTitle = styled.p`
+  font-size: 17px;
+  color: #8f8e94;
+  margin: 5px 0 0 0;
+`;
+
+const NoticeDate = styled.p`
+  font-size: 11px;
+  color: #dfa700;
+  margin: 0;
+`;
+
+const CustomerServiceHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin: 5px 0 0 0;
+  cursor: pointer;
+`;
+
+const CustomerServiceTitle = styled.h2`
+  font-size: 22px;
+  font-weight: bold;
+  color: #ff9900;
+  margin: 10px;
+`;
+
+const CustomerServiceArrow = styled.div`
+  font-size: 22px;
+  font-weight: bold;
+  color: #ff9900;
+`;
+
 function MainPage() {
   const navigate = useNavigate();
 
@@ -141,7 +274,7 @@ function MainPage() {
         <CommunityList />
         <WeatherSection />
         <NoticeSection />
-        <CustomerService />
+        <CustomerServiceSection />
       </ContentSection>
     </MainPageWrapper>
   );
@@ -253,25 +386,102 @@ const CommunityList = () => {
 };
 
 const WeatherSection = () => {
+  const navigate = useNavigate();
+
+  const [weather, setWeather] = useState({
+    temperature: 21,
+    condition: 'CLEAR',
+    recommendation: '날씨 정보를 가져오는 중입니다...',
+    icon: '☀️',
+  });
+
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      try {
+        const response = await fetch('/api/weather');
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          const weatherData = data.data.weather;
+          const { recommendation, icon } = getWalkingRecommendation(
+            weatherData.condition,
+            weatherData.rainProbability,
+            weatherData.fineDust
+          );
+
+          setWeather({
+            temperature: weatherData.temperature,
+            condition: weatherData.condition,
+            recommendation,
+            icon,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch weather data:', error);
+        setWeather({
+          temperature: '-',
+          condition: 'UNKNOWN',
+          recommendation: '날씨 정보를 가져오는 데 실패했습니다.',
+          icon: '❌',
+        });
+      }
+    };
+
+    fetchWeatherData();
+  }, []);
+
   return (
-    <>
-      <p>Main WeatherSection</p>
-    </>
+    <WeatherContainer onClick={() => navigate('/weather')}>
+      <Title>날씨</Title>
+      <WeatherInfo>
+        <WeatherRow>
+          <WeatherIcon>{weather.icon}</WeatherIcon>
+          <Temperature>
+            {weather.temperature ? `${weather.temperature}°C` : '-'}
+          </Temperature>
+          <Description>{weather.recommendation}</Description>
+        </WeatherRow>
+      </WeatherInfo>
+    </WeatherContainer>
   );
 };
 
 const NoticeSection = () => {
+  const navigate = useNavigate();
+
+  const notices = [
+    { id: 1, date: 'yyyy - mm - dd', postTitle: 'TITLE', path: '/notice/1' },
+    { id: 2, date: 'yyyy - mm - dd', postTitle: 'TITLE', path: '/notice/2' },
+  ];
+
   return (
     <>
-      <p>Main NoticeSection</p>
+      <NoticeHeader>
+        <NoticeTitle onClick={() => navigate('/notice')}>공지사항</NoticeTitle>
+        <NoticeArrow onClick={() => navigate('/notice')}>›</NoticeArrow>
+      </NoticeHeader>
+      {notices.map((notice) => (
+        <NoticePostItem key={notice.id} onClick={() => navigate(notice.path)}>
+          <NoticeIcon />
+          <div>
+            <NoticePostTitle>{notice.postTitle}</NoticePostTitle>
+            <NoticeDate>{notice.date}</NoticeDate>
+          </div>
+        </NoticePostItem>
+      ))}
     </>
   );
 };
 
-const CustomerService = () => {
+const CustomerServiceSection = () => {
+  const navigate = useNavigate();
+
   return (
     <>
-      <p>Main CustomerService</p>
+      <CustomerServiceHeader onClick={() => navigate('/customerservice')}>
+        <CustomerServiceTitle>고객센터</CustomerServiceTitle>
+        <CustomerServiceArrow>›</CustomerServiceArrow>
+      </CustomerServiceHeader>
     </>
   );
 };
