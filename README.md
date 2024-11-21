@@ -144,10 +144,17 @@ npm run dev
 ## 🔄 브랜치, Commit, PR, 협업 전략
 
 1. 브랜치 규칙
+<<<<<<< HEAD
    `main`,`develop` 브랜치는 보호된 브랜치입니다. 직접 푸시할 수 없으며, 모든 변경 사항은 **Pull Request (PR)**를 통해 병합해야 합니다.
    새로운 기능 또는 버그 수정 시, 별도의 브랜치를 생성하여 작업해주세요.
    브랜치 이름 예시: feature/기능-이름, fix/버그-수정
 
+=======
+`main`,`develop` 브랜치는 보호된 브랜치입니다. 직접 푸시할 수 없으며, 모든 변경 사항은 **Pull Request (PR)**를 통해 병합해야 합니다.
+새로운 기능 또는 버그 수정 시, 별도의 브랜치를 생성하여 작업해야 하니 생성 전 팀장한테 브랜치 생성을 요청한 뒤에 작업해주세요.
+브랜치 이름 예시: feature/기능-이름, fix/버그-수정
+  
+>>>>>>> 660dc4f381e49aa5aeb071158fda5fb2dcc6a339
 2. Pull Request 작성 가이드
    새로운 브랜치에서 작업 후, `develop` 브랜치로 PR을 생성합니다.
    PR 제목 및 설명을 명확하게 작성하고, 필요한 경우 관련된 이슈 번호를 참조하세요.
@@ -206,6 +213,28 @@ npm run dev
 - [ ] `CHORE`: 기타 작업
 
 #### Code Convention
+<<<<<<< HEAD
+=======
+ - [ ] FE
+   - 코드 스타일 유지를 위해 **ESLint와 Prettier**가 설정되어 있습니다.
+   - styled-Component 각 단어 첫번째 글짜 대문자로 나머진 소문자
+   - styled-Component는 return문 위에 작성
+   - Event handler 사용 (ex. handle ~)
+   - export방식 (ex. export default ~)
+      
+ - [ ] BE
+   - 패키지명 전체 소문자
+   - 클래스명, 인터페이스명 CamelCase
+   - 클래스 이름 명사 사용
+   - 상수명 SNAKE_CASE
+   - Controller, Service, Dto, Repository, mapper 앞에 접미사로 통일(ex. MemberController)
+   - service 계층 메서드명 create, update, find, delete로 CRUD 통일(ex. createMember)
+   - Test 클래스는 접미사로 Test 사용(ex. memberFindTest)
+      
+#### Communication Rules
+ - Discord 활용
+ - 정기 회의
+>>>>>>> 660dc4f381e49aa5aeb071158fda5fb2dcc6a339
 
 - [ ] FE
   - 코드 스타일 유지를 위해 **ESLint와 Prettier**가 설정되어 있습니다.
