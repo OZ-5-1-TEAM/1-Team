@@ -111,6 +111,10 @@ const CommunityIcon = styled.div`
   background-color: #eee;
   border-radius: 5px;
   margin-right: 15px;
+  background-image: url('/placeholder-image.png'); /* 기본 이미지 설정 */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 `;
 
 const CommunityCategory = styled.p`
