@@ -1,8 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import process from 'process';
 
 export default defineConfig(({ mode }) => {
   const branch = process.env.VITE_BRANCH || 'default'; // .env에서 브랜치 읽기
+
+  console.log(`Current mode: ${mode}`);
 
   return {
     plugins: [react()],
