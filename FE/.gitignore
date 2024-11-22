@@ -1,6 +1,11 @@
 # Node modules
 node_modules/
 
+# 환경 설정 파일 무시
+.env
+.env.main
+.env.*
+
 # Logs
 logs
 *.log
@@ -13,6 +18,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-main
+dist-develop
 *.local
 
 # Editor directories and files
