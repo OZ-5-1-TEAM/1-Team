@@ -385,14 +385,72 @@ const CommunityList = () => {
   );
 };
 
+const getWalkingRecommendation = (
+  condition,
+  rainProbability,
+  fineDust,
+  temperature
+) => {
+  let recommendation = '';
+  let icon = '';
+
+  if (
+    rainProbability > 70 ||
+    condition === 'THUNDERSTORM' ||
+    condition === 'HEAVY RAIN'
+  ) {
+    recommendation = '⛈️ 폭우가 내리고 있어 산책하기 적합하지 않은 날씨입니다.';
+    icon = '/icons/storm.png';
+  } else if (condition === 'RAIN') {
+    recommendation = '🌧️ 비가 와서 산책을 피하는 것이 좋습니다.';
+    icon = '/icons/rainy.png';
+  } else if (fineDust === 'VERY BAD') {
+    recommendation = '😷 미세먼지가 매우 나빠서 외출을 자제하세요.';
+    icon = '/icons/very-dusty.png';
+  } else if (fineDust === 'BAD') {
+    recommendation = '😷 미세먼지가 나빠 산책을 자제하는 것이 좋습니다.';
+    icon = '/icons/dusty.png';
+  } else if (temperature < 0) {
+    recommendation = '❄️ 기온이 매우 낮아 산책하기 적합하지 않습니다.';
+    icon = '/icons/cold.png';
+  } else if (temperature > 35) {
+    recommendation =
+      '🔥 너무 더운 날씨입니다. 산책 시 충분히 수분을 섭취하세요.';
+    icon = '/icons/hot.png';
+  } else if (condition === 'CLEAR') {
+    recommendation = '☀️ 맑고 따뜻한 날씨입니다. 산책하기 좋습니다.';
+    icon = '/icons/sunny.png';
+  } else if (condition === 'PARTLY CLOUDY') {
+    recommendation = '🌤️ 약간의 구름이 있지만 산책하기 좋은 날씨입니다.';
+    icon = '/icons/partly-cloudy.png';
+  } else if (condition === 'CLOUDY') {
+    recommendation = '🌥️ 흐린 날씨이지만 산책하기 무리는 없습니다.';
+    icon = '/icons/cloudy.png';
+  } else if (condition === 'FOG') {
+    recommendation = '🌫️ 안개가 끼어 있어 시야가 제한됩니다. 주의하세요.';
+    icon = '/icons/fog.png';
+  } else if (condition === 'SNOW') {
+    recommendation = '❄️ 눈이 내려 산책에 주의가 필요합니다.';
+    icon = '/icons/snow.png';
+  } else if (condition === 'DRIZZLE') {
+    recommendation = '🌦️ 가벼운 이슬비가 내립니다. 우산을 챙기세요.';
+    icon = '/icons/drizzle.png';
+  } else {
+    recommendation = '날씨 정보를 기준으로 산책 여부를 판단하세요.';
+    icon = '/icons/default.png';
+  }
+
+  return { recommendation, icon };
+};
+
 const WeatherSection = () => {
   const navigate = useNavigate();
 
   const [weather, setWeather] = useState({
-    temperature: 21,
-    condition: 'CLEAR',
+    temperature: null,
+    condition: null,
     recommendation: '날씨 정보를 가져오는 중입니다...',
-    icon: '☀️',
+    icon: '',
   });
 
   useEffect(() => {
