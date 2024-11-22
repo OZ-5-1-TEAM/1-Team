@@ -1,0 +1,72 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Github Repository 파일 불러오기
+        uses: actions/checkout@v4
+
+      - name: 의존성 설치
+        run: npm i
+
+      - name: Repository 파일 확인해보려고 출력하기(테스트)
+        run: ls
+
+      - name: 브랜치에 따라 배포
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            npm run build:main
+          elif [ "${{ github.ref_name }}" == "develop" ]; then
+            npm run build:develop
+          else
+            echo "This branch is not configured for deployment."
+            exit 1
+          fi
+
+      - name: Debugging(테스트)
+        run: |
+          ls
+          echo "---------------"
+          cd build
+          ls
+
+      - name: AWS Resource에 접근할 수 있게 AWS 인증 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: 브랜치에 따라 S3 버킷 및 CloudFront 설정 구분
+        run: |
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            echo "BUCKET_NAME=gaerangmari-main-1" >> $GITHUB_ENV
+            echo "CLOUDFRONT_ID=E27HZBOHMBCFR2" >> $GITHUB_ENV
+            BUILD_DIR=dist-main
+          elif [ "${{ github.ref_name }}" == "develop" ]; then
+            echo "BUCKET_NAME=gaerangmari-dev-1" >> $GITHUB_ENV
+            echo "CLOUDFRONT_ID=E2YJSDG99LGPL7" >> $GITHUB_ENV
+            BUILD_DIR=dist-develop
+          else
+            echo "This branch is not configured for deployment."
+            exit 1
+          fi
+          echo "BUILD_DIR=$BUILD_DIR" >> $GITHUB_ENV
+
+      - name: S3 기존 파일들 전체 삭제
+        run: aws s3 rm --recursive s3://$BUCKET_NAME
+
+      - name: S3에 빌드된 파일 업로드
+        run: aws s3 cp ./$BUILD_DIR s3://$BUCKET_NAME/ --recursive
+
+      - name: CloudFront 캐시 무효화
+        run:
+          aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID
+          --paths "/*"
