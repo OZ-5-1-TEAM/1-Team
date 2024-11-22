@@ -82,21 +82,21 @@ const NoticeList = () => {
   const notices = [
     {
       id: 1,
-      category: 'YYYY-MM-DD',
+      date: 'YYYY-MM-DD',
       postTitle: 'TITLE',
       postContent: 'content preview',
       path: '/notice/1',
     },
     {
       id: 2,
-      category: 'YYYY-MM-DD',
+      date: 'YYYY-MM-DD',
       postTitle: 'TITLE',
       postContent: 'content preview',
       path: '/notice/2',
     },
     {
       id: 3,
-      category: 'YYYY-MM-DD',
+      date: 'YYYY-MM-DD',
       postTitle: 'TITLE',
       postContent: 'content preview',
       path: '/notice/3',
@@ -110,7 +110,7 @@ const NoticeList = () => {
           <NoticeIcon />
           <div>
             <NoticePostTitle>{notice.postTitle}</NoticePostTitle>
-            <NoticeDate>{notice.category}</NoticeDate>
+            <NoticeDate>{notice.date}</NoticeDate>
             <NoticePostContent>{notice.postContent}</NoticePostContent>
           </div>
         </NoticePostItem>
