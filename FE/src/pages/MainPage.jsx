@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import dog1 from '../assets/images/강아지1.jpg';
-import dog2 from '../assets/images/강아지2.jpg';
-import dog3 from '../assets/images/강아지3.jpg';
-import dog4 from '../assets/images/강아지4.jpg';
 
 const MainPageWrapper = styled.div`
   box-sizing: border-box;
@@ -77,6 +73,7 @@ const CommunityHeader = styled.div`
   justify-content: space-between;
   padding: 0 20px;
   margin: 0px;
+  cursor: pointer;
 `;
 
 const CommunityTitle = styled.h2`
@@ -84,14 +81,12 @@ const CommunityTitle = styled.h2`
   font-weight: bold;
   color: #ff9900;
   margin: 5px;
-  cursor: pointer;
 `;
 
 const CommunityArrow = styled.div`
   font-size: 22px;
   font-weight: bold;
   color: #ff9900;
-  cursor: pointer;
 `;
 
 const CommunityItem = styled.div`
@@ -186,6 +181,7 @@ const NoticeHeader = styled.div`
   justify-content: space-between;
   padding: 0 20px;
   margin: 0px;
+  cursor: pointer;
 `;
 
 const NoticeTitle = styled.h2`
@@ -193,14 +189,12 @@ const NoticeTitle = styled.h2`
   font-weight: bold;
   color: #ff9900;
   margin: 5px;
-  cursor: pointer;
 `;
 
 const NoticeArrow = styled.div`
   font-size: 22px;
   font-weight: bold;
   color: #ff9900;
-  cursor: pointer;
 `;
 
 const NoticePostItem = styled.div`
@@ -318,7 +312,12 @@ const MainWording = () => {
 };
 
 const MainBanner = () => {
-  const images = [dog1, dog2, dog3, dog4];
+  const images = [
+    '/banner_image/강아지1.jpg',
+    '/banner_image/강아지2.jpg',
+    '/banner_image/강아지3.jpg',
+    '/banner_image/강아지4.jpg',
+  ];
 
   const [imageIndex, setImageIndex] = useState(0);
 
@@ -361,13 +360,9 @@ const CommunityList = () => {
 
   return (
     <>
-      <CommunityHeader>
-        <CommunityTitle onClick={() => navigate('/community')}>
-          커뮤니티
-        </CommunityTitle>
-        <CommunityArrow onClick={() => navigate('/community')}>
-          ›
-        </CommunityArrow>
+      <CommunityHeader onClick={() => navigate('/community')}>
+        <CommunityTitle>커뮤니티</CommunityTitle>
+        <CommunityArrow>›</CommunityArrow>
       </CommunityHeader>
       {communities.map((community) => (
         <CommunityItem
@@ -400,44 +395,41 @@ const getWalkingRecommendation = (
     condition === 'HEAVY RAIN'
   ) {
     recommendation = '⛈️ 폭우가 내리고 있어 산책하기 적합하지 않은 날씨입니다.';
-    icon = '/icons/storm.png';
+    icon = '/weather/storm.png';
   } else if (condition === 'RAIN') {
     recommendation = '🌧️ 비가 와서 산책을 피하는 것이 좋습니다.';
-    icon = '/icons/rainy.png';
+    icon = '/weather/rainy.png';
   } else if (fineDust === 'VERY BAD') {
     recommendation = '😷 미세먼지가 매우 나빠서 외출을 자제하세요.';
-    icon = '/icons/very-dusty.png';
+    icon = '/weather/dusty.png';
   } else if (fineDust === 'BAD') {
     recommendation = '😷 미세먼지가 나빠 산책을 자제하는 것이 좋습니다.';
-    icon = '/icons/dusty.png';
+    icon = '/weather/dusty.png';
   } else if (temperature < 0) {
     recommendation = '❄️ 기온이 매우 낮아 산책하기 적합하지 않습니다.';
-    icon = '/icons/cold.png';
+    icon = '/weather/cold.png';
   } else if (temperature > 35) {
     recommendation =
       '🔥 너무 더운 날씨입니다. 산책 시 충분히 수분을 섭취하세요.';
-    icon = '/icons/hot.png';
+    icon = '/weather/hot.png';
   } else if (condition === 'CLEAR') {
     recommendation = '☀️ 맑고 따뜻한 날씨입니다. 산책하기 좋습니다.';
-    icon = '/icons/sunny.png';
+    icon = '/weather/sunny.png';
   } else if (condition === 'PARTLY CLOUDY') {
     recommendation = '🌤️ 약간의 구름이 있지만 산책하기 좋은 날씨입니다.';
-    icon = '/icons/partly-cloudy.png';
+    icon = '/weather/partly cloudy.png';
   } else if (condition === 'CLOUDY') {
     recommendation = '🌥️ 흐린 날씨이지만 산책하기 무리는 없습니다.';
-    icon = '/icons/cloudy.png';
-  } else if (condition === 'FOG') {
-    recommendation = '🌫️ 안개가 끼어 있어 시야가 제한됩니다. 주의하세요.';
-    icon = '/icons/fog.png';
+    icon = '/weather/cloudy.png';
   } else if (condition === 'SNOW') {
     recommendation = '❄️ 눈이 내려 산책에 주의가 필요합니다.';
-    icon = '/icons/snow.png';
+    icon = '/weather/snow.png';
   } else if (condition === 'DRIZZLE') {
     recommendation = '🌦️ 가벼운 이슬비가 내립니다. 우산을 챙기세요.';
-    icon = '/icons/drizzle.png';
+    icon = '/weather/drizzle.png';
   } else {
     recommendation = '날씨 정보를 기준으로 산책 여부를 판단하세요.';
-    icon = '/icons/default.png';
+    icon = '/weather/default.png';
   }
 
   return { recommendation, icon };
@@ -514,9 +506,9 @@ const NoticeSection = () => {
 
   return (
     <>
-      <NoticeHeader>
-        <NoticeTitle onClick={() => navigate('/notice')}>공지사항</NoticeTitle>
-        <NoticeArrow onClick={() => navigate('/notice')}>›</NoticeArrow>
+      <NoticeHeader onClick={() => navigate('/notice')}>
+        <NoticeTitle>공지사항</NoticeTitle>
+        <NoticeArrow>›</NoticeArrow>
       </NoticeHeader>
       {notices.map((notice) => (
         <NoticePostItem key={notice.id} onClick={() => navigate(notice.path)}>

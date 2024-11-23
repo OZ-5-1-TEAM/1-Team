@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import NoticePage from './pages/NoticePage';
 import StartPage from './pages/StartPage';
+import WeatherPage from './pages/WeatherPage';
 
 const theme = createTheme({
   palette: {
@@ -32,6 +33,7 @@ function App() {
           <Route path='/' element={<MainPage />} />
           <Route path='/notice' element={<NoticePage />} />
           <Route path='/start' element={<StartPage />} />
+          <Route path='/weather' element={<WeatherPage />} />
           {/* 경로를 소문자로 통일하십쇼 */}
           {/* 예시) path부분 소문자 통일 <Route path="/community" element={<Community />} /> */}
         </Routes>
