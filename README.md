@@ -271,6 +271,12 @@ npm -v
 npm run dev
 ```
 
+추가 설치 명령어
+
+```bash
+npm install @mui/material @emotion/react @emotion/styled
+```
+
 ---
 
 ## 👥 팀원 가이드
