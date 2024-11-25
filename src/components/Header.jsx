@@ -1,4 +1,4 @@
-// Header.jsx
+// Header
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
@@ -15,8 +15,9 @@ const HeaderContainer = styled.header`
   background-color: #f8f8f8;
   position: fixed;
   top: 70px;
-  left: 50%;
-  transform: translateX(-50%);
+  margin: 0 auto;
+  left: 0;
+  right: 0;
   z-index: 100;
 `;
 
