@@ -1,0 +1,49 @@
+name: Github Actions 실행
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Github Repository 파일 불러오기
+        uses: actions/checkout@v4
+
+      - name: 의존성 설치
+        run: npm i
+
+      - name: Repository 파일 확인해보려고 출력하기
+        run: ls
+
+      - name: 빌드하기
+        run: npm run build:develop
+
+      - name: 빌드 결과 확인
+        run: |
+          echo "현재 디렉토리 파일 확인:"
+          ls
+          echo "-----------------------"
+          echo "dist-develop 디렉토리 내용 확인:"
+          cd dist-develop
+          ls
+
+      - name: AWS Resource에 접근할 수 있게 AWS 인증 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: S3 기존 파일들 전체 삭제
+        run: aws s3 rm --recursive s3://gaerangmari-dev-1
+
+      - name: S3에 빌드된 파일 업로드하기
+        run: aws s3 cp ./build s3://gaerangmari-dev-1 / --recursive
+
+      - name: Cloudfront 캐시 무효화
+        run:
+          aws cloudfront create-invalidation --distribution-id E2YJSDG99LGPL7
+          --paths "/*"

@@ -20,7 +20,6 @@ dist
 dist-ssr
 dist-main
 dist-develop
-dist-devel
 *.local
 
 # Editor directories and files
