@@ -41,7 +41,7 @@ jobs:
         run: aws s3 rm --recursive s3://gaerangmari-dev-1
 
       - name: S3에 빌드된 파일 업로드하기
-        run: aws s3 cp ./build s3://gaerangmari-dev-1 / --recursive
+        run: aws s3 cp ./dist-develop s3://gaerangmari-dev-1 --recursive
 
       - name: Cloudfront 캐시 무효화
         run:
