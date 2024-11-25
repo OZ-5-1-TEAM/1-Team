@@ -22,11 +22,13 @@ jobs:
       - name: 빌드하기
         run: npm run build:develop
 
-      - name: Debugging
+      - name: 빌드 결과 확인
         run: |
+          echo "현재 디렉토리 파일 확인:"
           ls
-          echo "---------------"
-          cd build
+          echo "-----------------------"
+          echo "dist-develop 디렉토리 내용 확인:"
+          cd dist-develop
           ls
 
       - name: AWS Resource에 접근할 수 있게 AWS 인증 설정
@@ -36,7 +38,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: S3 기존 파일들 전체 삭제 # //뒤에 S3 버킷명 적기
+      - name: S3 기존 파일들 전체 삭제
         run: aws s3 rm --recursive s3://gaerangmari-dev-1
 
       - name: S3에 빌드된 파일 업로드하기
