@@ -1,10 +1,10 @@
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 
-const FooterBar = styled.footer`
+const FooterBar = styled.nav`
   position: fixed;
   bottom: 0;
-  width: 600px;
+  width: 100%;
   max-width: 600px;
   height: 60px;
   margin: 0 auto;
@@ -15,17 +15,20 @@ const FooterBar = styled.footer`
   align-items: center;
   left: 0;
   right: 0;
-  overflow: hidden;
+  z-index: 100;
 `;
 
-const FooterItemWrapper = styled.div`
+const FooterItemWrapper = styled.button`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex: 1;
   max-width: 150px;
+  background: none;
+  border: none;
   cursor: pointer;
+  outline: none;
 `;
 
 const FooterCircle = styled.div`
@@ -61,7 +64,11 @@ const Footer = () => {
   return (
     <FooterBar>
       {menuItems.map((item) => (
-        <FooterItemWrapper key={item.id} onClick={() => navigate(item.path)}>
+        <FooterItemWrapper
+          key={item.id}
+          onClick={() => navigate(item.path)}
+          aria-label={item.label}
+        >
           <FooterCircle $isActive={item.id === currentPageId} />
           <FooterLabel>{item.label}</FooterLabel>
         </FooterItemWrapper>
