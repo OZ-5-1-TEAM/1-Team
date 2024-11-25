@@ -6,8 +6,11 @@ const MainPageWrapper = styled.div`
   padding-top: 140px;
   width: 100%;
   max-width: 600px;
+  height: 100vh;
+  display: flex;
   margin: 0 auto;
   background-color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding-bottom: 63px;
   position: relative;
 `;
@@ -95,13 +98,14 @@ const DetailItem = styled.div`
 
 const Recommendation = styled.p`
   margin-top: 20px;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: bold;
   color: #ff7f50;
   background-color: #fffdf5;
   border-radius: 10px;
   padding: 15px;
   border: 2px #ffd591;
+  margin: 30px;
   border-style: solid;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
   transition: all 0.3s ease-in-out;

@@ -4,14 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 
 const MainPageWrapper = styled.div`
-  box-sizing: border-box;
   padding-top: 140px;
-  width: 600px;
-  height: 1200px;
+  width: 100%;
+  max-width: 600px;
+  height: 100vh;
   display: flex;
-  flex-direction: column;
   margin: 0 auto;
   background-color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding-bottom: 63px;
 `;
 
 const ContentSection = styled.section`
