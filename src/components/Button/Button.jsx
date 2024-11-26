@@ -12,8 +12,8 @@ const StyledButton = styled.button`
   cursor: pointer;
   transition: background-color 0.3s ease;
 
-  ${({ variant }) => {
-    switch (variant) {
+  ${({ $variant }) => {
+    switch ($variant) {
       case 'cancel':
         return css`
           background-color: #8f8e94;
@@ -31,8 +31,8 @@ const StyledButton = styled.button`
     }
   }}
 
-  ${({ size }) => {
-    switch (size) {
+  ${({ $size }) => {
+    switch ($size) {
       case 'small':
         return css`
           width: 50px;
@@ -46,8 +46,7 @@ const StyledButton = styled.button`
       case 'large':
         return css`
           height: 25px;
-          width: ${({ width }) =>
-            width || '120px'}; /* width 커스터마이즈 가능 */
+          width: ${({ $width }) => $width || '120px'};
         `;
       default:
         return css`
@@ -79,9 +78,9 @@ const Button = ({
   return (
     <StyledButton
       onClick={onClick}
-      variant={variant}
-      size={size}
-      width={width}
+      $variant={variant}
+      $size={size}
+      $width={width}
       disabled={disabled}
     >
       {children}
