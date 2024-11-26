@@ -8,8 +8,7 @@ import StartPage from './pages/StartPage';
 import WeatherPage from './pages/WeatherPage';
 import JoinPage from './pages/JoinPage';
 import LoginPage from './pages/LoginPage';
-import CustomerServicePage from './pages/CustomerServicePage';
-import MatePage from './pages/MatePage';
+import MyPage from './pages/MyPage';
 
 const theme = createTheme({
   palette: {
@@ -40,9 +39,7 @@ function App() {
           <Route path='/weather' element={<WeatherPage />} />
           <Route path='/join' element={<JoinPage />} />
           <Route path='/login' element={<LoginPage />} />
-          <Route path='/customerservice' element={<CustomerServicePage />} />
-          <Route path='/mate' element={<MatePage />} />
-
+          <Route path='/my' element={<MyPage />} />
           {/* 경로를 소문자로 통일하십쇼 */}
           {/* 예시) path부분 소문자 통일 <Route path="/community" element={<Community />} /> */}
         </Routes>
