@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Button from '../components/Button';
 
-// keyframes 정의 수정
+// keyframes 정의
 const fadeIn = keyframes`
   from {
     opacity: 0;
@@ -16,17 +16,24 @@ const fadeIn = keyframes`
   }
 `;
 
-// styled 컴포넌트 수정
 const MainPageWrapper = styled.div`
   padding-top: 140px;
   width: 100%;
   max-width: 600px;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   margin: 0 auto;
   background-color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding-bottom: 63px;
+  position: relative;
+  animation: ${fadeIn} 0.5s ease;
+
+  @media (max-width: 480px) {
+    padding: 10px;
+    box-shadow: none;
+  }
 `;
 
 const ContentSection = styled.section`
@@ -82,11 +89,11 @@ const TextArea = styled.textarea`
 `;
 
 const AlertWrapper = styled.div`
+  background-color: ${({ $isError }) => ($isError ? '#ffe082' : '#ff9900')};
   position: fixed;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: ${({ isError }) => (isError ? '#dc3545' : '#28a745')};
   color: white;
   padding: 15px 20px;
   border-radius: 5px;
@@ -96,7 +103,11 @@ const AlertWrapper = styled.div`
   animation: ${fadeIn} 0.3s ease;
 `;
 
-const initialFormState = { title: '', email: '', body: '' };
+const initialFormState = {
+  title: '예시 제목',
+  email: 'example@test.com',
+  body: '예시 본문 내용입니다.',
+};
 
 function CustomerServicePage() {
   const navigate = useNavigate();
@@ -110,12 +121,8 @@ function CustomerServicePage() {
 
   const validateForm = () => {
     if (!formData.title.trim()) return '제목을 입력하세요.';
-    if (formData.title.length > 100) return '제목은 100자 이내로 입력하세요.';
     if (!formData.email.trim()) return '이메일을 입력하세요.';
-    if (!/^\S+@\S+\.\S+$/.test(formData.email))
-      return '유효한 이메일 주소를 입력하세요.';
     if (!formData.body.trim()) return '본문을 입력하세요.';
-    if (formData.body.length < 10) return '본문은 최소 10자 이상 입력하세요.';
     return '';
   };
 
@@ -124,12 +131,11 @@ function CustomerServicePage() {
     const errorMessage = validateForm();
     if (errorMessage) {
       setAlert({ message: errorMessage, isError: true });
-      setTimeout(() => setAlert({ message: '', isError: false }), 3000);
       return;
     }
 
     try {
-      const response = await fetch('https://your-api-endpoint.com/submit', {
+      const response = await fetch('/api/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -138,86 +144,83 @@ function CustomerServicePage() {
       });
 
       if (!response.ok) {
-        throw new Error('서버 오류가 발생했습니다.');
+        const text = await response.text();
+        console.error('응답 에러 내용:', text);
+        throw new Error(`HTTP 오류: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('서버 응답:', data);
-
       setAlert({ message: '폼이 성공적으로 제출되었습니다!', isError: false });
       setFormData(initialFormState);
     } catch (error) {
       console.error('폼 제출 에러:', error);
       setAlert({
-        message: '폼 제출에 실패했습니다. 다시 시도해주세요.',
-        isError: true,
+        message: 'API 연결 실패. 더미 데이터로 동작합니다.',
+        isError: false,
       });
-    } finally {
-      setTimeout(() => setAlert({ message: '', isError: false }), 3000);
+      setFormData(initialFormState); // 기본 리셋
     }
   };
 
   return (
-    <>
-      <MainPageWrapper>
-        <Header title='고객센터' />
-        <ContentSection>
-          {alert.message && (
-            <AlertWrapper isError={alert.isError}>{alert.message}</AlertWrapper>
-          )}
-          <Form onSubmit={handleSubmit}>
-            <Label htmlFor='title'>제목</Label>
-            <Input
-              id='title'
-              type='text'
-              placeholder='제목을 입력하세요'
-              value={formData.title}
-              onChange={handleInputChange}
-              required
-            />
-            <Label htmlFor='email'>이메일</Label>
-            <Input
-              id='email'
-              type='email'
-              placeholder='이메일을 입력하세요'
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-            />
-            <Label htmlFor='body'>본문</Label>
-            <TextArea
-              id='body'
-              placeholder='본문을 입력하세요'
-              value={formData.body}
-              onChange={handleInputChange}
-              required
-            />
-            <div
-              style={{
-                display: 'flex',
-                gap: '15px',
-                justifyContent: 'flex-end',
+    <MainPageWrapper>
+      <Header title='고객센터' />
+      <ContentSection>
+        {alert.message && (
+          <AlertWrapper $isError={alert.isError}>{alert.message}</AlertWrapper>
+        )}
+        <Form onSubmit={handleSubmit}>
+          <Label htmlFor='title'>제목</Label>
+          <Input
+            id='title'
+            type='text'
+            placeholder='제목을 입력하세요'
+            value={formData.title}
+            onChange={handleInputChange}
+            required
+          />
+          <Label htmlFor='email'>이메일</Label>
+          <Input
+            id='email'
+            type='email'
+            placeholder='이메일을 입력하세요'
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+          />
+          <Label htmlFor='body'>본문</Label>
+          <TextArea
+            id='body'
+            placeholder='본문을 입력하세요'
+            value={formData.body}
+            onChange={handleInputChange}
+            required
+          />
+          <div
+            style={{
+              display: 'flex',
+              gap: '15px',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <Button
+              variant='cancel'
+              size='medium'
+              type='button'
+              onClick={(e) => {
+                e.preventDefault();
+                navigate(-1);
               }}
             >
-              <Button
-                variant='cancel'
-                size='medium'
-                type='button'
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate(-1);
-                }}
-              >
-                취소
-              </Button>
-              <Button variant='send' size='medium' type='submit'>
-                전송
-              </Button>
-            </div>
-          </Form>
-        </ContentSection>
-      </MainPageWrapper>
-    </>
+              취소
+            </Button>
+            <Button variant='send' size='medium' type='submit'>
+              전송
+            </Button>
+          </div>
+        </Form>
+      </ContentSection>
+    </MainPageWrapper>
   );
 }
 
