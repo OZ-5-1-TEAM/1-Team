@@ -17,7 +17,7 @@ const MainPageWrapper = styled.div`
 
 const ContentSection = styled.section`
   width: 100%;
-  height: 1070px;
+  height: 100%;
   overflow-y: auto;
   padding: 10px;
   box-sizing: border-box;
@@ -58,24 +58,9 @@ const NoticePostTitle = styled.p`
 
 const NoticePostContent = styled.p`
   font-size: 17px;
-  color: black;
+  color: #8f8e94;
   margin: 0;
 `;
-
-function NoticePage() {
-  const navigate = useNavigate();
-
-  return (
-    <MainPageWrapper>
-      <Header title='공지사항' />
-      <ContentSection>
-        <NoticeList />
-      </ContentSection>
-    </MainPageWrapper>
-  );
-}
-
-export default NoticePage;
 
 const NoticeList = () => {
   const navigate = useNavigate();
@@ -119,3 +104,16 @@ const NoticeList = () => {
     </>
   );
 };
+
+function NoticePage() {
+  return (
+    <MainPageWrapper>
+      <Header title='공지사항' />
+      <ContentSection>
+        <NoticeList />
+      </ContentSection>
+    </MainPageWrapper>
+  );
+}
+
+export default NoticePage;
