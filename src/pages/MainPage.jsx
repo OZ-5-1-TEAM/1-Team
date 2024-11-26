@@ -7,7 +7,7 @@ const MainPageWrapper = styled.div`
   padding-top: 140px;
   width: 100%;
   max-width: 600px;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   margin: 0 auto;
   background-color: #ffffff;
