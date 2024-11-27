@@ -49,16 +49,13 @@ function App() {
           <Route path='/login' element={<LoginPage />} />
           <Route path='/my' element={<MyPage />} />
           <Route path='/customerservice' element={<CustomerServicePage />} />
-<<<<<<< HEAD
           <Route path='/workcommunity' element={<WorkCommunity />} />
           <Route path='/dogcommunity' element={<DogCommunity />} />
           <Route path='/likecommunity' element={<LikeCommunity />} />
-=======
           <Route path='/mate' element={<MatePage />} />
           <Route path='/message' element={<MessagePage />} />
           <Route path='/receivedmessages' element={<ReceivedMessagesPage />} />
           <Route path='/sentmessages' element={<SentMessagesPage />} />
->>>>>>> develop
           {/* 경로를 소문자로 통일하십쇼 */}
           {/* 예시) path부분 소문자 통일 <Route path="/community" element={<Community />} /> */}
         </Routes>
