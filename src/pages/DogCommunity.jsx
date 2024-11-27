@@ -270,7 +270,7 @@ function DogCommunity() {
 
   return (
     <MainPageWrapper>
-      <Header title='강아지 천국 커뮤니티' />
+      <Header title='강아지 커뮤니티' />
       <SearchBarContainer>
         <SearchInput
           type='text'
