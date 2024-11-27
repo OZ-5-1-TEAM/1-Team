@@ -14,6 +14,9 @@ import MessagePage from './pages/MessagePage';
 import ReceivedMessagesPage from './pages/ReceivedMessagesPage';
 import SentMessagesPage from './pages/SentMessagesPage';
 import CustomerServicePage from './pages/CustomerServicePage';
+import WorkCommunity from './pages/WorkCommunity';
+import DogCommunity from './pages/DogCommunity';
+import LikeCommunity from './pages/LikeCommunity';
 
 const theme = createTheme({
   palette: {
@@ -46,10 +49,16 @@ function App() {
           <Route path='/login' element={<LoginPage />} />
           <Route path='/my' element={<MyPage />} />
           <Route path='/customerservice' element={<CustomerServicePage />} />
+<<<<<<< HEAD
+          <Route path='/workcommunity' element={<WorkCommunity />} />
+          <Route path='/dogcommunity' element={<DogCommunity />} />
+          <Route path='/likecommunity' element={<LikeCommunity />} />
+=======
           <Route path='/mate' element={<MatePage />} />
           <Route path='/message' element={<MessagePage />} />
           <Route path='/receivedmessages' element={<ReceivedMessagesPage />} />
           <Route path='/sentmessages' element={<SentMessagesPage />} />
+>>>>>>> develop
           {/* 경로를 소문자로 통일하십쇼 */}
           {/* 예시) path부분 소문자 통일 <Route path="/community" element={<Community />} /> */}
         </Routes>
