@@ -1,6 +1,6 @@
 // Footer
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const FooterBar = styled.nav`
   position: fixed;
@@ -52,15 +52,15 @@ const FooterLabel = styled.span`
 
 const Footer = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const menuItems = [
     { id: 1, label: 'HOME', path: '/' },
-    { id: 2, label: 'COMMUNITY', path: '/community' },
-    { id: 3, label: 'PHOTO', path: '/photo' },
-    { id: 4, label: 'MYPAGE', path: '/mypage' },
+    { id: 2, label: 'Work', path: '/workcommunity' },
+    { id: 3, label: 'Dog', path: '/dogcommunity' },
+    { id: 4, label: 'PHOTO', path: '/photo' },
+    { id: 5, label: 'MYPAGE', path: '/mypage' },
   ];
-
-  const currentPageId = 1;
 
   return (
     <FooterBar>
@@ -70,7 +70,7 @@ const Footer = () => {
           onClick={() => navigate(item.path)}
           aria-label={item.label}
         >
-          <FooterCircle $isActive={item.id === currentPageId} />
+          <FooterCircle $isActive={location.pathname === item.path} />
           <FooterLabel>{item.label}</FooterLabel>
         </FooterItemWrapper>
       ))}
