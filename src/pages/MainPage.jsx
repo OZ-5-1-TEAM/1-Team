@@ -1,18 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
 
 const MainPageWrapper = styled.div`
   padding-top: 140px;
   width: 100%;
   max-width: 600px;
   min-height: 100vh;
-  display: flex;
   margin: 0 auto;
   background-color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding-bottom: 63px;
+  animation: ${fadeIn} 0.5s ease;
+
+  @media (max-width: 480px) {
+    padding: 10px;
+    box-shadow: none;
+  }
 `;
 
 const ContentSection = styled.section`
@@ -353,11 +369,28 @@ const MainBanner = () => {
 const CommunityList = () => {
   const navigate = useNavigate();
 
-  const communities = [
-    { id: 1, category: 'COMMUNITY NAME', postTitle: 'TITLE', path: '/post/1' },
-    { id: 2, category: 'COMMUNITY NAME', postTitle: 'TITLE', path: '/post/2' },
-    { id: 3, category: 'COMMUNITY NAME', postTitle: 'TITLE', path: '/post/3' },
-  ];
+  const [communities, setCommunities] = useState([
+    { id: 1, category: '커뮤니티', postTitle: '제목 1', path: '/post/1' },
+    { id: 2, category: '커뮤니티', postTitle: '제목 2', path: '/post/2' },
+    { id: 3, category: '커뮤니티', postTitle: '제목 3', path: '/post/3' },
+  ]);
+
+  useEffect(() => {
+    const fetchCommunityData = async () => {
+      try {
+        const response = await fetch('/api/community');
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          setCommunities(data.data.communities);
+        }
+      } catch (error) {
+        console.error('커뮤니티 데이터를 가져오는 데 실패했습니다:', error);
+      }
+    };
+
+    fetchCommunityData();
+  }, []);
 
   return (
     <>
@@ -500,10 +533,27 @@ const WeatherSection = () => {
 const NoticeSection = () => {
   const navigate = useNavigate();
 
-  const notices = [
-    { id: 1, date: 'yyyy - mm - dd', postTitle: 'TITLE', path: '/notice/1' },
-    { id: 2, date: 'yyyy - mm - dd', postTitle: 'TITLE', path: '/notice/2' },
-  ];
+  const [notices, setNotices] = useState([
+    { id: 1, date: '2024-11-01', postTitle: '공지 1', path: '/notice/1' },
+    { id: 2, date: '2024-11-02', postTitle: '공지 2', path: '/notice/2' },
+  ]);
+
+  useEffect(() => {
+    const fetchNoticeData = async () => {
+      try {
+        const response = await fetch('/api/notices');
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          setNotices(data.data.notices);
+        }
+      } catch (error) {
+        console.error('공지 데이터를 가져오는 데 실패했습니다:', error);
+      }
+    };
+
+    fetchNoticeData();
+  }, []);
 
   return (
     <>
