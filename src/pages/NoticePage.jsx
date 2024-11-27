@@ -1,18 +1,34 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
 
 const MainPageWrapper = styled.div`
   padding-top: 140px;
   width: 100%;
   max-width: 600px;
-  height: 100vh;
-  display: flex;
+  min-height: 100vh;
   margin: 0 auto;
   background-color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding-bottom: 63px;
+  animation: ${fadeIn} 0.5s ease;
+
+  @media (max-width: 480px) {
+    padding: 10px;
+    box-shadow: none;
+  }
 `;
 
 const ContentSection = styled.section`

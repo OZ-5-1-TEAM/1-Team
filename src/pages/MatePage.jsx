@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import Button from '../components/Button/Button';
 import Header from '../components/Header';
@@ -36,7 +36,7 @@ const slideDown = keyframes`
 `;
 
 const MainPageWrapper = styled.div`
-  padding-top: 120px;
+  padding-top: 140px;
   width: 100%;
   max-width: 600px;
   min-height: 100vh;
@@ -58,7 +58,7 @@ const NotificationBox = styled.div`
   left: 50%;
   transform: translateX(-50%);
   background-color: ${({ type }) =>
-    type === 'error' ? '#ffe082' : type === 'success' ? '#ff9900' : '#ff9900'};
+    type === 'success' ? '#ff9900' : '#ffe082'};
   color: white;
   padding: 15px 20px;
   border-radius: 4px;
@@ -162,19 +162,52 @@ const Input = styled.input`
   ${focusStyles}
 `;
 
+// 초기 더미 데이터
+const dummyMates = [
+  { id: 1, name: 'John', image: '/placeholder-image.png' },
+  { id: 2, name: 'Jane', image: '/placeholder-image.png' },
+];
+
+const dummyMateRequests = [
+  { id: 3, name: 'Mike', image: '/placeholder-image.png' },
+  { id: 4, name: 'Anna', image: '/placeholder-image.png' },
+];
+
 const MatePage = () => {
-  const [mates, setMates] = useState([
-    { id: 1, name: 'John', image: '/placeholder-image.png' },
-    { id: 2, name: 'Jane', image: '/placeholder-image.png' },
-  ]);
-  const [mateRequests, setMateRequests] = useState([
-    { id: 3, name: 'Mike', image: '/placeholder-image.png' },
-    { id: 4, name: 'Anna', image: '/placeholder-image.png' },
-  ]);
+  const [mates, setMates] = useState([]);
+  const [mateRequests, setMateRequests] = useState([]);
   const [newMateName, setNewMateName] = useState('');
   const [message, setMessage] = useState('');
   const [selectedMate, setSelectedMate] = useState(null);
   const [notification, setNotification] = useState({ message: '', type: '' });
+
+  // 더미 데이터 및 API 데이터 불러오기
+  const fetchMates = async () => {
+    try {
+      // 실제 API 호출 (예: const response = await fetch('/api/mates');)
+      const response = []; // 현재 더미 데이터
+      setMates(response.length > 0 ? response : dummyMates);
+    } catch (error) {
+      console.error('Failed to fetch mates:', error);
+      setMates(dummyMates);
+    }
+  };
+
+  const fetchMateRequests = async () => {
+    try {
+      // 실제 API 호출 (예: const response = await fetch('/api/mate-requests');)
+      const response = []; // 현재 더미 데이터
+      setMateRequests(response.length > 0 ? response : dummyMateRequests);
+    } catch (error) {
+      console.error('Failed to fetch mate requests:', error);
+      setMateRequests(dummyMateRequests);
+    }
+  };
+
+  useEffect(() => {
+    fetchMates();
+    fetchMateRequests();
+  }, []);
 
   const showNotification = (message, type) => {
     setNotification({ message, type });
