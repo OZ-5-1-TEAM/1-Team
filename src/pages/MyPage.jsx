@@ -1,42 +1,49 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 
-// 전체 화면 레이아웃 스타일
-const MyPageWrapper = styled.div`
-  padding-top: 120px;
+// 전체 페이지 Wrapper
+const PageWrapper = styled.div`
+  padding-top: 140px; /* 헤더 여백 */
   width: 100%;
   max-width: 600px;
-  min-height: 100vh;
+  min-height: calc(100vh - 60px); /* Footer 높이 보정 */
   margin: 0 auto;
   background-color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding-bottom: 63px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+`;
+
+// 섹션 Wrapper
+const Section = styled.section`
+  width: 100%;
+  padding: 20px;
+  border-bottom: 1px solid #ddd;
 `;
 
 // 프로필 섹션
-const ProfileSection = styled.div`
+const ProfileSection = styled(Section)`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
-  border-bottom: 1px solid #ddd;
+  position: relative;
 `;
 
 const ProfileInfo = styled.div`
   display: flex;
   align-items: center;
+  gap: 20px;
 `;
 
 const ProfileImage = styled.div`
-  width: 60px;
-  height: 60px;
-  background-color: #eee;
+  width: 70px;
+  height: 70px;
+  background-color: #ddd;
   border-radius: 50%;
-  margin-right: 15px;
-  background-image: url('/placeholder-profile.png');
-  background-size: cover;
-  background-position: center;
 `;
 
 const ProfileDetails = styled.div`
@@ -44,193 +51,243 @@ const ProfileDetails = styled.div`
   flex-direction: column;
 `;
 
-const Nickname = styled.h2`
+const ProfileName = styled.h2`
   font-size: 20px;
   font-weight: bold;
-  margin: 0;
   color: #333;
+  margin: 0;
 `;
 
-const Email = styled.span`
+const ProfileEmail = styled.p`
   font-size: 14px;
   color: #999;
+  margin: 5px 0 0 0;
 `;
 
-const Location = styled.span`
-  font-size: 14px;
+const ProfileIcons = styled.div`
+  display: flex;
+  gap: 15px;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+`;
+
+const ProfileIcon = styled.button`
+  background: none;
+  border: none;
+  font-size: 18px;
   color: #f5b041;
+  cursor: pointer;
 `;
 
 const EditButton = styled.button`
-  font-size: 14px;
-  color: #f5b041;
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
   background: none;
   border: none;
-  cursor: pointer;
-
-  &:hover {
-    color: #f39c12;
-  }
-`;
-
-// 섹션 공통 스타일
-const Section = styled.section`
-  padding: 20px;
-  border-bottom: 1px solid #ddd;
-`;
-
-const SectionTitle = styled.h3`
-  font-size: 18px;
-  font-weight: bold;
-  color: #f5b041;
-  margin-bottom: 10px;
-`;
-
-const AddEditButton = styled.button`
   font-size: 14px;
   color: #f5b041;
-  background: none;
-  border: none;
   cursor: pointer;
-  margin-left: 10px;
-
-  &:hover {
-    color: #f39c12;
-  }
 `;
 
-const PhotoContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-`;
-
-const PhotoBox = styled.div`
-  width: 100px;
-  height: 100px;
-  background-color: #eee;
-  border-radius: 5px;
-`;
-
-// 좋아요 한 게시물 스타일
-const PostList = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const PostItem = styled.div`
+// 섹션 Header
+const SectionHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #ddd;
+  margin-bottom: 10px;
 `;
 
-const PostDetails = styled.div`
+const SectionTitle = styled.h3`
+  font-size: 16px;
+  font-weight: bold;
+  color: #f5b041;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const ActionButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 14px; /* 프로필 섹션 EDIT와 동일한 스타일 */
+  color: #f5b041;
+  cursor: pointer;
+`;
+
+// MY Photo 섹션과 반려견 정보 섹션
+const HorizontalSectionBody = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const Box = styled.div`
+  width: 48%;
+  height: 100px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+`;
+
+// 내가 좋아요한 게시물 섹션
+const VerticalSectionBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const CommunityItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
+`;
+
+const CommunityDetails = styled.div`
   display: flex;
   flex-direction: column;
 `;
 
-const PostCommunity = styled.span`
+const CommunityName = styled.span`
   font-size: 12px;
   color: #f5b041;
 `;
 
-const PostTitle = styled.span`
+const CommunityTitle = styled.span`
   font-size: 14px;
-  color: #333;
   font-weight: bold;
+  color: #333;
 `;
 
-const LogoutButton = styled.button`
-  width: 100%;
-  height: 40px;
-  background-color: #f5b041;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 14px;
-  font-weight: bold;
-  margin-top: 20px;
-  cursor: pointer;
+// Footer Actions
+const FooterActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+  padding-bottom: 80px; /* 푸터와의 간격 확보 */
+`;
 
+const FooterActionButton = styled.button`
+  background: none;
+  border: none;
+  color: #f5b041;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 10px;
   &:hover {
-    background-color: #f39c12;
+    color: #f39c12;
   }
 `;
 
 function MyPage() {
+  const navigate = useNavigate();
+
   return (
-    <MyPageWrapper>
-      <Header title='마이페이지' />
+    <>
+      <PageWrapper>
+        {/* 상단 Header */}
+        <Header title='My Page' />
 
-      {/* 프로필 섹션 */}
-      <ProfileSection>
-        <ProfileInfo>
-          <ProfileImage />
-          <ProfileDetails>
-            <Nickname>Nickname</Nickname>
-            <Email>해당 회원 이메일 주소</Email>
-            <Location>논현동</Location>
-          </ProfileDetails>
-        </ProfileInfo>
-        <EditButton>EDIT</EditButton>
-      </ProfileSection>
+        {/* 프로필 섹션 */}
+        <ProfileSection>
+          <ProfileInfo>
+            <ProfileImage />
+            <ProfileDetails>
+              <ProfileName>Nickname</ProfileName>
+              <ProfileEmail>해당 회원 이메일 주소</ProfileEmail>
+            </ProfileDetails>
+          </ProfileInfo>
+          <ProfileIcons>
+            <ProfileIcon onClick={() => navigate('/mate')}>🐾</ProfileIcon>
+            <ProfileIcon onClick={() => navigate('/message')}>✉️</ProfileIcon>
+          </ProfileIcons>
+          <EditButton onClick={() => navigate('/edit')}>EDIT</EditButton>
+        </ProfileSection>
 
-      {/* 자기소개 섹션 */}
-      <Section>
-        <SectionTitle>
-          자기소개
-          <AddEditButton>EDIT</AddEditButton>
-        </SectionTitle>
-        <p>자기소개 내용을 입력해주세요.</p>
-      </Section>
+        {/* 자기소개 섹션 */}
+        <Section>
+          <SectionHeader>
+            <SectionTitle>자기소개</SectionTitle>
+          </SectionHeader>
+          <p>자기소개를 입력해주세요.</p>
+        </Section>
 
-      {/* MY Photo 섹션 */}
-      <Section>
-        <SectionTitle>MY Photo</SectionTitle>
-        <PhotoContainer>
-          <PhotoBox />
-          <PhotoBox />
-          <PhotoBox />
-        </PhotoContainer>
-      </Section>
+        {/* MY Photo 섹션 */}
+        <Section>
+          <SectionHeader>
+            <SectionTitle>MY Photo</SectionTitle>
+            <ActionButton onClick={() => navigate('/myphotos')}>
+              {'>'}
+            </ActionButton>
+          </SectionHeader>
+          <HorizontalSectionBody>
+            <Box />
+            <Box />
+          </HorizontalSectionBody>
+        </Section>
 
-      {/* 반려견 소개 섹션 */}
-      <Section>
-        <SectionTitle>
-          반려견 소개
-          <AddEditButton>ADD</AddEditButton>
-          <AddEditButton>EDIT</AddEditButton>
-        </SectionTitle>
-        <p>반려견 소개 내용을 입력해주세요.</p>
-      </Section>
+        {/* 반려견 소개 섹션 */}
+        <Section>
+          <SectionHeader>
+            <SectionTitle>반려견 소개</SectionTitle>
+            <ButtonGroup>
+              <ActionButton onClick={() => navigate('/addpet')}>
+                ADD
+              </ActionButton>
+              <ActionButton onClick={() => navigate('/editpet')}>
+                EDIT
+              </ActionButton>
+              <ActionButton onClick={() => navigate('/mypetphoto')}>
+                {'>'}
+              </ActionButton>
+            </ButtonGroup>
+          </SectionHeader>
+          <HorizontalSectionBody>
+            <Box />
+            <Box />
+          </HorizontalSectionBody>
+        </Section>
 
-      {/* 좋아요 한 게시물 섹션 */}
-      <Section>
-        <SectionTitle>내가 좋아요한 게시물</SectionTitle>
-        <PostList>
-          <PostItem>
-            <PostDetails>
-              <PostCommunity>COMMUNITY NAME</PostCommunity>
-              <PostTitle>TITLE</PostTitle>
-            </PostDetails>
-          </PostItem>
-          <PostItem>
-            <PostDetails>
-              <PostCommunity>COMMUNITY NAME</PostCommunity>
-              <PostTitle>TITLE</PostTitle>
-            </PostDetails>
-          </PostItem>
-        </PostList>
-      </Section>
+        {/* 내가 좋아요한 게시물 섹션 */}
+        <Section>
+          <SectionHeader>
+            <SectionTitle>내가 좋아요한 게시물</SectionTitle>
+          </SectionHeader>
+          <VerticalSectionBody>
+            <CommunityItem>
+              <CommunityDetails>
+                <CommunityName>COMMUNITY NAME</CommunityName>
+                <CommunityTitle>TITLE</CommunityTitle>
+              </CommunityDetails>
+            </CommunityItem>
+            <CommunityItem>
+              <CommunityDetails>
+                <CommunityName>COMMUNITY NAME</CommunityName>
+                <CommunityTitle>TITLE</CommunityTitle>
+              </CommunityDetails>
+            </CommunityItem>
+          </VerticalSectionBody>
+        </Section>
 
-      {/* 로그아웃 / 탈퇴 버튼 */}
-      <Section>
-        <LogoutButton>LOGOUT</LogoutButton>
-        <LogoutButton>MEMBERSHIP WITHDRAWAL</LogoutButton>
-      </Section>
-    </MyPageWrapper>
+        {/* Footer Actions */}
+        <FooterActions>
+          <FooterActionButton onClick={() => navigate('/logout')}>
+            LOGOUT
+          </FooterActionButton>
+          <FooterActionButton onClick={() => navigate('/withdraw')}>
+            MEMBERSHIP WITHDRAWAL
+          </FooterActionButton>
+        </FooterActions>
+      </PageWrapper>
+
+      {/* Footer */}
+      <Footer />
+    </>
   );
 }
 
