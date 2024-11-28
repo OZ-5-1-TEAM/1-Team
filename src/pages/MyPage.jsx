@@ -221,9 +221,6 @@ function MyPage() {
         <Section>
           <SectionHeader>
             <SectionTitle>MY Photo</SectionTitle>
-            <ActionButton onClick={() => navigate('/myphotos')}>
-              {'>'}
-            </ActionButton>
           </SectionHeader>
           <HorizontalSectionBody>
             <Box />
@@ -236,10 +233,10 @@ function MyPage() {
           <SectionHeader>
             <SectionTitle>반려견 소개</SectionTitle>
             <ButtonGroup>
-              <ActionButton onClick={() => navigate('/addpet')}>
+              <ActionButton onClick={() => navigate('/pet/add')}>
                 ADD
               </ActionButton>
-              <ActionButton onClick={() => navigate('/editpet')}>
+              <ActionButton onClick={() => navigate('/pet/edit')}>
                 EDIT
               </ActionButton>
               <ActionButton onClick={() => navigate('/mypetphoto')}>

@@ -9,6 +9,9 @@ import WeatherPage from './pages/WeatherPage';
 import JoinPage from './pages/JoinPage';
 import LoginPage from './pages/LoginPage';
 import MyPage from './pages/MyPage';
+import EditPage from './pages/EditPage';
+import PetAddPage from './pages/PetAddPage';
+import PetEditPage from './pages/PetEditPage';
 import MatePage from './pages/MatePage';
 import MessagePage from './pages/MessagePage';
 import ReceivedMessagesPage from './pages/ReceivedMessagesPage';
@@ -47,7 +50,10 @@ function App() {
           <Route path='/weather' element={<WeatherPage />} />
           <Route path='/join' element={<JoinPage />} />
           <Route path='/login' element={<LoginPage />} />
-          <Route path='/my' element={<MyPage />} />
+          <Route path='/mypage' element={<MyPage />} />
+          <Route path='/edit' element={<EditPage />} />
+          <Route path='/pet/add' element={<PetAddPage />} />
+          <Route path='/pet/edit' element={<PetEditPage />} />
           <Route path='/customerservice' element={<CustomerServicePage />} />
           <Route path='/workcommunity' element={<WorkCommunity />} />
           <Route path='/dogcommunity' element={<DogCommunity />} />
