@@ -20,6 +20,7 @@ import CustomerServicePage from './pages/CustomerServicePage';
 import WorkCommunity from './pages/WorkCommunity';
 import DogCommunity from './pages/DogCommunity';
 import LikeCommunity from './pages/LikeCommunity';
+import { useState } from 'react';
 
 const theme = createTheme({
   palette: {
@@ -33,6 +34,23 @@ const theme = createTheme({
 });
 
 function App() {
+  // 유저 데이터 및 상태
+  const [userData, setUserData] = useState({
+    email: '',
+    nickname: '',
+    intro: '',
+  });
+
+  // 반려견 데이터 및 상태
+  const [petData, setPetData] = useState({
+    name: '',
+    breed: '',
+    age: '',
+    size: '',
+    gender: '',
+    intro: '',
+  });
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -51,9 +69,15 @@ function App() {
           <Route path='/join' element={<JoinPage />} />
           <Route path='/login' element={<LoginPage />} />
           <Route path='/mypage' element={<MyPage />} />
-          <Route path='/edit' element={<EditPage />} />
+          <Route
+            path='/edit'
+            element={<EditPage userData={userData} setUserData={setUserData} />}
+          />
           <Route path='/pet/add' element={<PetAddPage />} />
-          <Route path='/pet/edit' element={<PetEditPage />} />
+          <Route
+            path='/pet/edit'
+            element={<PetEditPage petData={petData} setPetData={setPetData} />}
+          />
           <Route path='/customerservice' element={<CustomerServicePage />} />
           <Route path='/workcommunity' element={<WorkCommunity />} />
           <Route path='/dogcommunity' element={<DogCommunity />} />
