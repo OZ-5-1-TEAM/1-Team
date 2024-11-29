@@ -1,133 +1,98 @@
-import React from 'react';
-import styled, { keyframes, css } from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import styled from 'styled-components';
 import Header from '../components/Header';
-
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
+import { Link } from 'react-router-dom';
 
 const MainPageWrapper = styled.div`
-  padding-top: 140px;
+  padding-top: 130px;
   width: 100%;
   max-width: 600px;
-  min-height: 100vh;
   margin: 0 auto;
   background-color: #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding-bottom: 63px;
-  animation: ${fadeIn} 0.5s ease;
-
-  @media (max-width: 480px) {
-    padding: 10px;
-    box-shadow: none;
-  }
+  min-height: 100vh;
 `;
 
-const ContentSection = styled.section`
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  padding: 10px;
-  box-sizing: border-box;
+const PostListContainer = styled.div`
+  margin: 20px 0;
 `;
 
-const NoticePostItem = styled.div`
+const PostItem = styled.div`
   display: flex;
   align-items: center;
-  padding: 10px 20px;
+  justify-content: space-between;
+  padding: 15px 10px;
   border-bottom: 1px solid #ddd;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #f9f9f9;
-  }
+  gap: 15px;
 `;
 
-const NoticeIcon = styled.div`
-  width: 95px;
-  height: 60px;
-  background-color: #eee;
+const PostImage = styled.div`
+  width: 70px;
+  height: 70px;
   border-radius: 5px;
-  margin-right: 15px;
+  background-color: #f0f0f0;
+  background-image: url('/placeholder-image.png');
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
 `;
 
-const NoticeDate = styled.p`
-  font-size: 11px;
-  color: #dfa700;
+const PostContentWrapper = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`;
+
+const PostTitle = styled.h4`
+  font-size: 16px;
+  color: #333;
   margin: 0;
+  font-weight: bold;
+  margin: 20px 0 0 10px;
 `;
 
-const NoticePostTitle = styled.p`
-  font-size: 20px;
-  color: #8f8e94;
-  margin: 5px 0 0 0;
+const PostMeta = styled.div`
+  font-size: 12px;
+  color: #aaa;
+  text-align: right;
 `;
 
-const NoticePostContent = styled.p`
-  font-size: 17px;
-  color: #8f8e94;
-  margin: 0;
-`;
-
-const NoticeList = () => {
-  const navigate = useNavigate();
-
-  const notices = [
-    {
-      id: 1,
-      date: 'YYYY-MM-DD',
-      postTitle: 'TITLE',
-      postContent: 'content preview',
-      path: '/notice/1',
-    },
-    {
-      id: 2,
-      date: 'YYYY-MM-DD',
-      postTitle: 'TITLE',
-      postContent: 'content preview',
-      path: '/notice/2',
-    },
-    {
-      id: 3,
-      date: 'YYYY-MM-DD',
-      postTitle: 'TITLE',
-      postContent: 'content preview',
-      path: '/notice/3',
-    },
-  ];
-
-  return (
-    <>
-      {notices.map((notice) => (
-        <NoticePostItem key={notice.id} onClick={() => navigate(notice.path)}>
-          <NoticeIcon />
-          <div>
-            <NoticePostTitle>{notice.postTitle}</NoticePostTitle>
-            <NoticeDate>{notice.date}</NoticeDate>
-            <NoticePostContent>{notice.postContent}</NoticePostContent>
-          </div>
-        </NoticePostItem>
-      ))}
-    </>
-  );
-};
+// 더미 데이터 생성 (5개로 고정)
+const generateDummyPosts = () =>
+  Array.from({ length: 5 }, (_, i) => ({
+    id: `${i + 1}-${Date.now()}`, // 고유한 id 생성
+    title: `버전 1.${i + 1} 업데이트 사항 `,
+    background: `/placeholder-image.png`,
+  }));
 
 function NoticePage() {
+  const [posts] = useState(generateDummyPosts()); // 더미 데이터 5개로 고정
+
   return (
     <MainPageWrapper>
-      <Header title='공지사항' />
-      <ContentSection>
-        <NoticeList />
-      </ContentSection>
+      <Header title='고객센터' />
+      <PostListContainer>
+        {posts.map((post) => (
+          <PostItem key={post.id}>
+            <Link
+              to={`/postdetail/${post.id}`}
+              style={{
+                textDecoration: 'none',
+                color: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+              }}
+            >
+              <PostImage />
+              <PostContentWrapper>
+                <PostTitle>{post.title}</PostTitle>
+                <PostMeta>{new Date().toLocaleDateString()}</PostMeta>
+              </PostContentWrapper>
+            </Link>
+          </PostItem>
+        ))}
+      </PostListContainer>
     </MainPageWrapper>
   );
 }

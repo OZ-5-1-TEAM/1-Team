@@ -5,6 +5,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import debounce from 'lodash.debounce';
 import Button from '../components/Button';
+import { useNavigate, Link } from 'react-router-dom';
 
 const MainPageWrapper = styled.div`
   padding-top: 130px;
@@ -28,7 +29,7 @@ const SearchBarContainer = styled.div`
 `;
 
 const SearchInput = styled.input`
-  flex: 1; /* 검색창이 남은 공간을 채우도록 설정 */
+  flex: 1;
   height: 30px;
   padding: 0 10px;
   margin-right: 10px;
@@ -44,7 +45,7 @@ const SearchInput = styled.input`
 
 const CancelButton = styled(Button)`
   height: 30px;
-  padding: 0 15px; /* 글쓰기 버튼 크기에 맞춤 */
+  padding: 0 15px;
   background-color: #ffa000;
   font-size: 15px;
   margin-right: 1rem !important;
@@ -70,12 +71,12 @@ const FilterRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px; /* 버튼 간 간격 설정 */
+  gap: 10px;
   flex-wrap: wrap; /* 화면이 작아질 경우 자동으로 줄바꿈 */
 `;
 
 const Select = styled.select`
-  height: 30px; /* 글쓰기 버튼과 동일한 높이 */
+  height: 30px;
   padding: 0 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -136,50 +137,79 @@ const PostListContainer = styled.div`
 
 const PostItem = styled.div`
   display: flex;
-  align-items: center;
+  align-items: center; /* 이미지와 텍스트를 수직 가운데 정렬 */
+  justify-content: space-between; /* 텍스트와 메타 데이터를 양쪽으로 배치 */
   padding: 15px 10px;
   border-bottom: 1px solid #ddd;
+  gap: 15px;
+
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f9f9f9;
+  }
 `;
 
 const PostImage = styled.div`
   width: 70px;
   height: 70px;
   border-radius: 5px;
-  margin-right: 15px;
   background-color: #f0f0f0;
   background-image: url('/placeholder-image.png');
   background-size: cover;
   background-position: center;
+  flex-shrink: 0;
+`;
+
+const PostContentWrapper = styled.div`
+  flex: 1; /* 텍스트가 남은 공간을 차지하도록 설정 */
+  display: flex;
+  flex-direction: column;
 `;
 
 const PostDetails = styled.div`
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
 `;
 
 const PostTitle = styled.h4`
   font-size: 16px;
   color: #333;
   margin: 0;
+  font-weight: bold;
+  margin: 20px 0 0 10px;
 `;
 
 const PostDescription = styled.p`
   font-size: 14px;
   color: #777;
-  margin: 5px 0 0 0;
+  margin: 5px 0 0 10px;
+  line-height: 1.4; /* 읽기 편하게 간격 추가 */
+`;
+
+const PostMeta = styled.div`
+  font-size: 12px;
+  color: #aaa;
+  text-align: right; /* 날짜와 동네 태그를 오른쪽으로 정렬 */
 `;
 
 // 더미 데이터 생성
 const generateDummyPosts = (startId = 1, count = 10) =>
   Array.from({ length: count }, (_, i) => ({
-    id: startId + i,
+    id: `${startId + i}-${Date.now()}`, // 고유한 id 생성
     title: `제목 ${startId + i}`,
-    description: `강아지 다이어트 방법 좀 알려주세요..ㅤㅤ강남구 삼성동, 소형견 2024-11-26`,
+    content: `강아지 다이어트 방법 좀 알려주세요...`,
     background: `/placeholder-image.png`,
+    district: `강남구`,
+    neighborhood: `삼성동`,
+    size: `소형견`,
   }));
 
 function DogCommunity() {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState(generateDummyPosts());
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -192,6 +222,7 @@ function DogCommunity() {
   });
   const observer = useRef();
   const currentPostId = useRef(1);
+  const navigate = useNavigate();
 
   // 무한 스크롤 fetch
   const fetchPosts = useCallback(() => {
@@ -264,7 +295,7 @@ function DogCommunity() {
   };
 
   const handleWrite = () => {
-    // 글쓰기 페이지로 이동하는 로직 추가
+    navigate('/postpage');
     console.log('글쓰기 버튼 클릭됨');
   };
 
@@ -347,32 +378,48 @@ function DogCommunity() {
       <PostListContainer>
         {posts.map((post, index) => (
           <PostItem
-            key={post.id}
+            key={post.id} // 고유한 key 값
             ref={index === posts.length - 1 ? lastPostRef : null}
           >
-            <PostImage />
-            <PostDetails>
-              <PostTitle>{post.title}</PostTitle>
-              <PostDescription>{post.description}</PostDescription>
-            </PostDetails>
+            <Link
+              to={`/postdetail/${post.id}`}
+              style={{
+                textDecoration: 'none',
+                color: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+              }}
+            >
+              <PostImage />
+              <PostContentWrapper>
+                <PostTitle>{post.title}</PostTitle>
+                <PostDescription>{post.content}</PostDescription>
+                <PostMeta>
+                  {post.district} {post.neighborhood}, {post.size} ,{' '}
+                  {new Date().toLocaleDateString()}
+                </PostMeta>
+              </PostContentWrapper>
+            </Link>
           </PostItem>
         ))}
         {loading &&
           Array.from({ length: 15 }).map((_, i) => (
-            <PostItem key={`skeleton-${i}`}>
+            <PostItem key={`skeleton-${currentPostId.current}-${i}`}>
               <Skeleton
                 width={70}
                 height={70}
                 style={{ marginRight: '15px' }}
               />
-              <PostDetails>
+              <PostContentWrapper>
                 <Skeleton width={200} height={20} />
                 <Skeleton
                   width={150}
                   height={15}
                   style={{ marginTop: '5px' }}
                 />
-              </PostDetails>
+              </PostContentWrapper>
+              <Skeleton width={100} height={15} />
             </PostItem>
           ))}
       </PostListContainer>
