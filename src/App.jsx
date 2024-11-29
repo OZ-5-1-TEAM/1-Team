@@ -9,6 +9,9 @@ import WeatherPage from './pages/WeatherPage';
 import JoinPage from './pages/JoinPage';
 import LoginPage from './pages/LoginPage';
 import MyPage from './pages/MyPage';
+import EditPage from './pages/EditPage';
+import PetAddPage from './pages/PetAddPage';
+import PetEditPage from './pages/PetEditPage';
 import MatePage from './pages/MatePage';
 import MessagePage from './pages/MessagePage';
 import ReceivedMessagesPage from './pages/ReceivedMessagesPage';
@@ -19,6 +22,7 @@ import DogCommunity from './pages/DogCommunity';
 import LikeCommunity from './pages/LikeCommunity';
 import PostPage from './pages/PostPage';
 import PostDetail from './pages/PostDetail';
+import { useState } from 'react';
 
 const theme = createTheme({
   palette: {
@@ -32,6 +36,23 @@ const theme = createTheme({
 });
 
 function App() {
+  // 유저 데이터 및 상태
+  const [userData, setUserData] = useState({
+    email: '',
+    nickname: '',
+    intro: '',
+  });
+
+  // 반려견 데이터 및 상태
+  const [petData, setPetData] = useState({
+    name: '',
+    breed: '',
+    age: '',
+    size: '',
+    gender: '',
+    intro: '',
+  });
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -49,7 +70,16 @@ function App() {
           <Route path='/weather' element={<WeatherPage />} />
           <Route path='/join' element={<JoinPage />} />
           <Route path='/login' element={<LoginPage />} />
-          <Route path='/my' element={<MyPage />} />
+          <Route path='/mypage' element={<MyPage />} />
+          <Route
+            path='/edit'
+            element={<EditPage userData={userData} setUserData={setUserData} />}
+          />
+          <Route path='/pet/add' element={<PetAddPage />} />
+          <Route
+            path='/pet/edit'
+            element={<PetEditPage petData={petData} setPetData={setPetData} />}
+          />
           <Route path='/customerservice' element={<CustomerServicePage />} />
           <Route path='/workcommunity' element={<WorkCommunity />} />
           <Route path='/dogcommunity' element={<DogCommunity />} />
