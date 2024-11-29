@@ -37,6 +37,8 @@ const BackButton = styled.button`
   cursor: pointer;
   color: #ff9900;
   padding: 0;
+  visibility: ${(props) =>
+    props.hidden ? 'hidden' : 'visible'}; /* 숨기기 처리 */
 `;
 
 const Title = styled.h1`
@@ -44,9 +46,12 @@ const Title = styled.h1`
   color: #ff9900;
   font-weight: bold;
   margin: 0;
-  cursor: pointer;
   text-align: center;
   flex-grow: 1;
+  position: absolute; /* Title을 가운데 정렬 */
+  left: 50%; /* 뷰포트 기준으로 가운데 */
+  transform: translateX(-50%);
+  cursor: pointer;
 `;
 
 const Navbar = () => {
@@ -60,9 +65,9 @@ const Navbar = () => {
   return (
     <HeaderContainer>
       <NavbarContent>
-        {!hideBackButton && (
-          <BackButton onClick={() => navigate(-1)}>{'<'} Back</BackButton>
-        )}
+        <BackButton onClick={() => navigate(-1)} hidden={hideBackButton}>
+          {'<'} Back
+        </BackButton>
         <Title onClick={() => navigate('/')}>GAERANGMARI</Title>
       </NavbarContent>
     </HeaderContainer>

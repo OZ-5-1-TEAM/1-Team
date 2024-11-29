@@ -370,9 +370,18 @@ const CommunityList = () => {
   const navigate = useNavigate();
 
   const [communities, setCommunities] = useState([
-    { id: 1, category: '커뮤니티', postTitle: '제목 1', path: '/post/1' },
-    { id: 2, category: '커뮤니티', postTitle: '제목 2', path: '/post/2' },
-    { id: 3, category: '커뮤니티', postTitle: '제목 3', path: '/post/3' },
+    {
+      id: 1,
+      category: '커뮤니티',
+      postTitle: '산책메이트 커뮤니티',
+      path: '/workcommunity',
+    },
+    {
+      id: 2,
+      category: '커뮤니티',
+      postTitle: '강아지 커뮤니티',
+      path: '/dogcommunity',
+    },
   ]);
 
   useEffect(() => {
@@ -401,7 +410,7 @@ const CommunityList = () => {
       {communities.map((community) => (
         <CommunityItem
           key={community.id}
-          onClick={() => navigate(community.path)}
+          onClick={() => navigate(community.path)} // 각 커뮤니티 경로로 이동
         >
           <CommunityIcon />
           <div>

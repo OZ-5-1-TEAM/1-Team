@@ -20,6 +20,8 @@ import CustomerServicePage from './pages/CustomerServicePage';
 import WorkCommunity from './pages/WorkCommunity';
 import DogCommunity from './pages/DogCommunity';
 import LikeCommunity from './pages/LikeCommunity';
+import PostPage from './pages/PostPage';
+import PostDetail from './pages/PostDetail';
 import { useState } from 'react';
 
 const theme = createTheme({
@@ -86,6 +88,8 @@ function App() {
           <Route path='/message' element={<MessagePage />} />
           <Route path='/receivedmessages' element={<ReceivedMessagesPage />} />
           <Route path='/sentmessages' element={<SentMessagesPage />} />
+          <Route path='/postpage' element={<PostPage />} />
+          <Route path='/postdetail/:id' element={<PostDetail />} />
           {/* 경로를 소문자로 통일하십쇼 */}
           {/* 예시) path부분 소문자 통일 <Route path="/community" element={<Community />} /> */}
         </Routes>
