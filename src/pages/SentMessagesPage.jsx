@@ -3,7 +3,6 @@ import styled, { keyframes, css } from 'styled-components';
 import Button from '../components/Button/Button';
 import Header from '../components/Header';
 
-// 공통 스타일 정의
 const boxStyles = css`
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -45,6 +44,7 @@ const Notification = styled.div`
     ${slideDown} 0.5s ease,
     fadeOut 0.5s ease 3s;
   z-index: 1000;
+  user-select: none;
 
   @keyframes fadeOut {
     from {
@@ -58,8 +58,14 @@ const Notification = styled.div`
   }
 `;
 
+const Box = styled.div`
+  width: 100%;
+  height: 130px;
+  background-color: transparent;
+  display: block;
+`;
+
 const SentMessagesWrapper = styled.div`
-  padding-top: 140px;
   width: 100%;
   max-width: 600px;
   min-height: 100vh;
@@ -67,9 +73,9 @@ const SentMessagesWrapper = styled.div`
   background-color: #ffffff;
   ${boxStyles}
   padding-bottom: 63px;
-  display: flex;
   flex-direction: column;
   animation: ${fadeIn} 0.5s ease;
+  user-select: none;
 
   @media (max-width: 480px) {
     padding: 10px;
@@ -193,7 +199,6 @@ const SentMessages = () => {
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [notification, setNotification] = useState({ message: '', type: '' });
 
-  // 날짜 형식 통일 함수
   const formatDate = (date) =>
     new Intl.DateTimeFormat('ko-KR', {
       year: 'numeric',
@@ -233,16 +238,15 @@ const SentMessages = () => {
         },
       ];
 
-      // 최신순 정렬
       const sortedMessages = dummyMessages
         .map((msg) => ({
           ...msg,
-          timestamp: new Date(msg.timestamp), // Date 객체로 변환
+          timestamp: new Date(msg.timestamp),
         }))
-        .sort((a, b) => b.timestamp - a.timestamp) // 최신순으로 정렬
+        .sort((a, b) => b.timestamp - a.timestamp)
         .map((msg) => ({
           ...msg,
-          timestamp: formatDate(msg.timestamp), // 다시 포맷팅
+          timestamp: formatDate(msg.timestamp),
         }));
 
       setSentMessages(sortedMessages);
@@ -251,7 +255,6 @@ const SentMessages = () => {
         const response = await fetch('/api/sent-messages');
         const data = await response.json();
 
-        // 최신순 정렬
         const sortedMessages = data
           .map((msg) => ({
             ...msg,
@@ -295,6 +298,7 @@ const SentMessages = () => {
 
   return (
     <SentMessagesWrapper>
+      <Box />
       <Header title='보낸 쪽지함' />
       <ContentSection>
         <MessageList>

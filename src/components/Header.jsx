@@ -17,6 +17,7 @@ const HeaderContainer = styled.header`
   position: fixed;
   top: 70px;
   z-index: 100;
+  user-select: none;
 `;
 
 const CommunityTitle = styled.div`

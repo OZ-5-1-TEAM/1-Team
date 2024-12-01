@@ -3,7 +3,6 @@ import styled, { keyframes, css } from 'styled-components';
 import Button from '../components/Button/Button';
 import Header from '../components/Header';
 
-// 스타일 정의
 const boxStyles = css`
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -54,6 +53,7 @@ const Notification = styled.div`
     ${slideDown} 0.5s ease,
     fadeOut 0.5s ease 3s;
   z-index: 1000;
+  user-select: none;
 
   @keyframes fadeOut {
     from {
@@ -66,9 +66,14 @@ const Notification = styled.div`
     }
   }
 `;
+const Box = styled.div`
+  width: 100%;
+  height: 130px;
+  background-color: transparent;
+  display: block;
+`;
 
 const ReceivedMessagesWrapper = styled.div`
-  padding-top: 140px;
   width: 100%;
   max-width: 600px;
   min-height: 100vh;
@@ -76,9 +81,9 @@ const ReceivedMessagesWrapper = styled.div`
   background-color: #ffffff;
   ${boxStyles}
   padding-bottom: 63px;
-  display: flex;
   flex-direction: column;
   animation: ${fadeIn} 0.5s ease;
+  user-select: none;
 
   @media (max-width: 480px) {
     padding: 10px;
@@ -243,7 +248,6 @@ const ReceivedMessages = () => {
       },
     ];
 
-    // 최신순 정렬
     const sortedMessages = dummyMessages
       .map((msg) => ({
         ...msg,
@@ -307,6 +311,7 @@ const ReceivedMessages = () => {
 
   return (
     <ReceivedMessagesWrapper>
+      <Box />
       <Header title='받은 쪽지함' />
       <ContentSection>
         <MessageList>
