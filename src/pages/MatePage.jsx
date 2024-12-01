@@ -68,6 +68,7 @@ const NotificationBox = styled.div`
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   animation: ${slideDown} 0.5s ease;
   z-index: 1000;
+  user-select: none;
 `;
 
 const ContentSection = styled.section`
@@ -81,6 +82,7 @@ const ContentSection = styled.section`
 const Section = styled.div`
   width: 100%;
   margin-bottom: 20px;
+  user-select: none;
 `;
 
 const SectionTitle = styled.h2`
@@ -94,6 +96,7 @@ const MateList = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
+  user-select: none;
 `;
 
 const MateItem = styled.li`

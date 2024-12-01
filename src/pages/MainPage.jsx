@@ -61,6 +61,7 @@ const Wording = styled.div`
   font-size: 17px;
   align-items: center;
   color: #ff9900;
+  user-select: none;
 `;
 
 const SlideImageContainer = styled.div`
@@ -71,6 +72,7 @@ const SlideImageContainer = styled.div`
   margin: 10px auto;
   overflow: hidden;
   position: relative;
+  user-select: none;
 `;
 
 const SlideTrack = styled.div.withConfig({
@@ -98,6 +100,7 @@ const CommunityHeader = styled.div`
   padding: 0 20px;
   margin: 0px;
   cursor: pointer;
+  user-select: none;
 `;
 
 const CommunityTitle = styled.h2`
@@ -120,6 +123,7 @@ const CommunityItem = styled.div`
   border-bottom: 1px solid #ddd;
   cursor: pointer;
   transition: background-color 0.2s;
+  user-select: none;
 
   &:hover {
     background-color: #f9f9f9;
@@ -157,6 +161,8 @@ const WeatherContainer = styled.section`
   background-color: #fff8e1;
   border-radius: 10px;
   transition: transform 0.2s ease;
+  user-select: none;
+
   &:hover {
     transform: scale(1.02);
   }
@@ -206,6 +212,7 @@ const NoticeHeader = styled.div`
   padding: 0 20px;
   margin: 0px;
   cursor: pointer;
+  user-select: none;
 `;
 
 const NoticeTitle = styled.h2`
@@ -228,6 +235,7 @@ const NoticePostItem = styled.div`
   border-bottom: 1px solid #ddd;
   cursor: pointer;
   transition: background-color 0.2s;
+  user-select: none;
 
   &:hover {
     background-color: #f9f9f9;
@@ -265,6 +273,7 @@ const CustomerServiceHeader = styled.div`
   padding: 0 20px;
   margin: 5px 0 0 0;
   cursor: pointer;
+  user-select: none;
 `;
 
 const CustomerServiceTitle = styled.h2`

@@ -76,6 +76,7 @@ const ContentSection = styled.section`
 const Section = styled.div`
   display: flex;
   flex-direction: column;
+  user-select: none;
 `;
 
 const SectionHeader = styled.div`
@@ -144,6 +145,7 @@ const SendMessageBox = styled.div.withConfig({
   flex-direction: column;
   gap: 10px;
   margin-bottom: 20px;
+  user-select: none;
 `;
 
 const ReplyTitle = styled.h4`
@@ -183,6 +185,7 @@ const Notification = styled.div`
   padding: 15px 20px;
   animation: ${slideDown} 0.5s ease;
   z-index: 1000;
+  user-select: none;
 `;
 
 const FixedImage = styled.img`

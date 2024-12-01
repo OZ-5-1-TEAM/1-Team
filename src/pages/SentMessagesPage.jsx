@@ -44,6 +44,7 @@ const Notification = styled.div`
     ${slideDown} 0.5s ease,
     fadeOut 0.5s ease 3s;
   z-index: 1000;
+  user-select: none;
 
   @keyframes fadeOut {
     from {
@@ -74,6 +75,7 @@ const SentMessagesWrapper = styled.div`
   padding-bottom: 63px;
   flex-direction: column;
   animation: ${fadeIn} 0.5s ease;
+  user-select: none;
 
   @media (max-width: 480px) {
     padding: 10px;

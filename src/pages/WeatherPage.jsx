@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled, { keyframes, css } from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import Header from '../components/Header';
 
 const fadeIn = keyframes`
@@ -44,6 +44,7 @@ const ContentSection = styled.section`
   padding-top: 40px;
   box-sizing: border-box;
   text-align: center;
+  user-select: none;
 `;
 
 const WeatherIconContainer = styled.div`

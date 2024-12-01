@@ -71,6 +71,7 @@ const Label = styled.label`
   font-weight: bold;
   margin-bottom: 1px;
   color: #555;
+  user-select: none;
 `;
 
 const Input = styled.input`
@@ -127,6 +128,7 @@ const AlertWrapper = styled.div`
   font-size: 1rem;
   z-index: 1000;
   animation: ${fadeIn} 0.3s ease;
+  user-select: none;
 
   @media (max-width: 480px) {
     font-size: 0.9rem;

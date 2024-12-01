@@ -17,6 +17,7 @@ const FooterBar = styled.nav`
   left: 0;
   right: 0;
   z-index: 100;
+  user-select: none;
 `;
 
 const FooterItemWrapper = styled.button`
