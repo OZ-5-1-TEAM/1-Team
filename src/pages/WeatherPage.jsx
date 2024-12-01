@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import Header from '../components/Header';
-import PropTypes from 'prop-types';
 
 const fadeIn = keyframes`
   from {
@@ -196,7 +195,7 @@ const recommendationByCondition = {
   },
   partlyCloudy: {
     message: '🌤️ 약간의 구름이 있지만 산책하기 좋은 날씨입니다.',
-    icon: '/weather/partly cloudy.png',
+    icon: '/weather/partlyCloudy.png',
   },
   cloudy: {
     message: '🌥️ 흐린 날씨이지만 산책하기 무리는 없습니다.',
@@ -216,57 +215,32 @@ const recommendationByCondition = {
   },
 };
 
-// 산책 추천 함수 정의
 const getWalkingRecommendation = ({
   condition,
   rainProbability,
   fineDust,
   temperature,
 }) => {
-  // 조건별 매핑
   if (
     rainProbability > 70 ||
     ['THUNDERSTORM', 'HEAVY RAIN'].includes(condition)
-  ) {
+  )
     return recommendationByCondition.storm;
-  }
-
-  if (condition === 'RAIN') {
-    return recommendationByCondition.rain;
-  }
-
-  if (fineDust === 'VERY BAD') {
-    return recommendationByCondition.veryBadDust;
-  }
-
-  if (fineDust === 'BAD') {
-    return recommendationByCondition.badDust;
-  }
-
-  if (temperature < 0) {
-    return recommendationByCondition.cold;
-  }
-
-  if (temperature > 35) {
-    return recommendationByCondition.hot;
-  }
+  if (condition === 'RAIN') return recommendationByCondition.rain;
+  if (fineDust === 'VERY BAD') return recommendationByCondition.veryBadDust;
+  if (fineDust === 'BAD') return recommendationByCondition.badDust;
+  if (temperature < 0) return recommendationByCondition.cold;
+  if (temperature > 35) return recommendationByCondition.hot;
 
   const conditionMapping = {
     CLEAR: recommendationByCondition.clear,
-    'PARTLY CLOUDY': recommendationByCondition.partlyCloudy,
+    PARTLYCLOUDY: recommendationByCondition.partlyCloudy,
     CLOUDY: recommendationByCondition.cloudy,
     SNOW: recommendationByCondition.snow,
     DRIZZLE: recommendationByCondition.drizzle,
   };
 
   return conditionMapping[condition] || recommendationByCondition.default;
-};
-
-getWalkingRecommendation.propTypes = {
-  condition: PropTypes.string.isRequired,
-  rainProbability: PropTypes.number.isRequired,
-  fineDust: PropTypes.string.isRequired,
-  temperature: PropTypes.number.isRequired,
 };
 
 function WeatherPage() {
@@ -297,18 +271,10 @@ function WeatherPage() {
           humidity: '54%',
         };
 
-        const { recommendation, icon } = getWalkingRecommendation(
-          dummyData.condition,
-          dummyData.rainProbability,
-          dummyData.fineDust,
-          dummyData.temperature
-        );
+        const { message: recommendation, icon } =
+          getWalkingRecommendation(dummyData);
 
-        setWeather({
-          ...dummyData,
-          recommendation,
-          icon,
-        });
+        setWeather({ ...dummyData, recommendation, icon });
         setError(null);
       } catch (err) {
         setError('날씨 정보를 가져오는 데 실패했습니다.');
