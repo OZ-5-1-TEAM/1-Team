@@ -18,6 +18,7 @@ const HeaderContainer = styled.header`
   top: 0;
   z-index: 100;
   border-bottom: 1px solid #ffe082;
+  user-select: none;
 `;
 
 const NavbarContent = styled.div`
