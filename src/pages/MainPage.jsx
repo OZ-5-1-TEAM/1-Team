@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled, { keyframes, css } from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 
@@ -14,8 +14,14 @@ const fadeIn = keyframes`
   }
 `;
 
+const Box = styled.div`
+  width: 100%;
+  height: 130px;
+  background-color: transparent;
+  display: block;
+`;
+
 const MainPageWrapper = styled.div`
-  padding-top: 140px;
   width: 100%;
   max-width: 600px;
   min-height: 100vh;
@@ -33,7 +39,7 @@ const MainPageWrapper = styled.div`
 
 const ContentSection = styled.section`
   width: 100%;
-  height: 1070px; /* 메인 페이지 표시 영역 */
+  height: 1070px;
   overflow-y: auto;
   padding: 10px;
   box-sizing: border-box;
@@ -58,8 +64,10 @@ const Wording = styled.div`
 `;
 
 const SlideImageContainer = styled.div`
-  width: 550px;
-  height: 250px;
+  width: 100%;
+  height: 100%;
+  max-width: 550px;
+  max-height: 250px;
   margin: 10px auto;
   overflow: hidden;
   position: relative;
@@ -72,7 +80,6 @@ const SlideTrack = styled.div.withConfig({
   transition: transform 0.5s ease-in-out;
   transform: translateX(${(props) => props.imagePosition}%);
   will-change: transform;
-  //브라우저가 transform 속성의 변경을 예상하고 성능 최적화를 미리 준비하도록 돕는 CSS 속성 추가
 `;
 
 const SlideImage = styled.img`
@@ -125,7 +132,7 @@ const CommunityIcon = styled.div`
   background-color: #eee;
   border-radius: 5px;
   margin-right: 15px;
-  background-image: url('/placeholder-image.png'); /* 기본 이미지 설정 */
+  background-image: url('/placeholder-image.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -233,7 +240,7 @@ const NoticeIcon = styled.div`
   background-color: #eee;
   border-radius: 5px;
   margin-right: 15px;
-  background-image: url('/placeholder-image.png'); /* 기본 이미지 설정 */
+  background-image: url('/placeholder-image.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -277,17 +284,20 @@ function MainPage() {
   const navigate = useNavigate();
 
   return (
-    <MainPageWrapper>
-      <Header title='Home' />
-      <ContentSection>
-        <MainWording />
-        <MainBanner />
-        <CommunityList />
-        <WeatherSection />
-        <NoticeSection />
-        <CustomerServiceSection />
-      </ContentSection>
-    </MainPageWrapper>
+    <>
+      <MainPageWrapper>
+        <Box />
+        <Header title='Home' />
+        <ContentSection>
+          <MainWording />
+          <MainBanner />
+          <CommunityList />
+          <WeatherSection />
+          <NoticeSection />
+          <CustomerServiceSection />
+        </ContentSection>
+      </MainPageWrapper>
+    </>
   );
 }
 
@@ -356,7 +366,6 @@ const MainBanner = () => {
               key={i}
               src={image}
               alt={`강아지 사진 ${i + 1}`}
-              //강아지 사진 설명 수정 alt slide -> '강아지 사진'
             ></SlideImage>
           ))}
         </SlideTrack>
@@ -365,7 +374,6 @@ const MainBanner = () => {
   );
 };
 
-// community 섹션 추가(정적 데이터)
 const CommunityList = () => {
   const navigate = useNavigate();
 
@@ -410,7 +418,7 @@ const CommunityList = () => {
       {communities.map((community) => (
         <CommunityItem
           key={community.id}
-          onClick={() => navigate(community.path)} // 각 커뮤니티 경로로 이동
+          onClick={() => navigate(community.path)}
         >
           <CommunityIcon />
           <div>

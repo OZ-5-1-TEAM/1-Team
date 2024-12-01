@@ -3,7 +3,6 @@ import styled, { keyframes, css } from 'styled-components';
 import Button from '../components/Button/Button';
 import Header from '../components/Header';
 
-// 스타일 정의
 const focusStyles = css`
   &:focus {
     outline: none;
@@ -34,9 +33,13 @@ const slideDown = keyframes`
     top: 0;
   }
 `;
-
+const Box = styled.div`
+  width: 100%;
+  height: 130px;
+  background-color: transparent;
+  display: block;
+`;
 const MainPageWrapper = styled.div`
-  padding-top: 140px;
   width: 100%;
   max-width: 600px;
   min-height: 100vh;
@@ -162,7 +165,6 @@ const Input = styled.input`
   ${focusStyles}
 `;
 
-// 초기 더미 데이터
 const dummyMates = [
   { id: 1, name: 'John', image: '/placeholder-image.png' },
   { id: 2, name: 'Jane', image: '/placeholder-image.png' },
@@ -263,6 +265,8 @@ const MatePage = () => {
 
   return (
     <MainPageWrapper>
+      <Box />
+
       {notification.message && (
         <NotificationBox type={notification.type}>
           {notification.message}

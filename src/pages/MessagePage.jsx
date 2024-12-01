@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button/Button';
 import Header from '../components/Header';
 
-// 공통 스타일 정의
 const boxStyles = css`
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -41,12 +40,17 @@ const slideDown = keyframes`
   }
 `;
 
+const Box = styled.div`
+  width: 100%;
+  height: 130px;
+  background-color: transparent;
+  display: block;
+`;
+
 const MainPageWrapper = styled.div`
-  padding-top: 140px;
   width: 100%;
   max-width: 600px;
   height: 100vh;
-  display: flex;
   margin: 0 auto;
   background-color: #ffffff;
   ${boxStyles}
@@ -317,6 +321,7 @@ const MessagePage = () => {
 
   return (
     <MainPageWrapper>
+      <Box />
       <Header title='쪽지함' />
       <ContentSection>
         <SendMessageBox visible={replyMode}>
