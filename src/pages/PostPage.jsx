@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import Button from '../components/Button';
 
@@ -19,11 +19,13 @@ const Form = styled.form`
   gap: 20px;
 `;
 
-const StyledH2 = styled.h2`
+const StyledLabel = styled.label`
   margin: 0;
   font-size: 16px;
   font-weight: bold;
   color: #333;
+  user-select: none;
+  cursor: pointer;
 `;
 
 const Input = styled.input`
@@ -80,6 +82,10 @@ const ImagePlaceholder = styled.div`
   cursor: pointer;
 `;
 
+const HiddenInput = styled.input`
+  display: none;
+`;
+
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-between;
@@ -94,12 +100,21 @@ const PostPage = () => {
   const [content, setContent] = useState('');
   const [images, setImages] = useState([]);
 
+  // Ref for the hidden file input
+  const fileInputRef = useRef(null);
+
   const handleImageUpload = (e) => {
     if (images.length < 5) {
       const newImages = Array.from(e.target.files);
       setImages((prevImages) => [...prevImages, ...newImages].slice(0, 5));
     } else {
       alert('최대 5장의 이미지만 업로드할 수 있습니다.');
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click(); // Trigger the file input click
     }
   };
 
@@ -130,8 +145,9 @@ const PostPage = () => {
   return (
     <PageWrapper>
       <Form onSubmit={handleSubmit}>
-        <StyledH2>카테고리</StyledH2>
+        <StyledLabel htmlFor='categorySelect'>카테고리</StyledLabel>
         <Select
+          id='categorySelect'
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           required
@@ -141,8 +157,9 @@ const PostPage = () => {
           <option value='mate'>산책메이트 커뮤니티</option>
         </Select>
 
-        <StyledH2>제목</StyledH2>
+        <StyledLabel htmlFor='titleInput'>제목</StyledLabel>
         <Input
+          id='titleInput'
           type='text'
           placeholder='제목을 입력하세요'
           value={title}
@@ -150,9 +167,10 @@ const PostPage = () => {
           required
         />
 
-        <StyledH2>지역</StyledH2>
+        <StyledLabel htmlFor='districtSelect'>지역</StyledLabel>
         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
           <Select
+            id='districtSelect'
             value={district}
             onChange={(e) => setDistrict(e.target.value)}
             required
@@ -162,6 +180,7 @@ const PostPage = () => {
             <option value='서초구'>서초구</option>
           </Select>
           <Select
+            id='neighborhoodSelect'
             value={neighborhood}
             onChange={(e) => setNeighborhood(e.target.value)}
             required
@@ -172,7 +191,7 @@ const PostPage = () => {
           </Select>
         </div>
 
-        <StyledH2>이미지 업로드</StyledH2>
+        <StyledLabel htmlFor='imageUpload'>이미지 업로드</StyledLabel>
         <ImageUploadContainer>
           {images.map((image, index) => (
             <img
@@ -183,12 +202,13 @@ const PostPage = () => {
             />
           ))}
           {images.length < 5 && (
-            <ImagePlaceholder>
-              <input
+            <ImagePlaceholder onClick={triggerFileInput}>
+              <HiddenInput
+                id='imageUpload'
                 type='file'
                 accept='image/*'
-                style={{ display: 'none' }}
                 multiple
+                ref={fileInputRef} // Attach ref to the hidden input
                 onChange={handleImageUpload}
               />
               +
@@ -196,8 +216,9 @@ const PostPage = () => {
           )}
         </ImageUploadContainer>
 
-        <StyledH2>본문</StyledH2>
+        <StyledLabel htmlFor='contentInput'>본문</StyledLabel>
         <TextArea
+          id='contentInput'
           placeholder='본문을 입력하세요'
           value={content}
           onChange={(e) => setContent(e.target.value)}

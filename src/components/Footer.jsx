@@ -48,6 +48,7 @@ const FooterCircle = styled.div`
 const FooterLabel = styled.span`
   font-size: 10px;
   color: #777777;
+  user-select: none;
 `;
 
 const Footer = () => {

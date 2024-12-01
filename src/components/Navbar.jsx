@@ -37,8 +37,17 @@ const BackButton = styled.button`
   cursor: pointer;
   color: #ff9900;
   padding: 0;
-  visibility: ${(props) =>
-    props.hidden ? 'hidden' : 'visible'}; /* 숨기기 처리 */
+  visibility: ${(props) => (props.hidden ? 'hidden' : 'visible')};
+
+  span {
+    margin-left: 5px;
+  }
+
+  @media (max-width: 425px) {
+    span {
+      display: none;
+    }
+  }
 `;
 
 const Title = styled.h1`
@@ -48,10 +57,11 @@ const Title = styled.h1`
   margin: 0;
   text-align: center;
   flex-grow: 1;
-  position: absolute; /* Title을 가운데 정렬 */
+  position: absolute;
   left: 50%; /* 뷰포트 기준으로 가운데 */
   transform: translateX(-50%);
   cursor: pointer;
+  user-select: none;
 `;
 
 const Navbar = () => {
@@ -66,7 +76,7 @@ const Navbar = () => {
     <HeaderContainer>
       <NavbarContent>
         <BackButton onClick={() => navigate(-1)} hidden={hideBackButton}>
-          {'<'} Back
+          {'<'} <span>Back</span>
         </BackButton>
         <Title onClick={() => navigate('/')}>GAERANGMARI</Title>
       </NavbarContent>
