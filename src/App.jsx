@@ -23,6 +23,7 @@ import LikeCommunity from './pages/LikeCommunity';
 import PostPage from './pages/PostPage';
 import PostDetail from './pages/PostDetail';
 import { useState } from 'react';
+import GlobalStyle from './components/GlobalStyle';
 
 const theme = createTheme({
   palette: {
@@ -62,6 +63,7 @@ function App() {
           v7_relativeSplatPath: true,
         }}
       >
+        <GlobalStyle />
         <Navbar />
         <Routes>
           <Route path='/' element={<MainPage />} />

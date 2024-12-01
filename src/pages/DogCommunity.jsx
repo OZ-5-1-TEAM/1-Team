@@ -6,6 +6,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import debounce from 'lodash.debounce';
 import Button from '../components/Button';
 import { useNavigate, Link } from 'react-router-dom';
+import FilterComponent from '../components/FilterComponent';
 
 const MainPageWrapper = styled.div`
   padding-top: 130px;
@@ -15,6 +16,7 @@ const MainPageWrapper = styled.div`
   background-color: #ffffff;
   padding-bottom: 63px;
   min-height: 100vh;
+  box-sizing: border-box; /* 패딩 포함 계산 */
 `;
 
 const SearchBarContainer = styled.div`
@@ -26,6 +28,12 @@ const SearchBarContainer = styled.div`
   position: sticky;
   top: 0;
   z-index: 50;
+  width: 100%; /* 화면 너비에 맞게 설정 */
+  box-sizing: border-box; /* 패딩 포함 계산 */
+
+  @media (max-width: 425px) {
+    padding: 10px 10px; /* 작은 화면에서 패딩 조정 */
+  }
 `;
 
 const SearchInput = styled.input`
@@ -57,64 +65,9 @@ const FilterControls = styled.div`
   gap: 10px;
 `;
 
-const FilterContainer = styled.div.withConfig({
-  shouldForwardProp: (prop) => prop !== 'show', // show prop이 DOM으로 전달되지 않도록 설정
-})`
-  display: ${(props) => (props.show ? 'flex' : 'none')};
-  flex-direction: column;
-  padding: 10px 20px;
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #ddd;
-`;
-
-const FilterRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap; /* 화면이 작아질 경우 자동으로 줄바꿈 */
-`;
-
-const Select = styled.select`
-  height: 30px;
-  padding: 0 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;
-`;
-
-const SortOptions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const SortLabel = styled.label`
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  color: #333;
-
-  input {
-    margin-right: 5px;
-  }
-`;
-
-const RefreshButton = styled.button`
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #ffa000;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.9;
-  }
+const FilterContainerWrapper = styled.div`
+  position: relative;
+  height: 0;
 `;
 
 const WriteButton = styled(Button)`
@@ -132,13 +85,13 @@ const WriteButton = styled(Button)`
 `;
 
 const PostListContainer = styled.div`
-  margin: 20px 0;
+  margin: 30px 0;
 `;
 
 const PostItem = styled.div`
   display: flex;
-  align-items: center; /* 이미지와 텍스트를 수직 가운데 정렬 */
-  justify-content: space-between; /* 텍스트와 메타 데이터를 양쪽으로 배치 */
+  align-items: center;
+  justify-content: space-between;
   padding: 15px 10px;
   border-bottom: 1px solid #ddd;
   gap: 15px;
@@ -163,7 +116,7 @@ const PostImage = styled.div`
 `;
 
 const PostContentWrapper = styled.div`
-  flex: 1; /* 텍스트가 남은 공간을 차지하도록 설정 */
+  flex: 1; /* 텍스트 */
   display: flex;
   flex-direction: column;
 `;
@@ -193,7 +146,7 @@ const PostDescription = styled.p`
 const PostMeta = styled.div`
   font-size: 12px;
   color: #aaa;
-  text-align: right; /* 날짜와 동네 태그를 오른쪽으로 정렬 */
+  text-align: right; /* 날짜, 동네 태그 */
 `;
 
 // 더미 데이터 생성
@@ -299,6 +252,10 @@ function DogCommunity() {
     console.log('글쓰기 버튼 클릭됨');
   };
 
+  const handleToggleFilters = () => {
+    setShowFilters((prev) => !prev);
+  };
+
   return (
     <MainPageWrapper>
       <Header title='강아지 커뮤니티' />
@@ -310,7 +267,7 @@ function DogCommunity() {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <FilterControls>
-          <CancelButton onClick={() => setShowFilters(!showFilters)}>
+          <CancelButton onClick={handleToggleFilters}>
             {showFilters ? 'Close' : 'Filters'}
           </CancelButton>
           <WriteButton variant='send' size='medium' onClick={handleWrite}>
@@ -318,63 +275,14 @@ function DogCommunity() {
           </WriteButton>
         </FilterControls>
       </SearchBarContainer>
-      <FilterContainer show={showFilters}>
-        <FilterRow>
-          <Select
-            value={filters.region}
-            onChange={(e) => setFilters({ ...filters, region: e.target.value })}
-          >
-            <option value=''>구 선택</option>
-            <option value='강남구'>강남구</option>
-            <option value='서초구'>서초구</option>
-          </Select>
-          <Select
-            value={filters.subRegion}
-            onChange={(e) =>
-              setFilters({ ...filters, subRegion: e.target.value })
-            }
-          >
-            <option value=''>동 선택</option>
-            <option value='삼성동'>삼성동</option>
-            <option value='역삼동'>역삼동</option>
-          </Select>
-          <Select
-            value={filters.size}
-            onChange={(e) => setFilters({ ...filters, size: e.target.value })}
-          >
-            <option value='소형견'>소형견</option>
-            <option value='중형견'>중형견</option>
-            <option value='대형견'>대형견</option>
-          </Select>
-          <SortOptions>
-            <SortLabel>
-              <input
-                type='radio'
-                name='sort'
-                value='최신순'
-                checked={filters.sortBy === '최신순'}
-                onChange={(e) =>
-                  setFilters({ ...filters, sortBy: e.target.value })
-                }
-              />
-              최신순
-            </SortLabel>
-            <SortLabel>
-              <input
-                type='radio'
-                name='sort'
-                value='인기순'
-                checked={filters.sortBy === '인기순'}
-                onChange={(e) =>
-                  setFilters({ ...filters, sortBy: e.target.value })
-                }
-              />
-              인기순
-            </SortLabel>
-            <RefreshButton onClick={handleRefresh}>⟳</RefreshButton>
-          </SortOptions>
-        </FilterRow>
-      </FilterContainer>
+      <FilterContainerWrapper>
+        <FilterComponent
+          $show={showFilters}
+          filters={filters}
+          setFilters={setFilters}
+          handleRefresh={handleRefresh}
+        />
+      </FilterContainerWrapper>
       <PostListContainer>
         {posts.map((post, index) => (
           <PostItem
