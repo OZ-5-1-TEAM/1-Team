@@ -54,7 +54,12 @@ const MainPageWrapper = styled.div`
     box-shadow: none;
   }
 `;
-
+const Label = styled.label`
+  font-size: 14px;
+  font-weight: bold;
+  display: block;
+  cursor: pointer; /* 마우스 커서 추가 */
+`;
 const NotificationBox = styled.div`
   position: fixed;
   top: 0;
@@ -136,12 +141,12 @@ const ButtonGroup = styled.div`
 
 const Textarea = styled.textarea`
   width: 100%;
+  height: 100%;
   min-height: 150px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  padding: 10px;
+  padding: 15px;
   font-size: 14px;
-  margin-bottom: 15px;
   box-sizing: border-box;
   resize: none;
   ${focusStyles}
@@ -155,7 +160,7 @@ const ButtonRight = styled.div`
 const InputSection = styled.div`
   display: flex;
   gap: 10px;
-  align-items: center;
+  flex-direction: column;
 `;
 
 const Input = styled.input`
@@ -163,8 +168,10 @@ const Input = styled.input`
   height: 40px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  padding: 0 10px;
+  padding: 10px;
   font-size: 14px;
+  margin: 0px 10px 10px 10px;
+
   ${focusStyles}
 `;
 
@@ -234,15 +241,32 @@ const MatePage = () => {
     showNotification('메이트가 추가되었습니다!', 'success');
   };
 
+  const handleDeleteMate = (id) => {
+    const mateToDelete = mates.find((mate) => mate.id === id);
+
+    if (!mateToDelete) {
+      showNotification('삭제할 메이트를 찾을 수 없습니다.', 'error');
+      return;
+    }
+
+    setMates((prevMates) => prevMates.filter((m) => m.id !== id));
+    showNotification(`${mateToDelete.name}님이 삭제되었습니다.`, 'success');
+  };
+
   const handleSendMessage = () => {
     if (!message.trim()) {
       showNotification('메시지를 입력해주세요!', 'error');
       return;
     }
+
     console.log('Message sent to:', selectedMate.name, message);
+
     setMessage('');
-    showNotification('메시지가 전송되었습니다!', 'success');
     setSelectedMate(null);
+    showNotification(
+      `${selectedMate.name}님에게 쪽지가 성공적으로 전송되었습니다!`,
+      'success'
+    );
   };
 
   const handleAcceptRequest = (id) => {
@@ -279,31 +303,44 @@ const MatePage = () => {
       <ContentSection>
         {selectedMate && (
           <Section>
-            <SectionTitle>{selectedMate.name}님에게 쪽지 보내기</SectionTitle>
-            <Textarea
-              placeholder='내용을 입력하세요'
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-            <ButtonRight>
-              <Button variant='send' size='large' onClick={handleSendMessage}>
-                보내기
-              </Button>
-            </ButtonRight>
+            <InputSection>
+              <Label htmlFor='messageInput'>
+                <SectionTitle>
+                  {selectedMate.name}님에게 쪽지 보내기
+                </SectionTitle>
+              </Label>
+              <Textarea
+                id='messageInput'
+                placeholder='내용을 입력하세요'
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+              <ButtonRight>
+                <Button variant='send' size='large' onClick={handleSendMessage}>
+                  보내기
+                </Button>
+              </ButtonRight>
+            </InputSection>
           </Section>
         )}
 
         <Section>
-          <SectionTitle>메이트 추가</SectionTitle>
           <InputSection>
+            <Label htmlFor='nicknameInput'>
+              <SectionTitle>메이트 추가</SectionTitle>
+            </Label>
             <Input
+              id='nicknameInput'
+              type='text'
               placeholder='닉네임을 입력하세요'
               value={newMateName}
               onChange={(e) => setNewMateName(e.target.value)}
             />
-            <Button variant='send' size='small' onClick={handleAddMate}>
-              추가
-            </Button>
+            <ButtonRight>
+              <Button variant='send' size='small' onClick={handleAddMate}>
+                추가
+              </Button>
+            </ButtonRight>
           </InputSection>
         </Section>
 
@@ -360,11 +397,7 @@ const MatePage = () => {
                   <Button
                     variant='cancel'
                     size='small'
-                    onClick={() =>
-                      setMates((prevMates) =>
-                        prevMates.filter((m) => m.id !== mate.id)
-                      )
-                    }
+                    onClick={() => handleDeleteMate(mate.id)}
                   >
                     삭제
                   </Button>

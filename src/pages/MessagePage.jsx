@@ -328,8 +328,11 @@ const MessagePage = () => {
       <Header title='쪽지함' />
       <ContentSection>
         <SendMessageBox visible={replyMode}>
-          <ReplyTitle>{currentReply}님에게 쪽지 보내기</ReplyTitle>
+          <label htmlFor='Message'>
+            <ReplyTitle>{currentReply}님에게 쪽지 보내기</ReplyTitle>
+          </label>
           <TextArea
+            id='Message'
             placeholder='내용을 입력하세요'
             value={message}
             onChange={(e) => setMessage(e.target.value)}
