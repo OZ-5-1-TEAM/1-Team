@@ -13,11 +13,13 @@ const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 `;
 
 const FormWrapper = styled.form`
   width: 90%;
   margin: 20px 0;
+  padding-bottom: 60px; /* 하단 박스와 내용 겹침 방지 */
 `;
 
 const Title = styled.h1`
@@ -95,6 +97,16 @@ const SubmitButton = styled.button`
   &:hover {
     background-color: #f39c12;
   }
+`;
+
+const BottomSpacer = styled.div`
+  width: 100%;
+  height: 60px;
+  background-color: transparent; /* 빈 박스 배경 투명 */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 10; /* 다른 요소 위에 배치 */
 `;
 
 function AddPetPage() {
@@ -220,6 +232,8 @@ function AddPetPage() {
 
         <SubmitButton type='submit'>ADD</SubmitButton>
       </FormWrapper>
+
+      <BottomSpacer />
     </PageWrapper>
   );
 }

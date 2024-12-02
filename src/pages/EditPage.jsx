@@ -19,6 +19,7 @@ const PageWrapper = styled.div`
 const FormWrapper = styled.form`
   width: 90%;
   margin: 20px 0;
+  padding-bottom: 60px; /* 하단 빈 박스와 내용 겹침 방지 */
 `;
 
 const Title = styled.h1`
@@ -96,6 +97,16 @@ const SubmitButton = styled.button`
   &:hover {
     background-color: #f39c12;
   }
+`;
+
+const BottomSpacer = styled.div`
+  width: 100%;
+  height: 60px;
+  background-color: transparent; /* 빈 박스 배경 투명 */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 10; /* 다른 요소 위에 배치 */
 `;
 
 function EditPage({ userData, setUserData }) {
@@ -230,11 +241,12 @@ function EditPage({ userData, setUserData }) {
 
         <SubmitButton type='submit'>저장</SubmitButton>
       </FormWrapper>
+
+      <BottomSpacer />
     </PageWrapper>
   );
 }
 
-// PropTypes 추가
 EditPage.propTypes = {
   userData: PropTypes.shape({
     email: PropTypes.string,
