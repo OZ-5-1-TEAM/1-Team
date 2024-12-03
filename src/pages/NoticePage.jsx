@@ -31,7 +31,7 @@ const PostImage = styled.div`
   height: 70px;
   border-radius: 5px;
   background-color: #f0f0f0;
-  background-image: url('/placeholder-image.png');
+  background-image: url('/placeholder-image.jpg');
   background-size: cover;
   background-position: center;
   flex-shrink: 0;
@@ -62,7 +62,7 @@ const generateDummyPosts = () =>
   Array.from({ length: 5 }, (_, i) => ({
     id: `${i + 1}-${Date.now()}`, // 고유한 id 생성
     title: `버전 1.${i + 1} 업데이트 사항 `,
-    background: `/placeholder-image.png`,
+    background: `/placeholder-image.jpg`,
   }));
 
 function NoticePage() {

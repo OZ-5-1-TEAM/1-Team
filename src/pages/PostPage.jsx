@@ -1,6 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import Button from '../components/Button';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const PageWrapper = styled.div`
   padding-top: 90px !important;
@@ -92,16 +94,34 @@ const ButtonContainer = styled.div`
   margin-bottom: 20px; /* Navbar와 버튼 사이 margin 추가 */
 `;
 
+// Axios 인스턴스 생성
+const api = axios.create({
+  baseURL: 'http://localhost:3000/api/v1', // 실제 URL로 변경 필요
+  headers: {
+    Authorization: 'Bearer your_access_token_here', // 실제 토큰으로 교체 필요
+  },
+});
+
 const PostPage = () => {
   const [category, setCategory] = useState('');
   const [title, setTitle] = useState('');
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [content, setContent] = useState('');
+  const [dogSize, setDogSize] = useState('');
   const [images, setImages] = useState([]);
-
-  // Ref for the hidden file input
+  const [errorMessage, setErrorMessage] = useState('');
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
+
+  // **이미지 URL 메모리 관리**
+  useEffect(() => {
+    const imageURLs = images.map((image) => URL.createObjectURL(image));
+
+    return () => {
+      imageURLs.forEach((url) => URL.revokeObjectURL(url)); // 메모리 해제
+    };
+  }, [images]);
 
   const handleImageUpload = (e) => {
     if (images.length < 5) {
@@ -114,32 +134,48 @@ const PostPage = () => {
 
   const triggerFileInput = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.click(); // Trigger the file input click
+      fileInputRef.current.click();
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
 
-    const formData = new FormData();
-    formData.append('category', category);
-    formData.append('title', title);
-    formData.append('district', district);
-    formData.append('neighborhood', neighborhood);
-    formData.append('content', content);
-    images.forEach((image, index) =>
-      formData.append(`images[${index}]`, image)
-    );
+    try {
+      const formData = new FormData();
+      formData.append('category', category);
+      formData.append('title', title);
+      formData.append('district', district);
+      formData.append('neighborhood', neighborhood);
+      formData.append('content', content);
+      formData.append('dog_size', dogSize); // 선택 항목 추가
+      images.forEach((image, index) => formData.append(`images`, image)); // 파일 배열 추가
 
-    console.log('Form submitted:', {
-      category,
-      title,
-      district,
-      neighborhood,
-      content,
-      images,
-    });
-    // 백엔드 API 호출 로직 추가
+      const response = await api.post('/posts', formData);
+
+      console.log('Form submitted:', {
+        category,
+        title,
+        district,
+        neighborhood,
+        content,
+        images,
+      });
+
+      if (response.status === 201) {
+        alert('게시글이 성공적으로 작성되었습니다!');
+        console.log('Response:', response.data);
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('게시글 작성 실패:', error);
+      setErrorMessage('게시글 작성 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const handleCancel = () => {
+    navigate('/');
   };
 
   return (
@@ -177,7 +213,6 @@ const PostPage = () => {
           >
             <option value=''>구 선택</option>
             <option value='강남구'>강남구</option>
-            <option value='서초구'>서초구</option>
           </Select>
           <Select
             id='neighborhoodSelect'
@@ -186,10 +221,23 @@ const PostPage = () => {
             required
           >
             <option value=''>동 선택</option>
-            <option value='삼성동'>삼성동</option>
+            <option value='신사동'>신사동</option>
+            <option value='논현동'>논현동</option>
             <option value='역삼동'>역삼동</option>
           </Select>
         </div>
+
+        <StyledLabel htmlFor='dogSizeSelect'>강아지 크기</StyledLabel>
+        <Select
+          id='dogSizeSelect'
+          value={dogSize}
+          onChange={(e) => setDogSize(e.target.value)}
+        >
+          <option value=''>선택 안함</option>
+          <option value='small'>소형견</option>
+          <option value='medium'>중형견</option>
+          <option value='large'>대형견</option>
+        </Select>
 
         <StyledLabel htmlFor='imageUpload'>이미지 업로드</StyledLabel>
         <ImageUploadContainer>
@@ -224,13 +272,9 @@ const PostPage = () => {
           onChange={(e) => setContent(e.target.value)}
           required
         />
-
+        {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
         <ButtonContainer>
-          <Button
-            variant='cancel'
-            size='medium'
-            onClick={() => console.log('취소')}
-          >
+          <Button variant='cancel' size='medium' onClick={handleCancel}>
             취소
           </Button>
           <Button variant='send' size='medium' type='submit'>

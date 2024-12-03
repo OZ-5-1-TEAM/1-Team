@@ -31,7 +31,7 @@ const SearchBarContainer = styled.div`
   z-index: 50;
   width: 100%;
   box-sizing: border-box;
-
+  user-select: none;
   @media (max-width: 425px) {
     padding: 10px 10px;
   }
@@ -110,7 +110,7 @@ const PostImage = styled.div`
   height: 70px;
   border-radius: 5px;
   background-color: #f0f0f0;
-  background-image: url('/placeholder-image.png');
+  background-image: url('/placeholder-image.jpg');
   background-size: cover;
   background-position: center;
   flex-shrink: 0;
@@ -142,31 +142,55 @@ const PostDescription = styled.p`
   color: #777;
   margin: 5px 0 0 10px;
   line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `;
 
 const PostMeta = styled.div`
   font-size: 12px;
   color: #aaa;
-  text-align: right;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 10px;
 `;
 
-// 더미 데이터 생성
-// const generateDummyPosts = (startId = 1, count = 10) =>
-//   Array.from({ length: count }, (_, i) => ({
-//     id: `${startId + i}-${Math.random().toString(36).substr(2, 9)}`, // 고유한 id 생성
-//     title: `제목 ${startId + i}`,
-//     content: `강아지 다이어트 방법 좀 알려주세요...`,
-//     background: `/placeholder-image.png`,
-//     district: `강남구`,
-//     neighborhood: `삼성동`,
-//     size: `소형견`,
-//   }));
+const PostLocation = styled.span`
+  color: #555;
+`;
+
+const PostNinkname = styled.span`
+  color: #555;
+`;
+
+const PostStats = styled.div`
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-left: 12px;
+  .icon {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #777;
+  }
+`;
+
+const PostStat = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  color: #777;
+`;
 
 function DogCommunity() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [error, setError] = useState(null); // 에러 상태
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -319,7 +343,6 @@ function DogCommunity() {
           handleRefresh={handleRefresh}
         />
       </FilterContainerWrapper>
-      ㅎ
       <PostListContainer>
         {posts.map((post, index) => (
           <PostItem
@@ -339,10 +362,20 @@ function DogCommunity() {
               <PostImage />
               <PostContentWrapper>
                 <PostTitle>{post.title}</PostTitle>
-                <PostDescription>{post.content}</PostDescription>
+                <PostDescription>
+                  {post.content.slice(0, 20)}...
+                </PostDescription>
                 <PostMeta>
-                  {post.district} {post.neighborhood}, {post.size},{' '}
-                  {new Date().toLocaleDateString()}
+                  <PostStats>
+                    <PostStat>❤️ {post.likes_count}</PostStat>
+                    <PostStat>💬 {post.comments_count}</PostStat>
+                  </PostStats>
+                  <PostNinkname>{post.author.nickname}</PostNinkname>
+                  <PostLocation>
+                    {post.location.district}-{post.location.neighborhood},{' '}
+                    {/* {post.size},{' '} 아직 API명세서에 안 보임*/}
+                    {new Date(post.created_at).toLocaleString()}
+                  </PostLocation>
                 </PostMeta>
               </PostContentWrapper>
             </Link>
