@@ -175,7 +175,7 @@ const generateDummyPosts = (startId = 1, count = 10) =>
     id: startId + i,
     title: `제목 ${startId + i}`,
     description: `선정릉 공원에서 산책 같이 하실 분... ㅤㅤ강남구 삼성동, 소형견 2024-11-26`,
-    background: `/placeholder-image.png`,
+    background: `/placeholder-image.jpg`,
   }));
 
 function LikeCommunity() {

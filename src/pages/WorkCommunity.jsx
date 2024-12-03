@@ -7,6 +7,7 @@ import debounce from 'lodash.debounce';
 import Button from '../components/Button';
 import { useNavigate, Link } from 'react-router-dom';
 import FilterComponent from '../components/FilterComponent';
+import axios from 'axios';
 
 const MainPageWrapper = styled.div`
   padding-top: 130px;
@@ -16,7 +17,8 @@ const MainPageWrapper = styled.div`
   background-color: #ffffff;
   padding-bottom: 63px;
   min-height: 100vh;
-  box-sizing: border-box; /* 패딩 포함 계산 */
+  box-sizing: border-box;
+  font-family: 'Pretendard', sans-serif;
 `;
 
 const SearchBarContainer = styled.div`
@@ -90,8 +92,8 @@ const PostListContainer = styled.div`
 
 const PostItem = styled.div`
   display: flex;
-  align-items: center; /* 이미지와 텍스트를 수직 가운데 정렬 */
-  justify-content: space-between; /* 텍스트와 메타 데이터를 양쪽으로 배치 */
+  align-items: center;
+  justify-content: space-between;
   padding: 15px 10px;
   border-bottom: 1px solid #ddd;
   gap: 15px;
@@ -109,16 +111,17 @@ const PostImage = styled.div`
   height: 70px;
   border-radius: 5px;
   background-color: #f0f0f0;
-  background-image: url('/placeholder-image.png');
+  background-image: url('/placeholder-image.jpg');
   background-size: cover;
   background-position: center;
   flex-shrink: 0;
 `;
 
 const PostContentWrapper = styled.div`
-  flex: 1; /* 텍스트가 남은 공간을 차지하도록 설정 */
+  flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative; /* 부모 요소에서 relative로 설정 */
 `;
 
 const PostDetails = styled.div`
@@ -133,20 +136,68 @@ const PostTitle = styled.h4`
   color: #333;
   margin: 0;
   font-weight: bold;
-  margin: 20px 0 0 10px;
+  margin: 20px 0 0px 10px;
 `;
 
-const PostDescription = styled.p`
-  font-size: 14px;
-  color: #777;
-  margin: 5px 0 0 10px;
-  line-height: 1.4; /* 읽기 편하게 간격 추가 */
+const PostNinknameAndSize = styled.div`
+  display: flex;
+  gap: 10px;
+  margin: 5px 0 5px 10px;
+  font-size: 13px;
+  font-weight: bold;
 `;
 
 const PostMeta = styled.div`
   font-size: 12px;
   color: #aaa;
-  text-align: right; /* 날짜와 동네 태그를 오른쪽으로 정렬 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const PostLocationAndDate = styled.div`
+  position: absolute;
+  top: 60%;
+  right: 0;
+  transform: translateY(-50%);
+  text-align: right;
+  line-height: 1.5;
+  color: #646464;
+`;
+
+const PostLocation = styled.div`
+  color: #646464;
+  font-size: 13px;
+`;
+
+const PostDate = styled.div`
+  color: #646464;
+`;
+
+const PostNinkname = styled.span`
+  color: #555;
+`;
+
+const PostStats = styled.div`
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-left: 12px;
+  .icon {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #777;
+  }
+`;
+
+const PostStat = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  color: #777;
 `;
 
 // 더미 데이터 생성
@@ -155,10 +206,18 @@ const generateDummyPosts = (startId = 1, count = 10) =>
     id: `${startId + i}-${Date.now()}`, // 고유한 id 생성
     title: `제목 ${startId + i}`,
     content: `봉은사 근처 산책 파트너를 찾습니다...`,
-    background: `/placeholder-image.png`,
-    district: `강남구`,
-    neighborhood: `삼성동`,
+    author: {
+      nickname: `꾸앵`,
+    },
+    background: `/placeholder-image.jpg`,
+    location: {
+      district: `강남구`,
+      neighborhood: `삼성동`,
+    },
+    likes_count: `10`,
+    comments_count: `5`,
     size: `소형견`,
+    created_at: `2024.12.03 15:05`,
   }));
 
 function WorkCommunity() {
@@ -302,10 +361,23 @@ function WorkCommunity() {
               <PostImage />
               <PostContentWrapper>
                 <PostTitle>{post.title}</PostTitle>
-                <PostDescription>{post.content}</PostDescription>
+                <PostNinknameAndSize>
+                  <PostNinkname>{post.size}</PostNinkname>
+                  <PostNinkname>{post.author.nickname}</PostNinkname>
+                </PostNinknameAndSize>
+                <PostStats>
+                  <PostStat>❤️ {post.likes_count}</PostStat>
+                  <PostStat>💬 {post.comments_count}</PostStat>
+                </PostStats>
                 <PostMeta>
-                  {post.district} {post.neighborhood}, {post.size} ,{' '}
-                  {new Date().toLocaleDateString()}
+                  <PostLocationAndDate>
+                    <PostLocation>
+                      {post.location.district}-{post.location.neighborhood}
+                    </PostLocation>
+                    <PostDate>
+                      {new Date(post.created_at).toLocaleString()}
+                    </PostDate>
+                  </PostLocationAndDate>
                 </PostMeta>
               </PostContentWrapper>
             </Link>
