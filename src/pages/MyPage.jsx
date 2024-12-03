@@ -103,6 +103,7 @@ const SectionTitle = styled.h3`
   font-size: 16px;
   font-weight: bold;
   color: #f5b041;
+  cursor: pointer; /* 클릭 가능하도록 설정 */
 `;
 
 const ButtonGroup = styled.div`
@@ -220,7 +221,9 @@ function MyPage() {
         {/* MY Photo 섹션 */}
         <Section>
           <SectionHeader>
-            <SectionTitle>MY Photo</SectionTitle>
+            <SectionTitle onClick={() => navigate('/myphoto')}>
+              MY Photo
+            </SectionTitle>
           </SectionHeader>
           <HorizontalSectionBody>
             <Box />
@@ -253,7 +256,9 @@ function MyPage() {
         {/* 내가 좋아요한 게시물 섹션 */}
         <Section>
           <SectionHeader>
-            <SectionTitle>내가 좋아요한 게시물</SectionTitle>
+            <SectionTitle onClick={() => navigate('/likedposts')}>
+              내가 좋아요한 게시물
+            </SectionTitle>
           </SectionHeader>
           <VerticalSectionBody>
             <CommunityItem>

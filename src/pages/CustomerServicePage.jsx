@@ -142,7 +142,13 @@ function CustomerServicePage() {
 
   const validateForm = () => {
     if (!formData.title.trim()) return '제목을 입력하세요.';
-    if (!formData.email.trim()) return '이메일을 입력하세요.';
+    if (!formData.emailId.trim()) return '이메일 ID를 입력하세요.';
+    if (
+      !(formData.emailDomain && formData.emailDomain.trim()) &&
+      !(formData.customDomain && formData.customDomain.trim())
+    ) {
+      return '이메일 도메인을 선택하거나 입력하세요.';
+    }
     if (!formData.body.trim()) return '본문을 입력하세요.';
     return '';
   };
@@ -154,6 +160,7 @@ function CustomerServicePage() {
       setAlert({ message: errorMessage, isError: true });
       return;
     }
+    const fullEmail = `${formData.emailId}@${formData.emailDomain}`;
 
     try {
       const response = await fetch('/api/submit', {
@@ -161,7 +168,7 @@ function CustomerServicePage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, email: fullEmail }),
       });
 
       if (!response.ok) {
@@ -201,14 +208,53 @@ function CustomerServicePage() {
               onChange={handleInputChange}
               required
             />
-            <Label htmlFor='email'>이메일</Label>
-            <Input
-              id='email'
-              type='email'
-              placeholder='이메일을 입력하세요'
-              onChange={handleInputChange}
-              required
-            />
+            <Label htmlFor='emailId'>이메일</Label>{' '}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <Input
+                id='emailId'
+                type='text'
+                placeholder='이메일 ID'
+                onChange={handleInputChange}
+                style={{ flex: 1 }}
+                required
+              />
+              <span>@</span>
+
+              <select
+                id='emailDomain'
+                onChange={(e) =>
+                  setFormData({ ...formData, emailDomain: e.target.value })
+                }
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '5px',
+                  border: '1px solid #ddd',
+                }}
+                required
+              >
+                <option value=''>도메인 선택</option>
+                <option value='naver.com'>naver.com</option>
+                <option value='daum.net'>daum.net</option>
+                <option value='gmail.com'>gmail.com</option>
+                <option value='outlook.com'>outlook.com</option>
+                <option value='yahoo.com'>yahoo.com</option>
+                <option value='hotmail.com'>hotmail.com</option>
+                <option value='custom'>직접 입력</option>
+              </select>
+            </div>
+            {formData.emailDomain === 'custom' && (
+              <Input
+                id='customDomain'
+                type='text'
+                placeholder='도메인을 입력하세요'
+                onChange={(e) =>
+                  setFormData({ ...formData, customDomain: e.target.value })
+                }
+                style={{ marginTop: '10px' }}
+                required
+              />
+            )}
             <Label htmlFor='body'>본문</Label>
             <TextArea
               id='body'
