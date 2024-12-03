@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -25,7 +26,7 @@ const Section = styled.section`
   border-bottom: 1px solid #ddd;
 `;
 
-// 프로필 섹션
+// 프로필 섹션 스타일 정의
 const ProfileSection = styled(Section)`
   display: flex;
   align-items: center;
@@ -91,7 +92,6 @@ const EditButton = styled.button`
   cursor: pointer;
 `;
 
-// 섹션 Header
 const SectionHeader = styled.div`
   display: flex;
   justify-content: space-between;
@@ -115,12 +115,11 @@ const ButtonGroup = styled.div`
 const ActionButton = styled.button`
   background: none;
   border: none;
-  font-size: 14px; /* 프로필 섹션 EDIT와 동일한 스타일 */
+  font-size: 14px;
   color: #f5b041;
   cursor: pointer;
 `;
 
-// MY Photo 섹션과 반려견 정보 섹션
 const HorizontalSectionBody = styled.div`
   display: flex;
   gap: 10px;
@@ -133,7 +132,6 @@ const Box = styled.div`
   border-radius: 10px;
 `;
 
-// 내가 좋아요한 게시물 섹션
 const VerticalSectionBody = styled.div`
   display: flex;
   flex-direction: column;
@@ -164,13 +162,12 @@ const CommunityTitle = styled.span`
   color: #333;
 `;
 
-// Footer Actions
 const FooterActions = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   margin: 20px 0;
-  padding-bottom: 80px; /* 푸터와의 간격 확보 */
+  padding-bottom: 80px;
 `;
 
 const FooterActionButton = styled.button`
@@ -188,10 +185,45 @@ const FooterActionButton = styled.button`
 function MyPage() {
   const navigate = useNavigate();
 
+  // State
+  const [profile, setProfile] = useState({});
+  const [pets, setPets] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [profileResponse, petsResponse, likedPostsResponse] =
+          await Promise.all([
+            axios.get('/api/v1/users/me'),
+            axios.get('/api/v1/pets'),
+            axios.get('/api/v1/posts/liked'),
+          ]);
+
+        setProfile(profileResponse.data || {});
+        setPets(petsResponse.data?.pets || []);
+        setLikedPosts(likedPostsResponse.data?.posts || []);
+      } catch (error) {
+        console.error('데이터를 가져오는 데 실패했습니다:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // 로딩 처리
+  if (loading) {
+    return <div>로딩 중...</div>;
+  }
+
   return (
     <>
       <PageWrapper>
-        {/* 상단 Header */}
         <Header title='My Page' />
 
         {/* 프로필 섹션 */}
@@ -199,8 +231,8 @@ function MyPage() {
           <ProfileInfo>
             <ProfileImage />
             <ProfileDetails>
-              <ProfileName>Nickname</ProfileName>
-              <ProfileEmail>해당 회원 이메일 주소</ProfileEmail>
+              <ProfileName>{profile.nickname || '닉네임 없음'}</ProfileName>
+              <ProfileEmail>{profile.email || '이메일 없음'}</ProfileEmail>
             </ProfileDetails>
           </ProfileInfo>
           <ProfileIcons>
@@ -215,7 +247,7 @@ function MyPage() {
           <SectionHeader>
             <SectionTitle>자기소개</SectionTitle>
           </SectionHeader>
-          <p>자기소개를 입력해주세요.</p>
+          <p>{profile.intro || '자기소개를 입력해주세요.'}</p>
         </Section>
 
         {/* MY Photo 섹션 */}
@@ -248,8 +280,16 @@ function MyPage() {
             </ButtonGroup>
           </SectionHeader>
           <HorizontalSectionBody>
-            <Box />
-            <Box />
+            {pets.length > 0 ? (
+              pets.map((pet) => (
+                <Box key={pet.id}>
+                  <p>{pet.name}</p>
+                  <p>{pet.breed}</p>
+                </Box>
+              ))
+            ) : (
+              <p>등록된 반려견이 없습니다.</p>
+            )}
           </HorizontalSectionBody>
         </Section>
 
@@ -261,18 +301,18 @@ function MyPage() {
             </SectionTitle>
           </SectionHeader>
           <VerticalSectionBody>
-            <CommunityItem>
-              <CommunityDetails>
-                <CommunityName>COMMUNITY NAME</CommunityName>
-                <CommunityTitle>TITLE</CommunityTitle>
-              </CommunityDetails>
-            </CommunityItem>
-            <CommunityItem>
-              <CommunityDetails>
-                <CommunityName>COMMUNITY NAME</CommunityName>
-                <CommunityTitle>TITLE</CommunityTitle>
-              </CommunityDetails>
-            </CommunityItem>
+            {likedPosts.length > 0 ? (
+              likedPosts.map((post) => (
+                <CommunityItem key={post.id}>
+                  <CommunityDetails>
+                    <CommunityName>{post.category}</CommunityName>
+                    <CommunityTitle>{post.title}</CommunityTitle>
+                  </CommunityDetails>
+                </CommunityItem>
+              ))
+            ) : (
+              <p>좋아요한 게시물이 없습니다.</p>
+            )}
           </VerticalSectionBody>
         </Section>
 
@@ -286,8 +326,6 @@ function MyPage() {
           </FooterActionButton>
         </FooterActions>
       </PageWrapper>
-
-      {/* Footer */}
       <Footer />
     </>
   );
