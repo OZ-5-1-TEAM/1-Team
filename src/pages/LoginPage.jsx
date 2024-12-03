@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 
 // 전체 화면 Wrapper
 const FullScreenWrapper = styled.div`
@@ -11,10 +12,22 @@ const FullScreenWrapper = styled.div`
   margin: 0;
 `;
 
+// 로고 Wrapper
+const LogoWrapper = styled.div`
+  text-align: center; /* 가로 기준 중앙 정렬 */
+  margin-bottom: 20px; /* 아래 로그인 폼과 간격 */
+`;
+
+const Logo = styled.img`
+  display: inline-block; /* 중앙 정렬을 위한 inline-block 설정 */
+  width: 150px; /* 로고 너비 */
+  height: auto; /* 자동 비율 유지 */
+`;
+
 // Wrapper: 회원가입 페이지와 동일한 스타일 유지
 const LoginWrapper = styled.div`
   padding: 30px;
-  width: 300px; /* 회원가입 페이지와 동일한 너비 */
+  width: 300px;
   border: 1px solid #f5b041;
   border-radius: 20px;
   background-color: #ffffff;
@@ -65,6 +78,7 @@ const Button = styled.button`
 function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -76,7 +90,7 @@ function LoginPage() {
     if (!form.email) {
       newErrors.email = '이메일을 입력해주세요.';
     } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      newErrors.email = '유효한 이메일 주소를 입력해주세요.';
+      newErrors.email = '유효한 이메일 형식이 아닙니다.';
     }
 
     if (!form.password) {
@@ -87,17 +101,38 @@ function LoginPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      console.log('로그인 정보:', form);
-      // 로그인 API 호출 로직 추가
+      setLoading(true);
+      try {
+        const response = await axios.post(
+          'https://api.example.com/api/v1/auth/login',
+          form
+        );
+        const { access_token } = response.data;
+        localStorage.setItem('access_token', access_token);
+        alert('로그인 성공!');
+        window.location.href = '/dashboard'; // 로그인 후 리다이렉트
+      } catch (error) {
+        console.error('로그인 에러:', error);
+        if (error.response && error.response.status === 401) {
+          alert('이메일 또는 비밀번호가 올바르지 않습니다.');
+        } else {
+          alert('로그인 중 문제가 발생했습니다.');
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   return (
     <FullScreenWrapper>
       <LoginWrapper>
+        <LogoWrapper>
+          <Logo src='/path/to/logo.png' alt='개랑말이 로고' />
+        </LogoWrapper>
         <Title>LOGIN</Title>
         <form onSubmit={handleSubmit}>
           <InputWrapper>
@@ -120,7 +155,9 @@ function LoginPage() {
             />
             {errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
           </InputWrapper>
-          <Button type='submit'>LOGIN</Button>
+          <Button type='submit' disabled={loading}>
+            {loading ? '로그인 중...' : 'LOGIN'}
+          </Button>
         </form>
       </LoginWrapper>
     </FullScreenWrapper>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const PageWrapper = styled.div`
@@ -119,6 +120,7 @@ function AddPetPage() {
     intro: '',
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const validate = () => {
@@ -136,11 +138,22 @@ function AddPetPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      console.log('반려견 정보:', form);
-      navigate('/mypage'); // 마이페이지로 이동
+      setLoading(true);
+      try {
+        const response = await axios.post('/api/v1/pets', form);
+        if (response.status === 201) {
+          alert('반려견 정보가 성공적으로 추가되었습니다.');
+          navigate('/mypage'); // 마이페이지로 이동
+        }
+      } catch (error) {
+        console.error('반려견 정보 추가 중 에러:', error);
+        alert('반려견 정보를 추가하는 데 문제가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -230,7 +243,9 @@ function AddPetPage() {
           {errors.intro && <ErrorMessage>{errors.intro}</ErrorMessage>}
         </InputGroup>
 
-        <SubmitButton type='submit'>ADD</SubmitButton>
+        <SubmitButton type='submit' disabled={loading}>
+          {loading ? '추가 중...' : 'ADD'}
+        </SubmitButton>
       </FormWrapper>
 
       <BottomSpacer />

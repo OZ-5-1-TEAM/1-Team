@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const PageWrapper = styled.div`
@@ -110,7 +111,7 @@ const BottomSpacer = styled.div`
 `;
 
 function PetEditPage({ petData, setPetData }) {
-  const [form, setForm] = React.useState({
+  const [form, setForm] = useState({
     name: petData?.name || '',
     breed: petData?.breed || '',
     age: petData?.age || '',
@@ -118,7 +119,8 @@ function PetEditPage({ petData, setPetData }) {
     gender: petData?.gender || '',
     intro: petData?.intro || '',
   });
-  const [errors, setErrors] = React.useState({});
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const validate = () => {
@@ -136,11 +138,23 @@ function PetEditPage({ petData, setPetData }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      setPetData({ ...petData, ...form });
-      navigate('/mypage'); // 마이페이지로 이동
+      setLoading(true);
+      try {
+        const response = await axios.put(`/api/v1/pets/${petData.id}`, form);
+        if (response.status === 200) {
+          alert('반려견 정보가 성공적으로 수정되었습니다.');
+          setPetData({ ...petData, ...form });
+          navigate('/mypage');
+        }
+      } catch (error) {
+        console.error('반려견 정보 수정 중 에러:', error);
+        alert('반려견 정보를 수정하는 데 문제가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -230,7 +244,9 @@ function PetEditPage({ petData, setPetData }) {
           {errors.intro && <ErrorMessage>{errors.intro}</ErrorMessage>}
         </InputGroup>
 
-        <SubmitButton type='submit'>EDIT</SubmitButton>
+        <SubmitButton type='submit' disabled={loading}>
+          {loading ? '수정 중...' : 'EDIT'}
+        </SubmitButton>
       </FormWrapper>
 
       <BottomSpacer />
@@ -240,13 +256,14 @@ function PetEditPage({ petData, setPetData }) {
 
 PetEditPage.propTypes = {
   petData: PropTypes.shape({
+    id: PropTypes.number.isRequired,
     name: PropTypes.string,
     breed: PropTypes.string,
     age: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     size: PropTypes.string,
     gender: PropTypes.string,
     intro: PropTypes.string,
-  }),
+  }).isRequired,
   setPetData: PropTypes.func.isRequired,
 };
 
