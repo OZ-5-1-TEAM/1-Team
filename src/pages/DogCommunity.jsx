@@ -5,8 +5,9 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import debounce from 'lodash.debounce';
 import Button from '../components/Button';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Outlet } from 'react-router-dom';
 import FilterComponent from '../components/FilterComponent';
+import axios from 'axios';
 
 const MainPageWrapper = styled.div`
   padding-top: 130px;
@@ -16,7 +17,7 @@ const MainPageWrapper = styled.div`
   background-color: #ffffff;
   padding-bottom: 63px;
   min-height: 100vh;
-  box-sizing: border-box; /* 패딩 포함 계산 */
+  box-sizing: border-box;
 `;
 
 const SearchBarContainer = styled.div`
@@ -28,11 +29,11 @@ const SearchBarContainer = styled.div`
   position: sticky;
   top: 0;
   z-index: 50;
-  width: 100%; /* 화면 너비에 맞게 설정 */
-  box-sizing: border-box; /* 패딩 포함 계산 */
+  width: 100%;
+  box-sizing: border-box;
 
   @media (max-width: 425px) {
-    padding: 10px 10px; /* 작은 화면에서 패딩 조정 */
+    padding: 10px 10px;
   }
 `;
 
@@ -116,7 +117,7 @@ const PostImage = styled.div`
 `;
 
 const PostContentWrapper = styled.div`
-  flex: 1; /* 텍스트 */
+  flex: 1;
   display: flex;
   flex-direction: column;
 `;
@@ -140,36 +141,37 @@ const PostDescription = styled.p`
   font-size: 14px;
   color: #777;
   margin: 5px 0 0 10px;
-  line-height: 1.4; /* 읽기 편하게 간격 추가 */
+  line-height: 1.4;
 `;
 
 const PostMeta = styled.div`
   font-size: 12px;
   color: #aaa;
-  text-align: right; /* 날짜, 동네 태그 */
+  text-align: right;
 `;
 
 // 더미 데이터 생성
-const generateDummyPosts = (startId = 1, count = 10) =>
-  Array.from({ length: count }, (_, i) => ({
-    id: `${startId + i}-${Date.now()}`, // 고유한 id 생성
-    title: `제목 ${startId + i}`,
-    content: `강아지 다이어트 방법 좀 알려주세요...`,
-    background: `/placeholder-image.png`,
-    district: `강남구`,
-    neighborhood: `삼성동`,
-    size: `소형견`,
-  }));
+// const generateDummyPosts = (startId = 1, count = 10) =>
+//   Array.from({ length: count }, (_, i) => ({
+//     id: `${startId + i}-${Math.random().toString(36).substr(2, 9)}`, // 고유한 id 생성
+//     title: `제목 ${startId + i}`,
+//     content: `강아지 다이어트 방법 좀 알려주세요...`,
+//     background: `/placeholder-image.png`,
+//     district: `강남구`,
+//     neighborhood: `삼성동`,
+//     size: `소형견`,
+//   }));
 
 function DogCommunity() {
-  const [posts, setPosts] = useState(generateDummyPosts());
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState(null); // 에러 상태
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    region: '',
-    subRegion: '',
+    district: '',
+    neighborhood: '',
     size: '소형견',
     sortBy: '최신순',
   });
@@ -177,21 +179,65 @@ function DogCommunity() {
   const currentPostId = useRef(1);
   const navigate = useNavigate();
 
-  // 무한 스크롤 fetch
-  const fetchPosts = useCallback(() => {
+  // Axios 인스턴스 생성
+  const api = axios.create({
+    baseURL: 'http://localhost:3000/api/v1', // 임시 URL
+    headers: {
+      Authorization: 'Bearer your_access_token_here', // 실제 토큰으로 교체
+    },
+  });
+
+  // 초기 게시물 로드 함수
+  const fetchInitialPosts = useCallback(async () => {
     setLoading(true);
-
-    setTimeout(() => {
-      const newPosts = generateDummyPosts(currentPostId.current, 10);
-      currentPostId.current += 10;
-      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
+    setError(null);
+    try {
+      const response = await api.get('/posts', {
+        params: {
+          ...filters,
+          keyword: searchQuery,
+          sort: 'latest',
+          page: 1,
+          size: 10,
+        },
+      });
+      setPosts(response.data.posts || []);
+      currentPage.current = 2; // 다음 페이지 설정
+      setHasMore(response.data.posts?.length > 0);
+    } catch (err) {
+      console.error('게시물 초기 로드 실패:', err);
+      setError('게시물을 불러오는 데 실패했습니다.');
+      setPosts([]);
+    } finally {
       setLoading(false);
+    }
+  }, [filters, searchQuery]);
 
-      if (currentPostId.current > 100) {
-        setHasMore(false);
-      }
-    }, 1000);
-  }, []);
+  // 무한 스크롤용 추가 게시물 로드 함수
+  const fetchMorePosts = useCallback(async () => {
+    if (!hasMore || loading) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get('/posts', {
+        params: {
+          ...filters,
+          keyword: searchQuery,
+          sort: 'latest',
+          page: currentPage.current,
+          size: 10,
+        },
+      });
+      setPosts((prevPosts) => [...prevPosts, ...(response.data.posts || [])]);
+      currentPage.current += 1;
+      setHasMore(response.data.posts?.length > 0);
+    } catch (err) {
+      console.error('추가 게시물 로드 실패:', err);
+      setError('추가 게시물을 불러오는 데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, searchQuery, hasMore, loading]);
 
   // Lazy Loading 및 Infinite Scroll 처리
   const lastPostRef = useCallback(
@@ -201,50 +247,40 @@ function DogCommunity() {
 
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && hasMore) {
-          fetchPosts();
+          fetchMorePosts();
         }
       });
 
       if (node) observer.current.observe(node);
     },
-    [loading, hasMore, fetchPosts]
+    [loading, hasMore, fetchMorePosts]
   );
 
-  // 첫 렌더링 시 더미 데이터 로드
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
-
-  // 검색어 변경 시 자동 검색
-  const searchPosts = useCallback(
+  // 검색어 변경 시 게시물 초기화 후 재검색
+  const handleSearchQueryChange = useCallback(
     debounce((query) => {
-      const filteredPosts = generateDummyPosts(1, 100).filter((post) =>
-        post.title.includes(query)
-      );
-      setPosts(filteredPosts);
-    }, 500), // 0.5초 debounce 적용
-    []
+      setSearchQuery(query);
+      currentPage.current = 1;
+      fetchInitialPosts(); // 검색어 변경 시 초기화
+    }, 500),
+    [fetchInitialPosts]
   );
 
+  // 초기 데이터 로드
   useEffect(() => {
-    if (searchQuery) {
-      searchPosts(searchQuery);
-    } else {
-      fetchPosts(); // 검색어가 없을 경우 전체 데이터 가져오기
-    }
-  }, [searchQuery, searchPosts, fetchPosts]);
+    fetchInitialPosts();
+  }, [fetchInitialPosts]);
 
   const handleRefresh = () => {
     setFilters({
-      region: '',
-      subRegion: '',
+      district: '',
+      neighborhood: '',
       size: '소형견',
       sortBy: '최신순',
     });
     setSearchQuery('');
-    currentPostId.current = 1;
-    setPosts([]);
-    fetchPosts();
+    currentPage.current = 1;
+    fetchInitialPosts();
   };
 
   const handleWrite = () => {
@@ -264,7 +300,7 @@ function DogCommunity() {
           type='text'
           placeholder='Search'
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => handleSearchQueryChange(e.target.value)}
         />
         <FilterControls>
           <CancelButton onClick={handleToggleFilters}>
@@ -283,6 +319,7 @@ function DogCommunity() {
           handleRefresh={handleRefresh}
         />
       </FilterContainerWrapper>
+      ㅎ
       <PostListContainer>
         {posts.map((post, index) => (
           <PostItem
@@ -290,7 +327,7 @@ function DogCommunity() {
             ref={index === posts.length - 1 ? lastPostRef : null}
           >
             <Link
-              to={`/postdetail/${post.id}`}
+              to={`/dogcommunity/postdetail/${post.id}`}
               style={{
                 textDecoration: 'none',
                 color: 'inherit',
@@ -304,7 +341,7 @@ function DogCommunity() {
                 <PostTitle>{post.title}</PostTitle>
                 <PostDescription>{post.content}</PostDescription>
                 <PostMeta>
-                  {post.district} {post.neighborhood}, {post.size} ,{' '}
+                  {post.district} {post.neighborhood}, {post.size},{' '}
                   {new Date().toLocaleDateString()}
                 </PostMeta>
               </PostContentWrapper>
@@ -331,6 +368,8 @@ function DogCommunity() {
             </PostItem>
           ))}
       </PostListContainer>
+      {/* <Outlet /> 추가 */}
+      <Outlet />
     </MainPageWrapper>
   );
 }
