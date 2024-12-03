@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import MainPage from './pages/MainPage';
@@ -83,15 +84,18 @@ function App() {
             element={<PetEditPage petData={petData} setPetData={setPetData} />}
           />
           <Route path='/customerservice' element={<CustomerServicePage />} />
-          <Route path='/workcommunity' element={<WorkCommunity />} />
-          <Route path='/dogcommunity' element={<DogCommunity />} />
+          <Route path='/workcommunity' element={<WorkCommunity />}>
+            <Route path='postdetail/:id' element={<PostDetail />} />
+          </Route>
+          <Route path='/dogcommunity' element={<DogCommunity />}>
+            <Route path='postdetail/:id' element={<PostDetail />} />
+          </Route>
           <Route path='/likecommunity' element={<LikeCommunity />} />
           <Route path='/mate' element={<MatePage />} />
           <Route path='/message' element={<MessagePage />} />
           <Route path='/receivedmessages' element={<ReceivedMessagesPage />} />
           <Route path='/sentmessages' element={<SentMessagesPage />} />
           <Route path='/postpage' element={<PostPage />} />
-          <Route path='/postdetail/:id' element={<PostDetail />} />
           {/* 경로를 소문자로 통일하십쇼 */}
           {/* 예시) path부분 소문자 통일 <Route path="/community" element={<Community />} /> */}
         </Routes>

@@ -31,21 +31,15 @@ const MainPageWrapper = styled.div`
   margin: 0 auto;
   background-color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding-left: 20px;
-  padding-right: 20px;
   padding-bottom: 63px;
   position: relative;
   animation: ${fadeIn} 0.5s ease;
 
   @media (max-width: 480px) {
-    padding-left: 10px;
-    padding-right: 10px;
     box-shadow: none;
   }
 
   @media (min-width: 481px) and (max-width: 600px) {
-    padding-left: 15px;
-    padding-right: 15px;
     max-width: 90%;
   }
 `;

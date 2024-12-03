@@ -72,7 +72,12 @@ const Footer = () => {
           onClick={() => navigate(item.path)}
           aria-label={item.label}
         >
-          <FooterCircle $isActive={location.pathname === item.path} />
+          <FooterCircle
+            $isActive={
+              location.pathname === item.path ||
+              (item.path !== '/' && location.pathname.startsWith(item.path))
+            }
+          />
           <FooterLabel>{item.label}</FooterLabel>
         </FooterItemWrapper>
       ))}

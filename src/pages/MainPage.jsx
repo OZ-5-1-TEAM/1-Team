@@ -420,7 +420,7 @@ const CommunityList = () => {
 
   return (
     <>
-      <CommunityHeader onClick={() => navigate('/community')}>
+      <CommunityHeader onClick={() => navigate('/workcommunity')}>
         <CommunityTitle>커뮤니티</CommunityTitle>
         <CommunityArrow>›</CommunityArrow>
       </CommunityHeader>
