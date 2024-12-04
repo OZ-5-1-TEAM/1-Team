@@ -1,6 +1,7 @@
+// MessageStyles.jsx
 import styled, { keyframes, css } from 'styled-components';
 
-const fadeIn = keyframes`
+export const FadeIn = keyframes`
   from {
     opacity: 0;
     transform: translateY(-10px);
@@ -11,7 +12,7 @@ const fadeIn = keyframes`
   }
 `;
 
-const slideDown = keyframes`
+export const SlideDown = keyframes`
   from {
     opacity: 0;
     top: -50px;
@@ -23,12 +24,12 @@ const slideDown = keyframes`
 `;
 
 // Common Styles
-const boxStyles = css`
+export const BoxStyles = css`
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-const focusStyles = css`
+export const FocusStyles = css`
   &:focus {
     outline: none;
     border: 2px solid #ffe29f;
@@ -51,10 +52,10 @@ export const MainPageWrapper = styled.div`
   height: 100vh;
   margin: 0 auto;
   background-color: #ffffff;
-  ${boxStyles}
+  ${BoxStyles}
   padding-bottom: 63px;
   position: relative;
-  animation: ${fadeIn} 0.5s ease;
+  animation: ${FadeIn} 0.5s ease;
 
   @media (max-width: 480px) {
     padding: 10px;
@@ -107,7 +108,7 @@ export const MessageList = styled.div`
 
 // Message Item Styles
 export const MessageItemWrapper = styled.li`
-  ${boxStyles}
+  ${BoxStyles}
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -182,7 +183,7 @@ export const TextArea = styled.textarea`
   margin-bottom: 15px;
   box-sizing: border-box;
   resize: none;
-  ${focusStyles}
+  ${FocusStyles}
 `;
 
 export const ButtonRight = styled.div`
@@ -192,7 +193,7 @@ export const ButtonRight = styled.div`
 
 // Notification Styles
 export const NotificationWrapper = styled.div`
-  ${boxStyles}
+  ${BoxStyles}
   position: fixed;
   top: 0;
   left: 50%;
@@ -201,7 +202,7 @@ export const NotificationWrapper = styled.div`
     type === 'success' ? '#ff9900' : '#ffe082'};
   color: white;
   padding: 15px 20px;
-  animation: ${slideDown} 0.5s ease;
+  animation: ${SlideDown} 0.5s ease;
   z-index: 1000;
   user-select: none;
 `;
@@ -240,7 +241,7 @@ export const ModalContent = styled.div`
   border-radius: 10px;
   width: 90%;
   max-width: 500px;
-  ${boxStyles}
+  ${BoxStyles}
 `;
 
 export const ModalHeader = styled.div`
