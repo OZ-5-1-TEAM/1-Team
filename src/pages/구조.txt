@@ -29,5 +29,5 @@ FE/
             ├── CustomerServicePage/
             ├── MainPage/
             ├── MatePage/
-            └── WeatherPage/
+            └── WeatherPage
 
