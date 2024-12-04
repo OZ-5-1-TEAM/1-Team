@@ -10,8 +10,9 @@ import {
   ContentSection,
   FixedImage,
 } from '../components/Pages/MessagePage/styles/MessageStyles';
+import Loading from '../components/Loading';
 
-const MessagePage = () => {
+const ReceivedMessagePage = () => {
   // API 연동 시 삭제
   const dummyReceived = {
     messages: [
@@ -160,7 +161,7 @@ const MessagePage = () => {
       <Header title='받은 쪽지함' />
       <ContentSection>
         {receivedLoading ? (
-          <div>Loading...</div>
+          <Loading />
         ) : (
           <>
             <MessageModal
@@ -190,4 +191,4 @@ const MessagePage = () => {
   );
 };
 
-export default MessagePage;
+export default ReceivedMessagePage;

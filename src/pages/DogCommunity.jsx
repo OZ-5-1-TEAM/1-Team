@@ -236,7 +236,7 @@ function DogCommunity() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/posts', {
+      const response = await api.get('/posts/post', {
         params: {
           ...filters,
           keyword: searchQuery,
@@ -266,7 +266,7 @@ function DogCommunity() {
       setError('게시물을 불러오는 데 실패했습니다.');
       setPosts([]);
     } finally {
-      setLoading(true); //일단 보기 좋게 true로 바꿈, 실제 API 연결시 false로 변경
+      setLoading(false); //일단 보기 좋게 true로 바꿈, 실제 API 연결시 false로 변경
     }
   }, [filters, searchQuery]);
 
@@ -276,7 +276,7 @@ function DogCommunity() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/posts', {
+      const response = await api.get('/posts/post', {
         params: {
           ...filters,
           keyword: searchQuery,
@@ -292,7 +292,7 @@ function DogCommunity() {
       console.error('추가 게시물 로드 실패:', err);
       setError('추가 게시물을 불러오는 데 실패했습니다.');
     } finally {
-      setLoading(true); //일단 보기 좋게 true로 바꿈, 실제 API 연결시 false로 변경
+      setLoading(false); //일단 보기 좋게 true로 바꿈, 실제 API 연결시 false로 변경
     }
   }, [filters, searchQuery, hasMore, loading]);
 
