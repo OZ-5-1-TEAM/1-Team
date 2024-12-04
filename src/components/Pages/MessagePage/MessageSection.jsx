@@ -1,10 +1,11 @@
+// MessageSection.jsx
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Section,
   SectionHeader,
   SectionTitle,
-  Arrow,
   MessageList,
 } from './styles/MessageStyles';
 import MessageItem from './MessageItem';
@@ -23,7 +24,6 @@ const MessageSection = ({
     <Section>
       <SectionHeader onClick={() => navigate(navigateTo)}>
         <SectionTitle>{title}</SectionTitle>
-        <Arrow>›</Arrow>
       </SectionHeader>
       <MessageList>
         {messages.slice(0, 3).map((message) => (

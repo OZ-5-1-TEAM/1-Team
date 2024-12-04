@@ -1,3 +1,5 @@
+// MessageModal.jsx
+
 import React from 'react';
 import {
   ModalOverlay,
@@ -10,7 +12,7 @@ import {
 } from './styles/MessageStyles';
 import Button from '../../Button/Button';
 
-const MessageModal = ({
+const ReceivedMessageModal = ({
   visible,
   currentReply,
   message,
@@ -43,4 +45,4 @@ const MessageModal = ({
   );
 };
 
-export default MessageModal;
+export default ReceivedMessageModal;

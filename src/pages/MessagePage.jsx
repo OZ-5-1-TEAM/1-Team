@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import useFetch from '../hooks/useFetch';
-import api from '../api/axiosInstance';
 import Header from '../components/Header';
 import MessageSection from '../components/Pages/MessagePage/MessageSection';
 import MessageModal from '../components/Pages/MessagePage/MessageModal';
