@@ -2,6 +2,19 @@ import React, { useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import Button from '../components/Button/Button';
 import Header from '../components/Header';
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: '/api/v1',
+});
+const getToken = () => localStorage.getItem('access_token');
+api.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const boxStyles = css`
   border-radius: 10px;
@@ -52,9 +65,8 @@ const Notification = styled.div`
   animation:
     ${slideDown} 0.5s ease,
     fadeOut 0.5s ease 3s;
-  z-index: 1000;
+  z-index: 10000;
   user-select: none;
-
   @keyframes fadeOut {
     from {
       opacity: 1;
@@ -66,6 +78,7 @@ const Notification = styled.div`
     }
   }
 `;
+
 const Box = styled.div`
   width: 100%;
   height: 130px;
@@ -107,27 +120,42 @@ const MessageList = styled.div`
 `;
 
 const MessageItem = styled.li`
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  ${boxStyles}
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 10px 15px;
   margin-bottom: 10px;
-  background-color: ${({ isSelected }) => (isSelected ? '#ffefc0' : '#ffffff')};
-  cursor: pointer;
+  background-color: #ffffff;
 `;
 
 const MessageContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 5px;
+  align-items: flex-start;
 `;
 
 const MessageSender = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 14px;
   font-weight: bold;
   color: #555;
+
+  img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  span {
+    display: block;
+    font-weight: bold;
+  }
 `;
 
 const MessageTimestamp = styled.span`
@@ -221,6 +249,30 @@ const ModalButtonGroup = styled.div`
   margin-top: 20px;
 `;
 
+const dummyMessages = [
+  {
+    id: 1,
+    sender: {
+      id: 2,
+      nickname: 'John Doe',
+      profile_image: '/logo/gaerangmari_logo.jpeg',
+    },
+    created_at: '2024-12-03T12:00:00Z',
+    content: 'Hello! How are you?',
+    is_read: false,
+  },
+  {
+    id: 2,
+    sender: {
+      id: 3,
+      nickname: 'Jane Smith',
+      profile_image: '/logo/gaerangmari_logo.jpeg',
+    },
+    created_at: '2024-12-03T18:30:00Z',
+    content: 'Meeting rescheduled to tomorrow at 10 AM.',
+    is_read: true,
+  },
+];
 const ReceivedMessages = () => {
   const [receivedMessages, setReceivedMessages] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
@@ -233,48 +285,106 @@ const ReceivedMessages = () => {
   };
 
   const fetchMessages = async () => {
-    const dummyMessages = [
-      {
-        id: 1,
-        sender: 'John Doe',
-        timestamp: '2024-11-25T10:30:00',
-        content: 'Hello! How are you?',
-      },
-      {
-        id: 2,
-        sender: 'Jane Smith',
-        timestamp: '2024-11-26T15:00:00',
-        content: 'Meeting rescheduled to tomorrow at 10 AM.',
-      },
-    ];
+    try {
+      const { data } = await api.get('/messages/received', {
+        params: { page: 1, size: 20, sort: 'created_at,desc' },
+      });
 
-    const sortedMessages = dummyMessages
-      .map((msg) => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp),
-      }))
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .map((msg) => ({
-        ...msg,
-        timestamp: msg.timestamp.toLocaleString('ko-KR', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        }),
-      }));
+      const sortedMessages = data.messages
+        .map((msg) => ({
+          ...msg,
+          formattedTimestamp: new Date(msg.created_at).toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
+        }))
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    setReceivedMessages(sortedMessages);
+      setReceivedMessages(sortedMessages);
+    } catch (error) {
+      showNotification(
+        '쪽지 가져오기 실패! 기본 더미 데이터 사용 중.',
+        'error'
+      );
+      const sortedMessages = dummyMessages
+        .map((msg) => ({
+          ...msg,
+          formattedTimestamp: new Date(msg.created_at).toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
+        }))
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      setReceivedMessages(sortedMessages);
+    }
   };
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
+  const markMessageAsRead = async (id) => {
+    try {
+      await api.put(`messages/${id}/read`, null, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      });
+
+      setReceivedMessages((prev) =>
+        prev.map((msg) => (msg.id === id ? { ...msg, is_read: true } : msg))
+      );
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || '읽음 처리 실패!';
+      showNotification(errorMessage, 'error');
+    }
+  };
 
   const handleSelectMessage = (message) => {
+    if (!message.is_read) {
+      markMessageAsRead(message.id);
+    }
     setSelectedMessage(message);
+  };
+
+  const handleDeleteMessage = async (id) => {
+    try {
+      await api.delete(`/messages/${id}`);
+      setReceivedMessages((prev) =>
+        prev.filter((message) => message.id !== id)
+      );
+      showNotification('메시지가 삭제되었습니다!', 'success');
+    } catch (error) {
+      showNotification('메시지 삭제 실패!', 'error');
+    }
+  };
+
+  const handleReply = async () => {
+    if (!selectedMessage || !replyMessage.trim()) {
+      showNotification('답장 내용을 입력하세요.', 'error');
+      return;
+    }
+    if (replyMessage.length > 500) {
+      showNotification('최대 500자까지 입력 가능합니다.', 'error');
+      return;
+    }
+    try {
+      await api.post('/messages', {
+        receiver_id: selectedMessage.sender.id,
+        content: replyMessage,
+      });
+
+      showNotification('답장이 전송되었습니다!', 'success');
+      setReplyMessage('');
+      setSelectedMessage(null);
+    } catch (error) {
+      showNotification('답장 전송 실패!', 'error');
+    }
   };
 
   const handleCloseModal = () => {
@@ -282,33 +392,9 @@ const ReceivedMessages = () => {
     setReplyMessage('');
   };
 
-  const handleDeleteMessage = async (id) => {
-    const success = true;
-    if (success) {
-      setReceivedMessages((prev) =>
-        prev.filter((message) => message.id !== id)
-      );
-      showNotification('메시지가 삭제되었습니다!', 'success');
-    } else {
-      showNotification('메시지 삭제에 실패했습니다.', 'error');
-    }
-  };
-
-  const handleReply = async () => {
-    if (!replyMessage.trim()) {
-      showNotification('답장 내용을 입력하세요.', 'error');
-      return;
-    }
-    const success = true;
-    if (success) {
-      showNotification('답장이 전송되었습니다!', 'success');
-      setReplyMessage('');
-      handleCloseModal();
-    } else {
-      showNotification('답장 전송에 실패했습니다.', 'error');
-    }
-  };
-
+  useEffect(() => {
+    fetchMessages();
+  }, []);
   return (
     <ReceivedMessagesWrapper>
       <Box />
@@ -321,8 +407,21 @@ const ReceivedMessages = () => {
               onClick={() => handleSelectMessage(message)}
             >
               <MessageContent>
-                <MessageSender>보낸 사람: {message.sender}</MessageSender>
-                <MessageTimestamp>{message.timestamp}</MessageTimestamp>
+                <MessageSender>
+                  <img
+                    src={
+                      message.sender.profile_image ||
+                      '/logo/gaerangmari_logo.jpeg'
+                    }
+                    alt={`${message.sender.nickname} 프로필`}
+                  />
+                  <div>
+                    <span>{message.sender.nickname}</span>
+                    <MessageTimestamp>
+                      {message.formattedTimestamp}
+                    </MessageTimestamp>
+                  </div>
+                </MessageSender>
               </MessageContent>
               <ButtonGroup>
                 <Button
@@ -345,7 +444,7 @@ const ReceivedMessages = () => {
         <ModalOverlay>
           <ModalContent>
             <ModalHeader>
-              <SenderName>{selectedMessage.sender}</SenderName>
+              <SenderName>{selectedMessage.sender.nickname}</SenderName>
               <CloseButton onClick={handleCloseModal}>×</CloseButton>
             </ModalHeader>
             <ModalBody>{selectedMessage.content}</ModalBody>

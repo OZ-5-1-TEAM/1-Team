@@ -3,6 +3,29 @@ import styled, { keyframes, css } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button/Button';
 import Header from '../components/Header';
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: '/api/v1',
+});
+const getToken = () => localStorage.getItem('access_token');
+api.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      console.error('토큰 만료. 로그아웃 처리 또는 토큰 갱신 로직 필요.');
+    }
+    return Promise.reject(error);
+  }
+);
 
 const boxStyles = css`
   border-radius: 10px;
@@ -109,7 +132,7 @@ const MessageList = styled.div`
 const MessageItem = styled.li`
   ${boxStyles}
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 10px 15px;
   margin-bottom: 10px;
@@ -120,12 +143,29 @@ const MessageContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 5px;
+  align-items: flex-start;
 `;
 
 const MessageSender = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 14px;
   font-weight: bold;
   color: #555;
+
+  img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  span {
+    display: block;
+    font-weight: bold;
+  }
 `;
 
 const MessageTimestamp = styled.span`
@@ -136,6 +176,7 @@ const MessageTimestamp = styled.span`
 const ButtonGroup = styled.div`
   display: flex;
   gap: 8px;
+  margin-left: 50px;
 `;
 
 const SendMessageBox = styled.div.withConfig({
@@ -204,6 +245,48 @@ const FixedImage = styled.img`
   }
 `;
 
+const dummyReceived = [
+  {
+    id: 1,
+    sender: {
+      id: 2,
+      nickname: 'John Doe',
+      profile_image: '/logo/gaerangmari_logo.jpeg',
+    },
+    content: '안녕하세요, 산책 같이 하실래요?',
+    created_at: '2024-12-02T15:00:00Z',
+    is_read: false,
+  },
+  {
+    id: 2,
+    sender: {
+      id: 3,
+      nickname: 'Jane Smith',
+      profile_image: '/logo/gaerangmari_logo.jpeg',
+    },
+    content: '회의 일정이 변경되었습니다.',
+    created_at: '2024-12-03T09:30:00Z',
+    is_read: true,
+  },
+];
+
+const dummySent = [
+  {
+    id: 1,
+    receiver: { id: 4, nickname: 'Alice' },
+    content: '감사합니다!',
+    created_at: '2024-12-02T12:45:00Z',
+    is_read: true,
+  },
+  {
+    id: 2,
+    receiver: { id: 5, nickname: 'Bob' },
+    content: '내일 만나요.',
+    created_at: '2024-12-01T18:20:00Z',
+    is_read: false,
+  },
+];
+
 const MessagePage = () => {
   const navigate = useNavigate();
   const [notification, setNotification] = useState({ message: '', type: '' });
@@ -219,46 +302,16 @@ const MessagePage = () => {
   };
 
   const fetchMessages = async () => {
-    const dummyReceived = [
-      {
-        id: 1,
-        sender: 'John Doe',
-        title: 'Hello! How are you?',
-        timestamp: '2024-11-25T10:30:00',
-      },
-      {
-        id: 2,
-        sender: 'Jane Smith',
-        title: 'Meeting rescheduled.',
-        timestamp: '2024-11-26T15:00:00',
-      },
-    ];
+    try {
+      const [receivedRes, sentRes] = await Promise.all([
+        api.get('/messages/received', { params: { page: 1, size: 20 } }),
+        api.get('/messages/sent', { params: { page: 1, size: 20 } }),
+      ]);
 
-    const dummySent = [
-      {
-        id: 1,
-        recipient: 'Alice',
-        title: 'Thank you!',
-        timestamp: '2024-11-25T14:00:00',
-      },
-      {
-        id: 2,
-        recipient: 'Bob',
-        title: 'Let’s catch up tomorrow.',
-        timestamp: '2024-11-24T16:30:00',
-      },
-    ];
-
-    const formatMessages = (messages) =>
-      messages
-        .map((msg) => ({
+      const formatMessages = (messages) =>
+        messages.map((msg) => ({
           ...msg,
-          timestamp: new Date(msg.timestamp),
-        }))
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .map((msg) => ({
-          ...msg,
-          formattedTimestamp: msg.timestamp.toLocaleString('ko-KR', {
+          formattedTimestamp: new Date(msg.created_at).toLocaleString('ko-KR', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -268,60 +321,105 @@ const MessagePage = () => {
           }),
         }));
 
-    setReceivedMessages(formatMessages(dummyReceived));
-    setSentMessages(formatMessages(dummySent));
-  };
+      setReceivedMessages(formatMessages(receivedRes.data.messages));
+      setSentMessages(formatMessages(sentRes.data.messages));
+    } catch (error) {
+      showNotification(
+        '쪽지 불러오기에 실패했습니다. 더미 데이터를 사용합니다.',
+        'error'
+      );
+      const formatMessages = (messages) =>
+        messages.map((msg) => ({
+          ...msg,
+          formattedTimestamp: new Date(msg.created_at).toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
+        }));
 
-  const handleReply = (sender) => {
+      setReceivedMessages(formatMessages(dummyReceived));
+      setSentMessages(formatMessages(dummySent));
+    }
+  };
+  const markMessageAsRead = async (messageId) => {
+    try {
+      await api.put(`/messages/${messageId}/read`);
+      // 읽음 상태 업데이트
+      setReceivedMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId ? { ...msg, is_read: true } : msg
+        )
+      );
+    } catch (error) {
+      showNotification('읽음 처리에 실패했습니다.', 'error');
+    }
+  };
+  const handleReply = (messageId, sender) => {
+    markMessageAsRead(messageId);
     setReplyMode(true);
     setCurrentReply(sender);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!message.trim()) {
       showNotification('메시지를 입력하세요.', 'error');
       return;
     }
 
-    const newMessage = {
-      id: Date.now(),
-      recipient: currentReply,
-      title: message,
-      timestamp: new Date(),
-    };
+    try {
+      const response = await api.post('/messages', {
+        receiver_id: currentReply.id,
+        content: message,
+      });
 
-    const formattedNewMessage = {
-      ...newMessage,
-      formattedTimestamp: newMessage.timestamp.toLocaleString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }),
-    };
+      const newMessage = response.data;
+      const formattedNewMessage = {
+        ...newMessage,
+        formattedTimestamp: new Date(newMessage.created_at).toLocaleString(
+          'ko-KR',
+          {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }
+        ),
+      };
 
-    setSentMessages((prev) => [formattedNewMessage, ...prev]);
-    showNotification('메시지가 전송되었습니다!', 'success');
-    setMessage('');
-    setReplyMode(false);
-    setCurrentReply(null);
+      setSentMessages((prev) => [formattedNewMessage, ...prev]);
+      showNotification('메시지가 전송되었습니다!', 'success');
+      setMessage('');
+      setReplyMode(false);
+      setCurrentReply(null);
+    } catch (error) {
+      showNotification('메시지 전송에 실패했습니다.', 'error');
+    }
   };
 
-  const handleDeleteMessage = (id, type) => {
-    if (type === 'received') {
-      setReceivedMessages((prev) => prev.filter((msg) => msg.id !== id));
-    } else {
-      setSentMessages((prev) => prev.filter((msg) => msg.id !== id));
+  const handleDeleteMessage = async (id, type) => {
+    try {
+      await api.delete(`/messages/${id}`);
+
+      if (type === 'received') {
+        setReceivedMessages((prev) => prev.filter((msg) => msg.id !== id));
+      } else {
+        setSentMessages((prev) => prev.filter((msg) => msg.id !== id));
+      }
+      showNotification('메시지가 삭제되었습니다!', 'success');
+    } catch (error) {
+      showNotification('메시지 삭제에 실패했습니다.', 'error');
     }
-    showNotification('메시지가 삭제되었습니다!', 'success');
   };
 
   useEffect(() => {
     fetchMessages();
   }, []);
-
   return (
     <MainPageWrapper>
       <Box />
@@ -329,13 +427,19 @@ const MessagePage = () => {
       <ContentSection>
         <SendMessageBox visible={replyMode}>
           <label htmlFor='Message'>
-            <ReplyTitle>{currentReply}님에게 쪽지 보내기</ReplyTitle>
+            <ReplyTitle>{currentReply?.nickname}님에게 쪽지 보내기</ReplyTitle>
           </label>
           <TextArea
             id='Message'
             placeholder='내용을 입력하세요'
             value={message}
+            maxLength={500} // 최대 500자
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                setMessage();
+              }
+            }}
           />
           <ButtonRight>
             <Button variant='send' size='large' onClick={handleSendMessage}>
@@ -353,19 +457,31 @@ const MessagePage = () => {
             {receivedMessages.slice(0, 3).map((message) => (
               <MessageItem key={message.id}>
                 <MessageContent>
-                  <MessageSender>보낸 사람: {message.sender}</MessageSender>
-                  <MessageTimestamp>
-                    {message.formattedTimestamp}
-                  </MessageTimestamp>
+                  <MessageSender>
+                    <img
+                      src={
+                        message.sender.profile_image ||
+                        '/logo/gaerangmari_logo.jpeg'
+                      }
+                      alt={`${message.sender.nickname} 프로필`}
+                    />
+                    <div>
+                      <span>{message.sender.nickname}</span>
+                      <MessageTimestamp>
+                        {message.formattedTimestamp}
+                      </MessageTimestamp>
+                    </div>
+                  </MessageSender>
                 </MessageContent>
                 <ButtonGroup>
                   <Button
                     variant='reply'
                     size='small'
-                    onClick={() => handleReply(message.sender)}
+                    onClick={() => handleReply(message.id, message.sender)}
                   >
                     답장
                   </Button>
+
                   <Button
                     variant='cancel'
                     size='small'
@@ -388,11 +504,23 @@ const MessagePage = () => {
             {sentMessages.slice(0, 3).map((message) => (
               <MessageItem key={message.id}>
                 <MessageContent>
-                  <MessageSender>받는 사람: {message.recipient}</MessageSender>
-                  <MessageTimestamp>
-                    {message.formattedTimestamp}
-                  </MessageTimestamp>
+                  <MessageSender>
+                    <img
+                      src={
+                        message.receiver.profile_image ||
+                        '/logo/gaerangmari_logo.jpeg'
+                      }
+                      alt={`${message.receiver.nickname} 프로필`}
+                    />
+                    <div>
+                      <span>{message.receiver.nickname}</span>
+                      <MessageTimestamp>
+                        {message.formattedTimestamp}
+                      </MessageTimestamp>
+                    </div>
+                  </MessageSender>
                 </MessageContent>
+
                 <ButtonGroup>
                   <Button
                     variant='cancel'

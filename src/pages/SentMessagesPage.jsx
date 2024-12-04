@@ -2,10 +2,32 @@ import React, { useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import Button from '../components/Button/Button';
 import Header from '../components/Header';
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: '/api/v1',
+});
+const getToken = () => localStorage.getItem('access_token');
+api.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const boxStyles = css`
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const focusStyles = css`
+  &:focus {
+    outline: none;
+    border: 2px solid #ffe29f;
+    background-color: #fffef8;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  }
 `;
 
 const fadeIn = keyframes`
@@ -43,9 +65,8 @@ const Notification = styled.div`
   animation:
     ${slideDown} 0.5s ease,
     fadeOut 0.5s ease 3s;
-  z-index: 1000;
+  z-index: 10000;
   user-select: none;
-
   @keyframes fadeOut {
     from {
       opacity: 1;
@@ -101,24 +122,40 @@ const MessageList = styled.div`
 const MessageItem = styled.li`
   ${boxStyles}
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 10px 15px;
   margin-bottom: 10px;
-  background-color: ${({ isSelected }) => (isSelected ? '#ffefc0' : '#ffffff')};
-  cursor: pointer;
+  background-color: #ffffff;
 `;
 
 const MessageContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 5px;
+  align-items: flex-start;
 `;
 
-const MessageRecipient = styled.span`
+const MessageReceiver = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 14px;
   font-weight: bold;
   color: #555;
+
+  img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  span {
+    display: block;
+    font-weight: bold;
+  }
 `;
 
 const MessageTimestamp = styled.span`
@@ -163,7 +200,7 @@ const ModalHeader = styled.div`
   padding-bottom: 10px;
 `;
 
-const RecipientName = styled.h3`
+const ReceiverName = styled.h3`
   font-size: 18px;
   color: #ff9900;
   margin: 0;
@@ -188,26 +225,35 @@ const ModalBody = styled.div`
   line-height: 1.6;
 `;
 
-const ModalFooter = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-`;
+const dummyMessages = [
+  {
+    id: 1,
+    receiver: {
+      id: 2,
+      nickname: 'John Doe',
+      profile_image: '/logo/gaerangmari_logo.jpeg',
+    },
+    created_at: '2024-12-03T12:00:00Z',
+    content: 'Hello! How are you?',
+    is_read: false,
+  },
+  {
+    id: 2,
+    receiver: {
+      id: 3,
+      nickname: 'Jane Smith',
+      profile_image: '/logo/gaerangmari_logo.jpeg',
+    },
+    created_at: '2024-12-03T18:30:00Z',
+    content: 'Meeting rescheduled to tomorrow at 10 AM.',
+    is_read: true,
+  },
+];
 
-const SentMessages = () => {
+const SentMessagesPage = () => {
   const [sentMessages, setSentMessages] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [notification, setNotification] = useState({ message: '', type: '' });
-
-  const formatDate = (date) =>
-    new Intl.DateTimeFormat('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }).format(new Date(date));
 
   const showNotification = (message, type) => {
     setNotification({ message, type });
@@ -215,68 +261,70 @@ const SentMessages = () => {
   };
 
   const fetchMessages = async () => {
-    const useDummyData = true; // true: 더미 데이터 사용, false: API 사용
-    if (useDummyData) {
-      const dummyMessages = [
-        {
-          id: 1,
-          recipient: '사용자 A',
-          timestamp: '2024-11-25T10:30:00',
-          content: '안녕하세요, 잘 지내시나요?',
-        },
-        {
-          id: 2,
-          recipient: '사용자 B',
-          timestamp: '2024-11-26T15:00:00',
-          content: '다음 미팅은 언제가 좋을까요?',
-        },
-        {
-          id: 3,
-          recipient: '사용자 C',
-          timestamp: '2024-11-27T14:45:00',
-          content: '어제 보내드린 메일 확인 부탁드립니다.',
-        },
-      ];
+    try {
+      const { data } = await api.get('/messages/sent', {
+        params: { page: 1, size: 20, sort: 'created_at,desc' },
+      });
 
+      if (data && Array.isArray(data.messages)) {
+        const sortedMessages = data.messages
+          .map((msg) => ({
+            receiver: msg.receiver || {
+              id: 0,
+              nickname: 'Unknown',
+              profile_image: '/logo/gaerangmari_logo.jpeg',
+            },
+            content: msg.content || '메시지 내용 없음',
+            created_at: msg.created_at || new Date().toISOString(),
+            formattedTimestamp: new Date(
+              msg.created_at || new Date()
+            ).toLocaleString('ko-KR', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            }),
+          }))
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        setSentMessages(sortedMessages);
+      } else {
+        throw new Error('Invalid response structure');
+      }
+    } catch (error) {
+      showNotification(
+        '쪽지 가져오기 실패! 기본 더미 데이터 사용 중.',
+        'error'
+      );
       const sortedMessages = dummyMessages
         .map((msg) => ({
           ...msg,
-          timestamp: new Date(msg.timestamp),
+          formattedTimestamp: new Date(msg.created_at).toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
         }))
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .map((msg) => ({
-          ...msg,
-          timestamp: formatDate(msg.timestamp),
-        }));
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
       setSentMessages(sortedMessages);
-    } else {
-      try {
-        const response = await fetch('/api/sent-messages');
-        const data = await response.json();
-
-        const sortedMessages = data
-          .map((msg) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-          }))
-          .sort((a, b) => b.timestamp - a.timestamp)
-          .map((msg) => ({
-            ...msg,
-            timestamp: formatDate(msg.timestamp),
-          }));
-
-        setSentMessages(sortedMessages);
-      } catch (error) {
-        console.error('Failed to fetch messages:', error);
-        showNotification('메시지 데이터를 불러오지 못했습니다.', 'error');
-      }
     }
   };
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
+  const handleDeleteMessage = async (id) => {
+    try {
+      await api.delete(`/messages/${id}`);
+      setSentMessages((prev) => prev.filter((message) => message.id !== id));
+      showNotification('메시지가 삭제되었습니다!', 'success');
+    } catch (error) {
+      showNotification('메시지 삭제 실패!', 'error');
+    }
+  };
 
   const handleSelectMessage = (message) => {
     setSelectedMessage(message);
@@ -286,15 +334,9 @@ const SentMessages = () => {
     setSelectedMessage(null);
   };
 
-  const handleDeleteMessage = async (id) => {
-    const success = true; // 실제 API 요청 시 성공 여부를 받아와야 함
-    if (success) {
-      setSentMessages((prev) => prev.filter((msg) => msg.id !== id));
-      showNotification('메시지가 삭제되었습니다!', 'success');
-    } else {
-      showNotification('메시지 삭제에 실패했습니다.', 'error');
-    }
-  };
+  useEffect(() => {
+    fetchMessages();
+  }, []);
 
   return (
     <SentMessagesWrapper>
@@ -308,10 +350,21 @@ const SentMessages = () => {
               onClick={() => handleSelectMessage(message)}
             >
               <MessageContent>
-                <MessageRecipient>
-                  받는 사람: {message.recipient}
-                </MessageRecipient>
-                <MessageTimestamp>{message.timestamp}</MessageTimestamp>
+                <MessageReceiver>
+                  <img
+                    src={
+                      message.receiver.profile_image ||
+                      '/logo/gaerangmari_logo.jpeg'
+                    }
+                    alt={`${message.receiver.nickname} 프로필`}
+                  />
+                  <div>
+                    <span>{message.receiver.nickname}</span>
+                    <MessageTimestamp>
+                      {message.formattedTimestamp}
+                    </MessageTimestamp>
+                  </div>
+                </MessageReceiver>
               </MessageContent>
               <ButtonGroup>
                 <Button
@@ -334,15 +387,10 @@ const SentMessages = () => {
         <ModalOverlay>
           <ModalContent>
             <ModalHeader>
-              <RecipientName>{selectedMessage.recipient}</RecipientName>
+              <ReceiverName>{selectedMessage.receiver.nickname}</ReceiverName>
               <CloseButton onClick={handleCloseModal}>×</CloseButton>
             </ModalHeader>
             <ModalBody>{selectedMessage.content}</ModalBody>
-            <ModalFooter>
-              <Button variant='cancel' size='small' onClick={handleCloseModal}>
-                닫기
-              </Button>
-            </ModalFooter>
           </ModalContent>
         </ModalOverlay>
       )}
@@ -356,4 +404,4 @@ const SentMessages = () => {
   );
 };
 
-export default SentMessages;
+export default SentMessagesPage;
