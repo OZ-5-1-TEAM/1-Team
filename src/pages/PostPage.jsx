@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import Loading from '../components/Loading';
 
 const PageWrapper = styled.div`
   padding-top: 90px !important;
@@ -94,14 +94,6 @@ const ButtonContainer = styled.div`
   margin-bottom: 20px; /* Navbar와 버튼 사이 margin 추가 */
 `;
 
-// Axios 인스턴스 생성
-const api = axios.create({
-  baseURL: 'http://localhost:3000/api/v1', // 실제 URL로 변경 필요
-  headers: {
-    Authorization: 'Bearer your_access_token_here', // 실제 토큰으로 교체 필요
-  },
-});
-
 const PostPage = () => {
   const [category, setCategory] = useState('');
   const [title, setTitle] = useState('');
@@ -111,6 +103,7 @@ const PostPage = () => {
   const [dogSize, setDogSize] = useState('');
   const [images, setImages] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -141,6 +134,7 @@ const PostPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
+    setIsLoading(true);
 
     try {
       const formData = new FormData();
@@ -171,6 +165,8 @@ const PostPage = () => {
     } catch (error) {
       console.error('게시글 작성 실패:', error);
       setErrorMessage('게시글 작성 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -179,110 +175,113 @@ const PostPage = () => {
   };
 
   return (
-    <PageWrapper>
-      <Form onSubmit={handleSubmit}>
-        <StyledLabel htmlFor='categorySelect'>카테고리</StyledLabel>
-        <Select
-          id='categorySelect'
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          required
-        >
-          <option value=''>커뮤니티 카테고리 선택</option>
-          <option value='dog'>강아지 커뮤니티</option>
-          <option value='mate'>산책메이트 커뮤니티</option>
-        </Select>
-
-        <StyledLabel htmlFor='titleInput'>제목</StyledLabel>
-        <Input
-          id='titleInput'
-          type='text'
-          placeholder='제목을 입력하세요'
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-
-        <StyledLabel htmlFor='districtSelect'>지역</StyledLabel>
-        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+    <>
+      {isLoading && <Loading />}
+      <PageWrapper>
+        <Form onSubmit={handleSubmit}>
+          <StyledLabel htmlFor='categorySelect'>카테고리</StyledLabel>
           <Select
-            id='districtSelect'
-            value={district}
-            onChange={(e) => setDistrict(e.target.value)}
+            id='categorySelect'
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
             required
           >
-            <option value=''>구 선택</option>
-            <option value='강남구'>강남구</option>
+            <option value=''>커뮤니티 카테고리 선택</option>
+            <option value='dog'>강아지 커뮤니티</option>
+            <option value='mate'>산책메이트 커뮤니티</option>
           </Select>
-          <Select
-            id='neighborhoodSelect'
-            value={neighborhood}
-            onChange={(e) => setNeighborhood(e.target.value)}
+
+          <StyledLabel htmlFor='titleInput'>제목</StyledLabel>
+          <Input
+            id='titleInput'
+            type='text'
+            placeholder='제목을 입력하세요'
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             required
+          />
+
+          <StyledLabel htmlFor='districtSelect'>지역</StyledLabel>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+            <Select
+              id='districtSelect'
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+              required
+            >
+              <option value=''>구 선택</option>
+              <option value='강남구'>강남구</option>
+            </Select>
+            <Select
+              id='neighborhoodSelect'
+              value={neighborhood}
+              onChange={(e) => setNeighborhood(e.target.value)}
+              required
+            >
+              <option value=''>동 선택</option>
+              <option value='신사동'>신사동</option>
+              <option value='논현동'>논현동</option>
+              <option value='역삼동'>역삼동</option>
+            </Select>
+          </div>
+
+          <StyledLabel htmlFor='dogSizeSelect'>강아지 크기</StyledLabel>
+          <Select
+            id='dogSizeSelect'
+            value={dogSize}
+            onChange={(e) => setDogSize(e.target.value)}
           >
-            <option value=''>동 선택</option>
-            <option value='신사동'>신사동</option>
-            <option value='논현동'>논현동</option>
-            <option value='역삼동'>역삼동</option>
+            <option value=''>선택 안함</option>
+            <option value='small'>소형견</option>
+            <option value='medium'>중형견</option>
+            <option value='large'>대형견</option>
           </Select>
-        </div>
 
-        <StyledLabel htmlFor='dogSizeSelect'>강아지 크기</StyledLabel>
-        <Select
-          id='dogSizeSelect'
-          value={dogSize}
-          onChange={(e) => setDogSize(e.target.value)}
-        >
-          <option value=''>선택 안함</option>
-          <option value='small'>소형견</option>
-          <option value='medium'>중형견</option>
-          <option value='large'>대형견</option>
-        </Select>
-
-        <StyledLabel htmlFor='imageUpload'>이미지 업로드</StyledLabel>
-        <ImageUploadContainer>
-          {images.map((image, index) => (
-            <img
-              key={index}
-              src={URL.createObjectURL(image)}
-              alt={`Uploaded ${index}`}
-              style={{ width: '60px', height: '60px', borderRadius: '5px' }}
-            />
-          ))}
-          {images.length < 5 && (
-            <ImagePlaceholder onClick={triggerFileInput}>
-              <HiddenInput
-                id='imageUpload'
-                type='file'
-                accept='image/*'
-                multiple
-                ref={fileInputRef} // Attach ref to the hidden input
-                onChange={handleImageUpload}
+          <StyledLabel htmlFor='imageUpload'>이미지 업로드</StyledLabel>
+          <ImageUploadContainer>
+            {images.map((image, index) => (
+              <img
+                key={index}
+                src={URL.createObjectURL(image)}
+                alt={`Uploaded ${index}`}
+                style={{ width: '60px', height: '60px', borderRadius: '5px' }}
               />
-              +
-            </ImagePlaceholder>
-          )}
-        </ImageUploadContainer>
+            ))}
+            {images.length < 5 && (
+              <ImagePlaceholder onClick={triggerFileInput}>
+                <HiddenInput
+                  id='imageUpload'
+                  type='file'
+                  accept='image/*'
+                  multiple
+                  ref={fileInputRef} // Attach ref to the hidden input
+                  onChange={handleImageUpload}
+                />
+                +
+              </ImagePlaceholder>
+            )}
+          </ImageUploadContainer>
 
-        <StyledLabel htmlFor='contentInput'>본문</StyledLabel>
-        <TextArea
-          id='contentInput'
-          placeholder='본문을 입력하세요'
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          required
-        />
-        {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-        <ButtonContainer>
-          <Button variant='cancel' size='medium' onClick={handleCancel}>
-            취소
-          </Button>
-          <Button variant='send' size='medium' type='submit'>
-            저장
-          </Button>
-        </ButtonContainer>
-      </Form>
-    </PageWrapper>
+          <StyledLabel htmlFor='contentInput'>본문</StyledLabel>
+          <TextArea
+            id='contentInput'
+            placeholder='본문을 입력하세요'
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            required
+          />
+          {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+          <ButtonContainer>
+            <Button variant='cancel' size='medium' onClick={handleCancel}>
+              취소
+            </Button>
+            <Button variant='send' size='medium' type='submit'>
+              저장
+            </Button>
+          </ButtonContainer>
+        </Form>
+      </PageWrapper>
+    </>
   );
 };
 

@@ -20,6 +20,20 @@ const MainPageWrapper = styled.div`
   box-sizing: border-box;
 `;
 
+const SkeletonWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 30px 0;
+`;
+
+const ErrorMessage = styled.div`
+  color: red;
+  font-size: 16px;
+  text-align: center;
+  margin-top: 20px;
+`;
+
 const SearchBarContainer = styled.div`
   display: flex;
   justify-content: space-between;
@@ -214,6 +228,7 @@ function DogCommunity() {
   });
   const observer = useRef();
   const currentPostId = useRef(1);
+  const currentPage = useRef(1);
   const navigate = useNavigate();
 
   // 초기 게시물 로드 함수
@@ -230,6 +245,19 @@ function DogCommunity() {
           size: 10,
         },
       });
+      // try {
+      //   const response = await api.get('/posts', {
+      //     params: {
+      //       category: 'dog',
+      //       district: filters.district,
+      //       neighborhood: filters.neighborhood,
+      //       dog_size: filters.size,
+      //       keyword: searchQuery,
+      //       sort: filters.sortBy,
+      //       page: 1,
+      //       size: 10,
+      //     },
+      //   });
       setPosts(response.data.posts || []);
       currentPage.current = 2; // 다음 페이지 설정
       setHasMore(response.data.posts?.length > 0);
@@ -238,7 +266,7 @@ function DogCommunity() {
       setError('게시물을 불러오는 데 실패했습니다.');
       setPosts([]);
     } finally {
-      setLoading(false);
+      setLoading(true); //일단 보기 좋게 true로 바꿈, 실제 API 연결시 false로 변경
     }
   }, [filters, searchQuery]);
 
@@ -264,7 +292,7 @@ function DogCommunity() {
       console.error('추가 게시물 로드 실패:', err);
       setError('추가 게시물을 불러오는 데 실패했습니다.');
     } finally {
-      setLoading(false);
+      setLoading(true); //일단 보기 좋게 true로 바꿈, 실제 API 연결시 false로 변경
     }
   }, [filters, searchQuery, hasMore, loading]);
 
@@ -351,7 +379,7 @@ function DogCommunity() {
       <PostListContainer>
         {posts.map((post, index) => (
           <PostItem
-            key={post.id} // 고유한 key 값
+            key={`${post.id}-${index}`} // 고유한 key 값
             ref={index === posts.length - 1 ? lastPostRef : null}
           >
             <Link
@@ -368,7 +396,7 @@ function DogCommunity() {
               <PostContentWrapper>
                 <PostTitle>{post.title}</PostTitle>
                 <PostNinknameAndSize>
-                  <PostNinkname>{post.size}</PostNinkname>
+                  <PostNinkname>{post.dog_size}</PostNinkname>
                   <PostNinkname>{post.author.nickname}</PostNinkname>
                 </PostNinknameAndSize>
                 <PostStats>
@@ -389,27 +417,30 @@ function DogCommunity() {
             </Link>
           </PostItem>
         ))}
-        {loading &&
-          Array.from({ length: 15 }).map((_, i) => (
-            <PostItem key={`skeleton-${currentPostId.current}-${i}`}>
-              <Skeleton
-                width={70}
-                height={70}
-                style={{ marginRight: '15px' }}
-              />
-              <PostContentWrapper>
-                <Skeleton width={200} height={20} />
+        {(loading || error) && (
+          <SkeletonWrapper>
+            {Array.from({ length: 15 }).map((_, i) => (
+              <PostItem key={`skeleton-${currentPostId.current}-${i}`}>
                 <Skeleton
-                  width={150}
-                  height={15}
-                  style={{ marginTop: '5px' }}
+                  width={70}
+                  height={70}
+                  style={{ marginRight: '15px' }}
                 />
-              </PostContentWrapper>
-              <Skeleton width={100} height={15} />
-            </PostItem>
-          ))}
+                <PostContentWrapper>
+                  <Skeleton width={200} height={20} />
+                  <Skeleton
+                    width={150}
+                    height={15}
+                    style={{ marginTop: '5px' }}
+                  />
+                </PostContentWrapper>
+                <Skeleton width={100} height={15} />
+              </PostItem>
+            ))}
+          </SkeletonWrapper>
+        )}
+        {error && !loading && <ErrorMessage>{error}</ErrorMessage>}
       </PostListContainer>
-      {/* <Outlet /> 추가 */}
       <Outlet />
     </MainPageWrapper>
   );
