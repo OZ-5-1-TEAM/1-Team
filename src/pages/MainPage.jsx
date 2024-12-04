@@ -30,6 +30,7 @@ const MainPageWrapper = styled.div`
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding-bottom: 63px;
   animation: ${fadeIn} 0.5s ease;
+  box-sizing: border-box;
 
   @media (max-width: 480px) {
     padding: 10px;
@@ -39,7 +40,7 @@ const MainPageWrapper = styled.div`
 
 const ContentSection = styled.section`
   width: 100%;
-  height: 1070px;
+  height: 1000px;
   overflow-y: auto;
   padding: 10px;
   box-sizing: border-box;
@@ -65,10 +66,6 @@ const Wording = styled.div`
 `;
 
 const SlideImageContainer = styled.div`
-  width: 100%;
-  height: 100%;
-  max-width: 550px;
-  max-height: 250px;
   margin: 10px auto;
   overflow: hidden;
   position: relative;
@@ -136,7 +133,7 @@ const CommunityIcon = styled.div`
   background-color: #eee;
   border-radius: 5px;
   margin-right: 15px;
-  background-image: url('/placeholder-image.jpg');
+  background-image: url('/placeholder-image.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
