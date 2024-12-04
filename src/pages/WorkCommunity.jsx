@@ -121,7 +121,7 @@ const PostContentWrapper = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  position: relative; /* 부모 요소에서 relative로 설정 */
+  position: relative;
 `;
 
 const PostDetails = styled.div`

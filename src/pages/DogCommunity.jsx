@@ -7,7 +7,7 @@ import debounce from 'lodash.debounce';
 import Button from '../components/Button';
 import { useNavigate, Link, Outlet } from 'react-router-dom';
 import FilterComponent from '../components/FilterComponent';
-import axios from 'axios';
+import api from '../api/axiosInstance.jsx';
 
 const MainPageWrapper = styled.div`
   padding-top: 130px;
@@ -120,6 +120,7 @@ const PostContentWrapper = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
 `;
 
 const PostDetails = styled.div`
@@ -137,27 +138,39 @@ const PostTitle = styled.h4`
   margin: 20px 0 0 10px;
 `;
 
-const PostDescription = styled.p`
-  font-size: 14px;
-  color: #777;
-  margin: 5px 0 0 10px;
-  line-height: 1.4;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+const PostNinknameAndSize = styled.div`
+  display: flex;
+  gap: 10px;
+  margin: 5px 0 5px 10px;
+  font-size: 13px;
+  font-weight: bold;
 `;
 
 const PostMeta = styled.div`
   font-size: 12px;
   color: #aaa;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding-right: 10px;
+  justify-content: space-between;
 `;
 
-const PostLocation = styled.span`
-  color: #555;
+const PostLocationAndDate = styled.div`
+  position: absolute;
+  top: 60%;
+  right: 0;
+  transform: translateY(-50%);
+  text-align: right;
+  line-height: 1.5;
+  color: #646464;
+`;
+
+const PostLocation = styled.div`
+  color: #646464;
+  font-size: 13px;
+`;
+
+const PostDate = styled.div`
+  color: #646464;
 `;
 
 const PostNinkname = styled.span`
@@ -202,14 +215,6 @@ function DogCommunity() {
   const observer = useRef();
   const currentPostId = useRef(1);
   const navigate = useNavigate();
-
-  // Axios 인스턴스 생성
-  const api = axios.create({
-    baseURL: 'http://localhost:3000/api/v1', // 임시 URL
-    headers: {
-      Authorization: 'Bearer your_access_token_here', // 실제 토큰으로 교체
-    },
-  });
 
   // 초기 게시물 로드 함수
   const fetchInitialPosts = useCallback(async () => {
@@ -362,20 +367,23 @@ function DogCommunity() {
               <PostImage />
               <PostContentWrapper>
                 <PostTitle>{post.title}</PostTitle>
-                <PostDescription>
-                  {post.content.slice(0, 20)}...
-                </PostDescription>
-                <PostMeta>
-                  <PostStats>
-                    <PostStat>❤️ {post.likes_count}</PostStat>
-                    <PostStat>💬 {post.comments_count}</PostStat>
-                  </PostStats>
+                <PostNinknameAndSize>
+                  <PostNinkname>{post.size}</PostNinkname>
                   <PostNinkname>{post.author.nickname}</PostNinkname>
-                  <PostLocation>
-                    {post.location.district}-{post.location.neighborhood},{' '}
-                    {/* {post.size},{' '} 아직 API명세서에 안 보임*/}
-                    {new Date(post.created_at).toLocaleString()}
-                  </PostLocation>
+                </PostNinknameAndSize>
+                <PostStats>
+                  <PostStat>❤️ {post.likes_count}</PostStat>
+                  <PostStat>💬 {post.comments_count}</PostStat>
+                </PostStats>
+                <PostMeta>
+                  <PostLocationAndDate>
+                    <PostLocation>
+                      {post.location.district}-{post.location.neighborhood}
+                    </PostLocation>
+                    <PostDate>
+                      {new Date(post.created_at).toLocaleString()}
+                    </PostDate>
+                  </PostLocationAndDate>
                 </PostMeta>
               </PostContentWrapper>
             </Link>
