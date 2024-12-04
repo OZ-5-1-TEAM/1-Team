@@ -6,7 +6,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: '/api/v1',
-  headers: { Authorization: `Bearer access_token_here` }, // 환경 변수로 관리 예정
+  headers: { Authorization: `Bearer access_token_here` },
 });
 
 const focusStyles = css`
@@ -217,7 +217,7 @@ const MatePage = () => {
   const [selectedMate, setSelectedMate] = useState(null);
   const [notification, setNotification] = useState({ message: '', type: '' });
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredMates, setFilteredMates] = useState([]); // 필터링된 결과 상태
+  const [filteredMates, setFilteredMates] = useState([]);
 
   // 검색 처리 함수
   // const handleSearch = async () => {
@@ -230,11 +230,10 @@ const MatePage = () => {
   //   await fetchMates(searchQuery.trim()); // 검색어로 서버 요청
   // };
 
-  //로컬 필터링만 사용하는 경우:
   const handleSearch = () => {
     if (!searchQuery.trim()) {
       showNotification('검색어를 입력해주세요!', 'error');
-      setFilteredMates(mates); // 검색어 없을 때 전체 표시
+      setFilteredMates(mates);
       return;
     }
 
@@ -254,17 +253,14 @@ const MatePage = () => {
   useEffect(() => {
     const fetchInitialMates = async () => {
       try {
-        // 우선 더미 데이터를 상태에 설정
         setMates(dummyMates);
         setFilteredMates(dummyMates);
 
-        // API 호출 후 데이터를 상태에 업데이트
         const response = await api.get('/friends');
         setMates(response.data.friends || dummyMates);
         setFilteredMates(response.data.friends || dummyMates);
       } catch (error) {
         console.error('Failed to fetch mates:', error);
-        // 에러가 발생해도 더미 데이터를 유지
         setMates(dummyMates);
         setFilteredMates(dummyMates);
       }
@@ -276,32 +272,32 @@ const MatePage = () => {
         setMateRequests(response.data.requests || dummyMateRequests);
       } catch (error) {
         console.error('Failed to fetch mate requests:', error);
-        // 에러 발생 시 더미 요청 데이터 유지
         setMateRequests(dummyMateRequests);
       }
     };
 
-    // 초기 데이터를 가져오는 함수 호출
     fetchInitialMates();
     fetchInitialMateRequests();
-  }, []); // 의존성 배열에서 mates를 제거
+  }, []);
 
-  // 더미 데이터 및 API 데이터 불러오기
   const fetchMates = async (search = '') => {
     try {
       const response = await api.get('/friends', {
-        params: { search },
+        params: {
+          search,
+          page: 1,
+          size: 20,
+        },
       });
-      setMates(response.data.friends || dummyMates); // API 데이터가 없으면 더미 데이터 사용
+      setMates(response.data.friends || dummyMates);
       setFilteredMates(response.data.friends || dummyMates);
     } catch (error) {
       console.error('Failed to fetch mates:', error);
-      setMates(dummyMates); // 에러 발생 시 더미 데이터 유지
+      setMates(dummyMates);
       setFilteredMates(dummyMates);
     }
   };
 
-  // 친구 요청 목록 가져오기
   const fetchMateRequests = async () => {
     try {
       const response = await api.get('/requests');
@@ -311,7 +307,7 @@ const MatePage = () => {
       setMateRequests(dummyMateRequests);
     }
   };
-  // 친구 추가 요청 보내기
+
   const handleAddMate = async () => {
     if (!newMateName.trim()) {
       showNotification('닉네임을 입력해주세요!', 'error');
@@ -319,20 +315,20 @@ const MatePage = () => {
     }
 
     try {
-      const receiverId = await fetchReceiverId(newMateName); // 닉네임 -> ID 변환
+      const receiverId = await fetchReceiverId(newMateName);
       if (!receiverId) {
         showNotification(
           '해당 닉네임을 가진 사용자를 찾을 수 없습니다.',
           'error'
         );
-        setNewMateName(''); // 입력 필드 초기화
+        setNewMateName('');
 
         return;
       }
 
       await api.post('/friends/requests', { receiver_id: receiverId });
       showNotification('친구 요청이 성공적으로 전송되었습니다!', 'success');
-      setNewMateName(''); // 입력 필드 초기화
+      setNewMateName('');
     } catch (error) {
       console.error('Failed to add mate:', error);
       showNotification(
@@ -345,14 +341,14 @@ const MatePage = () => {
   const fetchReceiverId = async (nickname) => {
     try {
       const response = await api.get(`/users?nickname=${nickname}`);
-      return response.data.id; // 서버에서 반환된 ID
+      return response.data.id;
     } catch (error) {
       console.error('Failed to fetch receiver ID:', error);
       showNotification('닉네임을 찾을 수 없습니다.', 'error');
       return null;
     }
   };
-  // 친구 요청 수락
+
   const handleAcceptRequest = async (requestId) => {
     try {
       const response = await api.put(`/friends/requests/${requestId}`, {
@@ -377,7 +373,6 @@ const MatePage = () => {
     }
   };
 
-  // 친구 요청 거절
   const handleRejectRequest = async (requestId) => {
     try {
       const response = await api.put(`/friends/requests/${requestId}`, {
@@ -407,7 +402,6 @@ const MatePage = () => {
     fetchMateRequests();
   }, []);
 
-  // 메이트 삭제
   const handleDeleteMate = async (id) => {
     const mateToDelete = mates.find((mate) => mate.id === id);
 
@@ -426,7 +420,6 @@ const MatePage = () => {
     }
   };
 
-  // 메시지 전송
   const handleSendMessage = async () => {
     if (!selectedMate) {
       showNotification('쪽지를 보낼 메이트를 선택해주세요!', 'error');

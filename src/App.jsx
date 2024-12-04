@@ -47,6 +47,7 @@ function App() {
 
   // 반려견 데이터 및 상태
   const [petData, setPetData] = useState({
+    id: 1,
     name: '',
     breed: '',
     age: '',
