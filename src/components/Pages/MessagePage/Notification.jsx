@@ -1,3 +1,4 @@
+// Notification.jsx
 import React from 'react';
 import { NotificationWrapper } from './styles/MessageStyles';
 
