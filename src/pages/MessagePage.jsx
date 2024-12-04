@@ -1,162 +1,230 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import useFetch from '../hooks/useFetch';
+import api from '../api/axiosInstance';
+import Header from '../components/Header';
+import MessageSection from '../components/Pages/MessagePage/MessageSection';
+import MessageModal from '../components/Pages/MessagePage/MessageModal';
+import Notification from '../components/Pages/MessagePage/Notification';
 import {
+  MainPageWrapper,
   Box,
-  PageWrapper,
-  Notification,
+  ContentSection,
   FixedImage,
-} from '../components/Pages/CommonComponents';
-import MessageList from '../components/Pages/MessagePage/MessageList';
-import MessageForm from '../components/Pages/MessagePage/MessageForm';
-import { useNavigate } from 'react-router-dom';
-// import api from '../api/axiosInstance';
-
-const dummyReceived = [
-  {
-    id: 1,
-    sender: { nickname: 'John Doe' },
-    content: '안녕하세요!',
-    created_at: '2024-12-04T10:00:00Z',
-    is_read: false,
-  },
-  {
-    id: 2,
-    sender: { nickname: 'Jane Smith' },
-    content: '내일 만나요.',
-    created_at: '2024-12-03T15:00:00Z',
-    is_read: true,
-  },
-];
-
-const dummySent = [
-  {
-    id: 1,
-    receiver: { nickname: 'Alice' },
-    content: '감사합니다!',
-    created_at: '2024-12-02T10:30:00Z',
-    is_read: true,
-  },
-];
+} from '../components/Pages/MessagePage/styles/MessageStyles';
 
 const MessagePage = () => {
+  // API 연동 시 삭제
+  const dummyReceived = {
+    messages: [
+      {
+        id: 1,
+        sender: {
+          id: 2,
+          nickname: 'John Doe',
+          profile_image: '/logo/gaerangmari_logo.jpeg',
+        },
+        content: '안녕하세요, 산책 같이 하실래요?',
+        created_at: '2024-12-02T15:00:00Z',
+        is_read: false,
+        formattedTimestamp: new Date('2024-12-02T15:00:00Z').toLocaleString(
+          'ko-KR'
+        ),
+      },
+      {
+        id: 2,
+        sender: {
+          id: 3,
+          nickname: 'Jane Smith',
+          profile_image: '/logo/gaerangmari_logo.jpeg',
+        },
+        content: '회의 일정이 변경되었습니다.',
+        created_at: '2024-12-03T09:30:00Z',
+        is_read: true,
+        formattedTimestamp: new Date('2024-12-03T09:30:00Z').toLocaleString(
+          'ko-KR'
+        ),
+      },
+    ],
+  };
+
+  const dummySent = {
+    messages: [
+      {
+        id: 1,
+        receiver: { id: 4, nickname: 'Alice' },
+        content: '감사합니다!',
+        created_at: '2024-12-02T12:45:00Z',
+        is_read: true,
+        formattedTimestamp: new Date('2024-12-02T12:45:00Z').toLocaleString(
+          'ko-KR'
+        ),
+      },
+      {
+        id: 2,
+        receiver: { id: 5, nickname: 'Bob' },
+        content: '내일 만나요.',
+        created_at: '2024-12-01T18:20:00Z',
+        is_read: false,
+        formattedTimestamp: new Date('2024-12-01T18:20:00Z').toLocaleString(
+          'ko-KR'
+        ),
+      },
+    ],
+  };
+  // API 연동 시 삭제 끝
+
   const [notification, setNotification] = useState({ message: '', type: '' });
-  const [receivedMessages, setReceivedMessages] = useState([]);
-  const [sentMessages, setSentMessages] = useState([]);
   const [replyMode, setReplyMode] = useState(false);
   const [currentReply, setCurrentReply] = useState(null);
   const [message, setMessage] = useState('');
-  const navigate = useNavigate();
+
+  // API 연동 시 더미데이터(dummyReceived, dummySent) 파라미터 제거
+  // const { data: receivedMessages, isLoading: receivedLoading, refetch: refetchReceived } =
+  //   useFetch('/messages/received');
+  // const { data: sentMessages, isLoading: sentLoading, refetch: refetchSent } =
+  //   useFetch('/messages/sent');
+
+  // API 연동 시 아래 더미데이터를 사용하는 useFetch 호출을 위 코드로 교체
+  const {
+    data: receivedMessages,
+    isLoading: receivedLoading,
+    refetch: refetchReceived,
+  } = useFetch('/messages/received', dummyReceived);
+  const {
+    data: sentMessages,
+    isLoading: sentLoading,
+    refetch: refetchSent,
+  } = useFetch('/messages/sent', dummySent);
 
   const showNotification = (message, type) => {
     setNotification({ message, type });
     setTimeout(() => setNotification({ message: '', type: '' }), 3000);
   };
 
-  const fetchMessages = async () => {
-    try {
-      const [receivedRes, sentRes] = await Promise.all([
-        api.get('/messages/received'),
-        api.get('/messages/sent'),
-      ]);
-      setReceivedMessages(receivedRes.data.messages);
-      setSentMessages(sentRes.data.messages);
-    } catch (error) {
-      showNotification(
-        '쪽지 불러오기에 실패했습니다. 더미 데이터를 사용합니다.',
-        'error'
-      );
-      setReceivedMessages(dummyReceived);
-      setSentMessages(dummySent);
-    }
-  };
-
-  const handleDeleteMessage = async (id, type) => {
-    try {
-      await api.delete(`/messages/${id}`);
-      if (type === 'received') {
-        setReceivedMessages((prev) => prev.filter((msg) => msg.id !== id));
-      } else {
-        setSentMessages((prev) => prev.filter((msg) => msg.id !== id));
-      }
-      showNotification('메시지가 삭제되었습니다!', 'success');
-    } catch {
-      showNotification('메시지 삭제에 실패했습니다.', 'error');
-    }
-  };
-
   const markMessageAsRead = async (messageId) => {
     try {
-      await api.put(`/messages/${messageId}/read`);
-      setReceivedMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === messageId ? { ...msg, is_read: true } : msg
-        )
-      );
+      // API 연동 시 주석 해제
+      // const response = await api.put(`/messages/${messageId}/read`);
+      // if (response.status === 200) {
+      //   refetchReceived();
+      // }
+
+      // API 연동 시 아래 더미 로직 제거
+      refetchReceived();
     } catch (error) {
       showNotification('읽음 처리에 실패했습니다.', 'error');
     }
   };
 
-  const handleSendMessage = async (receiverId, content) => {
-    if (!content.trim()) {
+  const handleReply = (messageId, sender) => {
+    markMessageAsRead(messageId);
+    setReplyMode(true);
+    setCurrentReply(sender);
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim()) {
       showNotification('메시지를 입력하세요.', 'error');
       return;
     }
+
     try {
-      const response = await api.post('/messages', {
-        receiver_id: receiverId,
-        content,
-      });
-      setSentMessages((prev) => [response.data, ...prev]);
+      //  API 연동 시 주석 해제
+      // const response = await api.post('/messages', {
+      //   receiver_id: currentReply.id,
+      //   content: message,
+      // });
+      // if (response.status === 201) {
+      //   showNotification('메시지가 전송되었습니다!', 'success');
+      //   setMessage('');
+      //   setReplyMode(false);
+      //   setCurrentReply(null);
+      //   refetchSent();
+      // }
+
+      // API 연동 시 아래 더미 로직 제거
       showNotification('메시지가 전송되었습니다!', 'success');
+      setMessage('');
       setReplyMode(false);
       setCurrentReply(null);
-      setMessage('');
-    } catch {
+      refetchSent();
+    } catch (error) {
       showNotification('메시지 전송에 실패했습니다.', 'error');
     }
   };
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
+  const handleDeleteMessage = async (id, type) => {
+    try {
+      // TODO: API 연동 시 주석 해제
+      // const response = await api.delete(`/messages/${id}`);
+      // if (response.status === 204) {
+      //   if (type === 'received') {
+      //     refetchReceived();
+      //   } else {
+      //     refetchSent();
+      //   }
+      //   showNotification('메시지가 삭제되었습니다!', 'success');
+      // }
+
+      // API 연동 시 아래 더미 로직 제거
+      if (type === 'received') {
+        refetchReceived();
+      } else {
+        refetchSent();
+      }
+      showNotification('메시지가 삭제되었습니다!', 'success');
+    } catch (error) {
+      showNotification('메시지 삭제에 실패했습니다.', 'error');
+    }
+  };
+
+  const handleCloseModal = () => {
+    setReplyMode(false);
+    setCurrentReply(null);
+    setMessage('');
+  };
 
   return (
-    <PageWrapper>
-      <Notification message={notification.message} type={notification.type} />
+    <MainPageWrapper>
       <Box />
+      <Header title='쪽지함' />
+      <ContentSection>
+        {receivedLoading || sentLoading ? (
+          <div>Loading...</div>
+        ) : (
+          <>
+            <MessageModal
+              visible={replyMode}
+              currentReply={currentReply}
+              message={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onSend={handleSendMessage}
+              onClose={handleCloseModal}
+            />
 
-      {replyMode ? (
-        <MessageForm
-          receiver={currentReply}
-          content={message}
-          onChange={setMessage}
-          onSend={handleSendMessage}
-          Button={sendButton}
-        />
-      ) : (
-        <>
-          <MessageList
-            title='받은 쪽지함'
-            messages={receivedMessages.slice(0, 3)}
-            onReply={(receiver, messageId) => {
-              markMessageAsRead(messageId);
-              setReplyMode(true);
-              setCurrentReply(receiver);
-            }}
-            onDelete={(id) => handleDeleteMessage(id, 'received')}
-            onNavigate={() => navigate('/receivedmessages')}
-          />
-          <MessageList
-            title='보낸 쪽지함'
-            messages={sentMessages.slice(0, 3)}
-            onDelete={(id) => handleDeleteMessage(id, 'sent')}
-            onNavigate={() => navigate('/sentmessages')}
-          />
-        </>
-      )}
+            <MessageSection
+              title='받은 쪽지함'
+              messages={receivedMessages?.messages || []}
+              type='received'
+              onReply={handleReply}
+              onDelete={handleDeleteMessage}
+              navigateTo='/receivedmessages'
+            />
 
+            <MessageSection
+              title='보낸 쪽지함'
+              messages={sentMessages?.messages || []}
+              type='sent'
+              onDelete={handleDeleteMessage}
+              navigateTo='/sentmessages'
+            />
+          </>
+        )}
+      </ContentSection>
+
+      <Notification {...notification} />
       <FixedImage src='/icon-192x192.webp' alt='dog foot icon' />
-    </PageWrapper>
+    </MainPageWrapper>
   );
 };
 
