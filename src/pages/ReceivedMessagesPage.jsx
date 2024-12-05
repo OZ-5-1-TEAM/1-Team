@@ -15,6 +15,7 @@ import Loading from '../components/Loading';
 
 const ReceivedMessagesPage = () => {
   //API 연결 시 더미 데이터 삭제
+
   const dummyReceived = {
     messages: [
       {
@@ -140,6 +141,7 @@ const ReceivedMessagesPage = () => {
           onClose={handleCloseModal}
         />
       )}
+
       <Notification {...notification} />
       <FixedImage src='/icon-192x192.webp' alt='dog foot icon' />
     </MainPageWrapper>
