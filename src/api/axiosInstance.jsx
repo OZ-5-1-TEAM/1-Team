@@ -19,7 +19,7 @@ const addRefreshSubscriber = (callback) => {
 };
 
 const api = axios.create({
-  baseURL: 'BASE_URL', // 서버 URL
+  baseURL: BASE_URL, // 서버 URL
   headers: {
     Authorization: `Bearer ${ACCESS_TOKEN}`,
   },
