@@ -7,7 +7,7 @@ import {
   ReplyTitle,
   TextArea,
   ButtonRight,
-} from './styles/MessageStyles';
+} from './Styles/MessageStyles';
 
 const SendMessageBox = ({
   visible,

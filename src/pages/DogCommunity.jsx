@@ -230,7 +230,6 @@ function DogCommunity() {
   const currentPostId = useRef(1);
   const currentPage = useRef(1);
   const navigate = useNavigate();
-  //const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
 
   // 초기 게시물 로드 함수
   const fetchInitialPosts = useCallback(async () => {
