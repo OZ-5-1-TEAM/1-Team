@@ -230,13 +230,17 @@ function DogCommunity() {
   const currentPostId = useRef(1);
   const currentPage = useRef(1);
   const navigate = useNavigate();
+  //const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN;
 
   // 초기 게시물 로드 함수
   const fetchInitialPosts = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/posts/post', {
+      const response = await api.get('posts/', {
+        headers: {
+          Accept: 'application/json', // JSON 요청을 명시
+        },
         params: {
           ...filters,
           keyword: searchQuery,
@@ -245,19 +249,9 @@ function DogCommunity() {
           size: 10,
         },
       });
-      // try {
-      //   const response = await api.get('/posts', {
-      //     params: {
-      //       category: 'dog',
-      //       district: filters.district,
-      //       neighborhood: filters.neighborhood,
-      //       dog_size: filters.size,
-      //       keyword: searchQuery,
-      //       sort: filters.sortBy,
-      //       page: 1,
-      //       size: 10,
-      //     },
-      //   });
+
+      console.log('Response data:', response.data);
+      console.log('Request URL:', response.config.url);
       setPosts(response.data.posts || []);
       currentPage.current = 2; // 다음 페이지 설정
       setHasMore(response.data.posts?.length > 0);
@@ -266,7 +260,7 @@ function DogCommunity() {
       setError('게시물을 불러오는 데 실패했습니다.');
       setPosts([]);
     } finally {
-      setLoading(false); //일단 보기 좋게 true로 바꿈, 실제 API 연결시 false로 변경
+      setLoading(false);
     }
   }, [filters, searchQuery]);
 
@@ -276,7 +270,10 @@ function DogCommunity() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/posts/post', {
+      const response = await api.get('/posts/', {
+        headers: {
+          Accept: 'application/json',
+        },
         params: {
           ...filters,
           keyword: searchQuery,
@@ -285,6 +282,7 @@ function DogCommunity() {
           size: 10,
         },
       });
+
       setPosts((prevPosts) => [...prevPosts, ...(response.data.posts || [])]);
       currentPage.current += 1;
       setHasMore(response.data.posts?.length > 0);
@@ -292,7 +290,7 @@ function DogCommunity() {
       console.error('추가 게시물 로드 실패:', err);
       setError('추가 게시물을 불러오는 데 실패했습니다.');
     } finally {
-      setLoading(false); //일단 보기 좋게 true로 바꿈, 실제 API 연결시 false로 변경
+      setLoading(false);
     }
   }, [filters, searchQuery, hasMore, loading]);
 
@@ -397,7 +395,7 @@ function DogCommunity() {
                 <PostTitle>{post.title}</PostTitle>
                 <PostNinknameAndSize>
                   <PostNinkname>{post.dog_size}</PostNinkname>
-                  <PostNinkname>{post.author.nickname}</PostNinkname>
+                  <PostNinkname>{post.nickname}</PostNinkname>
                 </PostNinknameAndSize>
                 <PostStats>
                   <PostStat>❤️ {post.likes_count}</PostStat>
@@ -406,7 +404,7 @@ function DogCommunity() {
                 <PostMeta>
                   <PostLocationAndDate>
                     <PostLocation>
-                      {post.location.district}-{post.location.neighborhood}
+                      {post.district}-{post.neighborhood}
                     </PostLocation>
                     <PostDate>
                       {new Date(post.created_at).toLocaleString()}
