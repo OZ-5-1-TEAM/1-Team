@@ -1,5 +1,3 @@
-// MessageSection.jsx
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -7,12 +5,12 @@ import {
   SectionHeader,
   SectionTitle,
   MessageList,
-} from './styles/MessageStyles';
+} from '../MessagePage/Styles/MessageStyles';
 import MessageItem from './MessageItem';
 
 const MessageSection = ({
   title,
-  messages,
+  messages = [],
   type,
   onReply,
   onDelete,
@@ -25,17 +23,21 @@ const MessageSection = ({
       <SectionHeader onClick={() => navigate(navigateTo)}>
         <SectionTitle>{title}</SectionTitle>
       </SectionHeader>
-      <MessageList>
-        {messages.slice(0, 3).map((message) => (
-          <MessageItem
-            key={message.id}
-            message={message}
-            type={type}
-            onReply={onReply}
-            onDelete={onDelete}
-          />
-        ))}
-      </MessageList>
+      {messages.length === 0 ? (
+        <div>메시지가 없습니다.</div>
+      ) : (
+        <MessageList>
+          {messages.map((message) => (
+            <MessageItem
+              key={message.id}
+              message={message}
+              type={type}
+              onReply={onReply}
+              onDelete={onDelete}
+            />
+          ))}
+        </MessageList>
+      )}
     </Section>
   );
 };

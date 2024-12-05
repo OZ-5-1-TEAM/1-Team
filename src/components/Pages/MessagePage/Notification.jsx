@@ -1,6 +1,6 @@
 // Notification.jsx
 import React from 'react';
-import { NotificationWrapper } from './styles/MessageStyles';
+import { NotificationWrapper } from './Styles/MessageStyles';
 
 const Notification = ({ message, type }) => {
   if (!message) return null;
