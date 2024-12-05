@@ -1,5 +1,3 @@
-// MessageModal.jsx
-
 import React from 'react';
 import {
   ModalOverlay,
@@ -9,10 +7,10 @@ import {
   CloseButton,
   TextArea,
   ButtonRight,
-} from './styles/MessageStyles';
+} from '../MessagePage/Styles/MessageStyles';
 import Button from '../../Button/Button';
 
-const ReceivedMessageModal = ({
+const MessageModal = ({
   visible,
   currentReply,
   message,
@@ -22,11 +20,13 @@ const ReceivedMessageModal = ({
 }) => {
   if (!visible) return null;
 
+  const recipientName = currentReply?.name || currentReply?.nickname;
+
   return (
     <ModalOverlay onClick={onClose}>
       <ModalContent onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
-          <ModalTitle>{currentReply?.nickname}님에게 쪽지 보내기</ModalTitle>
+          <ModalTitle>{recipientName}님에게 쪽지 보내기</ModalTitle>
           <CloseButton onClick={onClose}>&times;</CloseButton>
         </ModalHeader>
         <TextArea
@@ -45,4 +45,4 @@ const ReceivedMessageModal = ({
   );
 };
 
-export default ReceivedMessageModal;
+export default MessageModal;

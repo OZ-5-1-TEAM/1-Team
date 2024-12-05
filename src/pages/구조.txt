@@ -12,22 +12,22 @@ FE/
     │   └── MainPage.jsx
     │   └── MatePage.jsx
     │   └── WeatherPage.jsx 
-    └── components/
-        │    ├── Footer.jsx
-        │    ├── Header.jsx
-        │    └── Navbar.jsx
-        ├── Button/
-        │        └── Button.jsx
-        └── Pages/
-            ├── MessagePage/
-            │    ├── MessageItem.jsx
-            │    ├── MessageSection.jsx
-            │    ├── SendMessageBox.jsx
-            │    ├── Notification.jsx
-            │    └── Styles/
-            │        └── MessageStyles.jsx
-            ├── CustomerServicePage/
-            ├── MainPage/
-            ├── MatePage/
-            └── WeatherPage
-
+    ├── components/
+    │   │    ├── Footer.jsx
+    │   │    ├── Header.jsx
+    │   │    └── Navbar.jsx
+    │   ├── Button/
+    │   │        └── Button.jsx
+    │   └── Pages/
+    │       ├── MessagePage/
+    │       │    ├── MessageItem.jsx,
+    │       │    ├── MessageSection.jsx
+    │       │    ├── SendMessageBox.jsx
+    │       │    ├── Notification.jsx
+    │       │    └── Styles/
+    │       │        └── MessageStyles.jsx
+    │       ├── CustomerServicePage/
+    │       ├── MainPage/
+    │       ├── MatePage/
+    │       └── WeatherPage
+    └── App.jsx

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import useFetch from '../hooks/useFetch';
+import axiosInstance from '../api/axiosInstance';
 import Header from '../components/Header';
 import MessageSection from '../components/Pages/MessagePage/MessageSection';
 import MessageModal from '../components/Pages/MessagePage/MessageModal';
@@ -9,11 +10,12 @@ import {
   Box,
   ContentSection,
   FixedImage,
-} from '../components/Pages/MessagePage/styles/MessageStyles';
+} from '../components/Pages/MessagePage/Styles/MessageStyles';
 import Loading from '../components/Loading';
 
-const ReceivedMessagePage = () => {
-  // API 연동 시 삭제
+const ReceivedMessagesPage = () => {
+  //API 연결 시 더미 데이터 삭제
+
   const dummyReceived = {
     messages: [
       {
@@ -47,25 +49,16 @@ const ReceivedMessagePage = () => {
     ],
   };
 
-  // API 연동 시 삭제 끝
-
-  const [notification, setNotification] = useState({ message: '', type: '' });
   const [replyMode, setReplyMode] = useState(false);
   const [currentReply, setCurrentReply] = useState(null);
   const [message, setMessage] = useState('');
+  const [notification, setNotification] = useState({ message: '', type: '' });
 
-  // API 연동 시 더미데이터(dummyReceived, dummySent) 파라미터 제거
-  // const { data: receivedMessages, isLoading: receivedLoading, refetch: refetchReceived } =
-  //   useFetch('/messages/received');
-  // const { data: sentMessages, isLoading: sentLoading, refetch: refetchSent } =
-  //   useFetch('/messages/sent');
+  const { data: receivedMessages = dummyReceived, isLoading: receivedLoading } =
+    useFetch('/api/messages/received', dummyReceived);
 
-  // API 연동 시 아래 더미데이터를 사용하는 useFetch 호출을 위 코드로 교체
-  const {
-    data: receivedMessages,
-    isLoading: receivedLoading,
-    refetch: refetchReceived,
-  } = useFetch('/messages/received', dummyReceived);
+  //API 연결 시 아래로 변경
+  // const { data: receivedMessages = { messages: [] } } = useFetch('/api/messages/received', { messages: [] });
 
   const showNotification = (message, type) => {
     setNotification({ message, type });
@@ -74,14 +67,13 @@ const ReceivedMessagePage = () => {
 
   const markMessageAsRead = async (messageId) => {
     try {
-      // API 연동 시 주석 해제
-      // const response = await api.put(`/messages/${messageId}/read`);
-      // if (response.status === 200) {
-      //   refetchReceived();
-      // }
-
-      // API 연동 시 아래 더미 로직 제거
-      refetchReceived();
+      const response = await axiosInstance.put(
+        `/api/messages/${messageId}/read/`
+      );
+      if (response.status === 200) {
+        showNotification('메시지가 읽음 처리되었습니다.', 'success');
+        refetchReceived();
+      }
     } catch (error) {
       showNotification('읽음 처리에 실패했습니다.', 'error');
     }
@@ -98,92 +90,57 @@ const ReceivedMessagePage = () => {
       showNotification('메시지를 입력하세요.', 'error');
       return;
     }
-
     try {
-      //  API 연동 시 주석 해제
-      // const response = await api.post('/messages', {
-      //   receiver_id: currentReply.id,
-      //   content: message,
-      // });
-      // if (response.status === 201) {
-      //   showNotification('메시지가 전송되었습니다!', 'success');
-      //   setMessage('');
-      //   setReplyMode(false);
-      //   setCurrentReply(null);
-      //   refetchSent();
-      // }
-
-      // API 연동 시 아래 더미 로직 제거
-      showNotification('메시지가 전송되었습니다!', 'success');
-      setMessage('');
-      setReplyMode(false);
-      setCurrentReply(null);
-      refetchSent();
+      const response = await axiosInstance.post('/api/messages/', {
+        receiver: currentReply.id,
+        content: message,
+      });
+      if (response.status === 201) {
+        showNotification('메시지가 성공적으로 전송되었습니다!', 'success');
+        setReplyMode(false);
+        setMessage('');
+        setCurrentReply(null);
+      }
     } catch (error) {
       showNotification('메시지 전송에 실패했습니다.', 'error');
     }
   };
 
-  const handleDeleteMessage = async (id, type) => {
-    try {
-      // TODO: API 연동 시 주석 해제
-      // const response = await api.delete(`/messages/${id}`);
-      // if (response.status === 204) {
-      //   if (type === 'received') {
-      //     refetchReceived();
-      //   } else {
-      //     refetchSent();
-      //   }
-      //   showNotification('메시지가 삭제되었습니다!', 'success');
-      // }
-
-      // API 연동 시 아래 더미 로직 제거
-      if (type === 'received') {
-        refetchReceived();
-      } else {
-        refetchSent();
-      }
-      showNotification('메시지가 삭제되었습니다!', 'success');
-    } catch (error) {
-      showNotification('메시지 삭제에 실패했습니다.', 'error');
-    }
-  };
-
   const handleCloseModal = () => {
     setReplyMode(false);
-    setCurrentReply(null);
     setMessage('');
+    setCurrentReply(null);
   };
 
   return (
     <MainPageWrapper>
       <Box />
       <Header title='받은 쪽지함' />
-      <ContentSection>
-        {receivedLoading ? (
-          <Loading />
-        ) : (
-          <>
-            <MessageModal
-              visible={replyMode}
-              currentReply={currentReply}
-              message={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onSend={handleSendMessage}
-              onClose={handleCloseModal}
-            />
-
-            <MessageSection
-              title='받은 쪽지함'
-              messages={receivedMessages?.messages || []}
-              type='received'
-              onReply={handleReply}
-              onDelete={handleDeleteMessage}
-              navigateTo='/receivedmessages'
-            />
-          </>
-        )}
-      </ContentSection>
+      {receivedLoading ? (
+        <Loading />
+      ) : (
+        <ContentSection>
+          <MessageSection
+            title=''
+            messages={receivedMessages?.messages || []}
+            type='received'
+            onReply={handleReply}
+            onDelete={(id) =>
+              showNotification(`메시지 ID ${id}가 삭제되었습니다.`, 'success')
+            }
+          />
+        </ContentSection>
+      )}
+      {replyMode && (
+        <MessageModal
+          visible={replyMode}
+          currentReply={currentReply}
+          message={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onSend={handleSendMessage}
+          onClose={handleCloseModal}
+        />
+      )}
 
       <Notification {...notification} />
       <FixedImage src='/icon-192x192.webp' alt='dog foot icon' />
@@ -191,4 +148,4 @@ const ReceivedMessagePage = () => {
   );
 };
 
-export default ReceivedMessagePage;
+export default ReceivedMessagesPage;
