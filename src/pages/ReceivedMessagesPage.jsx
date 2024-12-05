@@ -52,8 +52,8 @@ const ReceivedMessagesPage = () => {
   const [replyMode, setReplyMode] = useState(false);
   const [currentReply, setCurrentReply] = useState(null);
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const [notification, setNotification] = useState({ message: '', type: '' });
-
   const { data: receivedMessages = dummyReceived, isLoading: receivedLoading } =
     useFetch('/api/messages/received', dummyReceived);
 
@@ -91,6 +91,26 @@ const ReceivedMessagesPage = () => {
       return;
     }
     try {
+      //  API 연동 시 주석 해제
+      // const response = await api.post('/messages', {
+      //   receiver_id: currentReply.id,
+      //   content: message,
+      // });
+      // if (response.status === 201) {
+      //   showNotification('메시지가 전송되었습니다!', 'success');
+      //   setMessage('');
+      //   setReplyMode(false);
+      //   setCurrentReply(null);
+      //   refetchSent();
+      // }
+      // IsLoading 빼주세요~~~~~ 프엔에서 관리하는게 더 좋아요
+      // API 연동 시 아래 더미 로직 제거
+      showNotification('메시지가 전송되었습니다!', 'success');
+      setMessage('');
+      setReplyMode(false);
+      setCurrentReply(null);
+      refetchSent();
+
       const response = await axiosInstance.post('/api/messages/', {
         receiver: currentReply.id,
         content: message,

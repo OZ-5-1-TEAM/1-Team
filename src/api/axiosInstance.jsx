@@ -21,7 +21,6 @@ const addRefreshSubscriber = (callback) => {
 const api = axios.create({
   baseURL: 'BASE_URL', // 서버 URL
   headers: {
-    //Authorization: `Bearer ${localStorage.getItem('access_token')}`,
     Authorization: `Bearer ${ACCESS_TOKEN}`,
   },
 });
