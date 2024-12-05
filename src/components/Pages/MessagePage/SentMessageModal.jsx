@@ -6,7 +6,7 @@ import {
   ModalTitle,
   CloseButton,
   ModalBody,
-} from '../MessagePage//Styles/MessageStyles';
+} from '../MessagePage/Styles/MessageStyles';
 
 const SentMessageModal = ({ message, onClose }) => {
   if (!message) return null;
