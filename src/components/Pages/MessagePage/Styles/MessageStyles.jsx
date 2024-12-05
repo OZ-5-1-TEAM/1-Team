@@ -1,4 +1,3 @@
-// MessageStyles.jsx
 import styled, { keyframes, css } from 'styled-components';
 
 export const FadeIn = keyframes`
@@ -106,15 +105,32 @@ export const MessageList = styled.div`
   margin: 0;
 `;
 
-// Message Item Styles
-export const MessageItemWrapper = styled.li`
-  ${BoxStyles}
+export const MessageItem = styled.li`
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   padding: 10px 15px;
+  border-radius: 10px;
   margin-bottom: 10px;
   background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
+`;
+
+// Message Item Styles
+export const MessageItemWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 export const MessageContent = styled.div`
@@ -144,11 +160,6 @@ export const MessageSender = styled.span`
     display: block;
     font-weight: bold;
   }
-`;
-
-export const MessageTimestamp = styled.span`
-  font-size: 14px;
-  color: #dfa700;
 `;
 
 export const ButtonGroup = styled.div`
@@ -266,5 +277,76 @@ export const CloseButton = styled.button`
 
   &:hover {
     color: #ff9900;
+  }
+`;
+
+export const MessageReceiver = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+  }
+`;
+
+export const MessageTimestamp = styled.span`
+  font-size: 12px;
+  color: #dfa700;
+`;
+
+export const EmptyStateWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  color: #666;
+  font-size: 1rem;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 1rem 0;
+`;
+export const ModalBody = styled.div`
+  padding: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  max-height: 60vh;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #dfa700;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #ffe082;
   }
 `;

@@ -1,406 +1,209 @@
-import React, { useState, useEffect } from 'react';
-import styled, { keyframes, css } from 'styled-components';
-import Button from '../components/Button/Button';
+import React, { useState, useCallback, useEffect } from 'react';
+import api from '../api/axiosInstance';
 import Header from '../components/Header';
-import axios from 'axios';
+import SentMessageSection from '../components/Pages/MessagePage/SentMessageSection';
+import SentMessageModal from '../components/Pages/MessagePage/SentMessageModal';
+import Notification from '../components/Pages/MessagePage/Notification';
+import {
+  MainPageWrapper,
+  Box,
+  ContentSection,
+} from '../components/Pages/MessagePage/Styles/MessageStyles';
+import Loading from '../components/Loading'; // 로딩 컴포넌트 import
 
-const api = axios.create({
-  baseURL: '/api/v1',
-});
-const getToken = () => localStorage.getItem('access_token');
-api.interceptors.request.use((config) => {
-  const token = getToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-const boxStyles = css`
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const focusStyles = css`
-  &:focus {
-    outline: none;
-    border: 2px solid #ffe29f;
-    background-color: #fffef8;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-  }
-`;
-
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-const slideDown = keyframes`
-  from {
-    opacity: 0;
-    top: -50px;
-  }
-  to {
-    opacity: 1;
-    top: 0;
-  }
-`;
-
-const Notification = styled.div`
-  ${boxStyles}
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: ${({ type }) =>
-    type === 'success' ? '#ff9900' : '#ffe082'};
-  color: white;
-  padding: 15px 20px;
-  animation:
-    ${slideDown} 0.5s ease,
-    fadeOut 0.5s ease 3s;
-  z-index: 10000;
-  user-select: none;
-  @keyframes fadeOut {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-  }
-`;
-
-const Box = styled.div`
-  width: 100%;
-  height: 130px;
-  background-color: transparent;
-  display: block;
-`;
-
-const SentMessagesWrapper = styled.div`
-  width: 100%;
-  max-width: 600px;
-  min-height: 100vh;
-  margin: 0 auto;
-  background-color: #ffffff;
-  ${boxStyles}
-  padding-bottom: 63px;
-  flex-direction: column;
-  animation: ${fadeIn} 0.5s ease;
-  user-select: none;
-
-  @media (max-width: 480px) {
-    padding: 10px;
-    box-shadow: none;
-  }
-`;
-
-const ContentSection = styled.section`
-  flex: 1;
-  padding: 20px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-`;
-
-const MessageList = styled.div`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const MessageItem = styled.li`
-  ${boxStyles}
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 10px 15px;
-  margin-bottom: 10px;
-  background-color: #ffffff;
-`;
-
-const MessageContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  align-items: flex-start;
-`;
-
-const MessageReceiver = styled.span`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: bold;
-  color: #555;
-
-  img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  span {
-    display: block;
-    font-weight: bold;
-  }
-`;
-
-const MessageTimestamp = styled.span`
-  font-size: 14px;
-  color: #dfa700;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-`;
-
-const ModalContent = styled.div`
-  background: #fff;
-  border-radius: 10px;
-  padding: 20px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.3s ease;
-`;
-
-const ModalHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-`;
-
-const ReceiverName = styled.h3`
-  font-size: 18px;
-  color: #ff9900;
-  margin: 0;
-`;
-
-const CloseButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  color: #888;
-
-  &:hover {
-    color: #000;
-  }
-`;
-
-const ModalBody = styled.div`
-  margin-top: 15px;
-  font-size: 16px;
-  color: #333;
-  line-height: 1.6;
-`;
-
-const dummyMessages = [
+// API 연결 시 더미 데이터 삭제
+const dummySentMessages = [
   {
     id: 1,
     receiver: {
       id: 2,
-      nickname: 'John Doe',
-      profile_image: '/logo/gaerangmari_logo.jpeg',
+      nickname: '김철수',
+      profile_image: '/logo/dummy_profile1.jpeg',
     },
+    content: '안녕하세요! 날씨가 좋네요.',
     created_at: '2024-12-03T12:00:00Z',
-    content: 'Hello! How are you?',
     is_read: false,
   },
   {
     id: 2,
     receiver: {
       id: 3,
-      nickname: 'Jane Smith',
-      profile_image: '/logo/gaerangmari_logo.jpeg',
+      nickname: '이영희',
+      profile_image: '/logo/dummy_profile2.jpeg',
     },
-    created_at: '2024-12-03T18:30:00Z',
-    content: 'Meeting rescheduled to tomorrow at 10 AM.',
+    content: '오늘 모임 시간 변경되었습니다.',
+    created_at: '2024-12-03T14:30:00Z',
     is_read: true,
   },
 ];
 
 const SentMessagesPage = () => {
-  const [sentMessages, setSentMessages] = useState([]);
-  const [selectedMessage, setSelectedMessage] = useState(null);
-  const [notification, setNotification] = useState({ message: '', type: '' });
+  const [state, setState] = useState({
+    messages: [], // 메시지 목록
+    selectedMessage: null, // 선택된 메시지
+    notification: { message: '', type: '' }, // 알림 상태
+    isLoading: false, // 로딩 상태
+    error: null, // 에러 메시지
+    hasMore: false, // 추가 데이터 여부
+  });
 
-  const showNotification = (message, type) => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification({ message: '', type: '' }), 3000);
-  };
+  // 알림 표시 함수
+  const showNotification = useCallback((message, type) => {
+    setState((prev) => ({
+      ...prev,
+      notification: { message, type },
+    }));
+    setTimeout(() => {
+      setState((prev) => ({
+        ...prev,
+        notification: { message: '', type: '' },
+      }));
+    }, 3000);
+  }, []);
 
+  // 메시지 가져오기 함수
   const fetchMessages = async () => {
+    setState((prev) => ({ ...prev, isLoading: true })); // 로딩 시작
     try {
-      const { data } = await api.get('/messages/sent', {
-        params: { page: 1, size: 20, sort: 'created_at,desc' },
-      });
-
-      if (data && Array.isArray(data.messages)) {
-        const sortedMessages = data.messages
-          .map((msg) => ({
-            receiver: msg.receiver || {
-              id: 0,
-              nickname: 'Unknown',
-              profile_image: '/logo/gaerangmari_logo.jpeg',
-            },
-            content: msg.content || '메시지 내용 없음',
-            created_at: msg.created_at || new Date().toISOString(),
-            formattedTimestamp: new Date(
-              msg.created_at || new Date()
-            ).toLocaleString('ko-KR', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            }),
-          }))
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-        setSentMessages(sortedMessages);
-      } else {
-        throw new Error('Invalid response structure');
-      }
-    } catch (error) {
-      showNotification(
-        '쪽지 가져오기 실패! 기본 더미 데이터 사용 중.',
-        'error'
-      );
-      const sortedMessages = dummyMessages
-        .map((msg) => ({
-          ...msg,
-          formattedTimestamp: new Date(msg.created_at).toLocaleString('ko-KR', {
+      const formattedMessages = dummySentMessages.map((message) => ({
+        ...message,
+        formattedTimestamp: new Date(message.created_at).toLocaleString(
+          'ko-KR',
+          {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
             minute: '2-digit',
-            second: '2-digit',
-          }),
-        }))
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          }
+        ),
+      }));
+      setState((prev) => ({
+        ...prev,
+        messages: formattedMessages,
+        isLoading: false, // 로딩 종료
+        hasMore: false,
+      }));
 
-      setSentMessages(sortedMessages);
-    }
-  };
-
-  const handleDeleteMessage = async (id) => {
-    try {
-      await api.delete(`/messages/${id}`);
-      setSentMessages((prev) => prev.filter((message) => message.id !== id));
-      showNotification('메시지가 삭제되었습니다!', 'success');
+      /**
+       * API 연결 시 아래 코드 활성화:
+       * const response = await api.get('/api/messages/sent');
+       * const formattedMessages = response.data.map((message) => ({
+       *   ...message,
+       *   formattedTimestamp: new Date(message.created_at).toLocaleString('ko-KR', {
+       *     year: 'numeric',
+       *     month: '2-digit',
+       *     day: '2-digit',
+       *     hour: '2-digit',
+       *     minute: '2-digit',
+       *   }),
+       * }));
+       * setState((prev) => ({
+       *   ...prev,
+       *   messages: formattedMessages,
+       *   isLoading: false,
+       *   hasMore: response.data.length > 0, // 추가 데이터 여부
+       * }));
+       */
     } catch (error) {
-      showNotification('메시지 삭제 실패!', 'error');
+      console.error('보낸 메시지 목록 조회 실패:', error);
+      setState((prev) => ({
+        ...prev,
+        error: '메시지를 불러오는데 실패했습니다.',
+        isLoading: false,
+      }));
+      showNotification('메시지 로드에 실패했습니다.', 'error');
     }
   };
 
-  const handleSelectMessage = (message) => {
-    setSelectedMessage(message);
+  //API 연결 시 위 코드 지우고 아래 코드 활성화
+  // const handleError = (error) => {
+  //   if (error.response) {
+  //     console.error('API 오류:', error.response.data);
+  //     setState((prev) => ({
+  //       ...prev,
+  //       error: error.response.data.message || 'API 오류 발생',
+  //       isLoading: false,
+  //     }));
+  //     showNotification(error.response.data.message || 'API 요청 실패', 'error');
+  //   } else if (error.request) {
+  //     console.error('네트워크 오류:', error.request);
+  //     showNotification('서버에 연결할 수 없습니다. 네트워크를 확인해주세요.', 'error');
+  //   } else {
+  //     console.error('기타 오류:', error.message);
+  //     showNotification('오류가 발생했습니다.', 'error');
+  //   }
+  // };
+
+  // 메시지 삭제 함수
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      setState((prev) => ({
+        ...prev,
+        messages: prev.messages.filter((message) => message.id !== messageId),
+      }));
+      showNotification('메시지가 삭제되었습니다.', 'success');
+    } catch (error) {
+      console.error('메시지 삭제 실패:', error);
+      showNotification('메시지 삭제에 실패했습니다.', 'error');
+    }
   };
 
-  const handleCloseModal = () => {
-    setSelectedMessage(null);
-  };
+  /**
+   * API 연결 시 아래 코드 활성화:
+   * const handleDeleteMessage = async (messageId) => {
+   *   try {
+   *     await api.delete(`/api/messages/${messageId}`);
+   *     setState((prev) => ({
+   *       ...prev,
+   *       messages: prev.messages.filter((message) => message.id !== messageId),
+   *     }));
+   *     showNotification('메시지가 삭제되었습니다.', 'success');
+   *   } catch (error) {
+   *     console.error('메시지 삭제 실패:', error);
+   *     showNotification('메시지 삭제에 실패했습니다.', 'error');
+   *   }
+   * };
+   */
+
+  // 메시지 선택 함수
+  const handleSelectMessage = useCallback((message) => {
+    setState((prev) => ({
+      ...prev,
+      selectedMessage: message,
+    }));
+  }, []);
 
   useEffect(() => {
     fetchMessages();
   }, []);
 
   return (
-    <SentMessagesWrapper>
+    <MainPageWrapper>
       <Box />
       <Header title='보낸 쪽지함' />
       <ContentSection>
-        <MessageList>
-          {sentMessages.map((message) => (
-            <MessageItem
-              key={message.id}
-              onClick={() => handleSelectMessage(message)}
-            >
-              <MessageContent>
-                <MessageReceiver>
-                  <img
-                    src={
-                      message.receiver.profile_image ||
-                      '/logo/gaerangmari_logo.jpeg'
-                    }
-                    alt={`${message.receiver.nickname} 프로필`}
-                  />
-                  <div>
-                    <span>{message.receiver.nickname}</span>
-                    <MessageTimestamp>
-                      {message.formattedTimestamp}
-                    </MessageTimestamp>
-                  </div>
-                </MessageReceiver>
-              </MessageContent>
-              <ButtonGroup>
-                <Button
-                  variant='cancel'
-                  size='small'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteMessage(message.id);
-                  }}
-                >
-                  삭제
-                </Button>
-              </ButtonGroup>
-            </MessageItem>
-          ))}
-        </MessageList>
+        {state.isLoading ? (
+          <Loading /> // 로딩 상태일 때 로딩 컴포넌트 표시
+        ) : (
+          <SentMessageSection
+            messages={state.messages} // 메시지 목록
+            onSelect={handleSelectMessage} // 메시지 선택 핸들러
+            onDelete={handleDeleteMessage} // 메시지 삭제 핸들러
+            hasMore={state.hasMore} // 추가 데이터 여부
+            onLoadMore={fetchMessages} // 추가 데이터 로드
+          />
+        )}
       </ContentSection>
-
-      {selectedMessage && (
-        <ModalOverlay>
-          <ModalContent>
-            <ModalHeader>
-              <ReceiverName>{selectedMessage.receiver.nickname}</ReceiverName>
-              <CloseButton onClick={handleCloseModal}>×</CloseButton>
-            </ModalHeader>
-            <ModalBody>{selectedMessage.content}</ModalBody>
-          </ModalContent>
-        </ModalOverlay>
-      )}
-
-      {notification.message && (
-        <Notification type={notification.type}>
-          {notification.message}
-        </Notification>
-      )}
-    </SentMessagesWrapper>
+      <SentMessageModal
+        message={state.selectedMessage} // 선택된 메시지 전달
+        onClose={() => handleSelectMessage(null)} // 모달 닫기 핸들러
+      />
+      <Notification
+        message={state.notification.message} // 알림 메시지
+        type={state.notification.type} // 알림 타입
+      />
+    </MainPageWrapper>
   );
 };
 
