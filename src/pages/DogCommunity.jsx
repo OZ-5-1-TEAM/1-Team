@@ -236,7 +236,7 @@ function DogCommunity() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('posts/', {
+      const response = await api.get('posts', {
         headers: {
           Accept: 'application/json', // JSON 요청을 명시
         },
@@ -269,7 +269,7 @@ function DogCommunity() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/posts/', {
+      const response = await api.get('/posts', {
         headers: {
           Accept: 'application/json',
         },
