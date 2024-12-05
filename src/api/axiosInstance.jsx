@@ -29,7 +29,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token') || ACCESS_TOKEN;
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${ACCESS_TOKEN}`;
   }
   return config;
 });
@@ -60,7 +60,7 @@ api.interceptors.response.use(
       }
       return new Promise((resolve) => {
         addRefreshSubscriber((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+          originalRequest.headers.Authorization = `Bearer ${ACCESS_TOKEN}`;
           resolve(axios(originalRequest));
         });
       });
