@@ -19,5 +19,9 @@ export default defineConfig(({ mode }) => {
     define: {
       __BRANCH__: JSON.stringify(branch), // 전역 변수로 브랜치 정보 제공
     },
+
+    server: {
+      historyApiFallback: true, // 새로고침 시 라우팅 문제 해결
+    },
   };
 });

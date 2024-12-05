@@ -1,10 +1,11 @@
+// Footer
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-const FooterBar = styled.footer`
+const FooterBar = styled.nav`
   position: fixed;
   bottom: 0;
-  width: 600px;
+  width: 100%;
   max-width: 600px;
   height: 60px;
   margin: 0 auto;
@@ -15,17 +16,21 @@ const FooterBar = styled.footer`
   align-items: center;
   left: 0;
   right: 0;
-  overflow: hidden;
+  z-index: 100;
+  user-select: none;
 `;
 
-const FooterItemWrapper = styled.div`
+const FooterItemWrapper = styled.button`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex: 1;
   max-width: 150px;
+  background: none;
+  border: none;
   cursor: pointer;
+  outline: none;
 `;
 
 const FooterCircle = styled.div`
@@ -44,25 +49,35 @@ const FooterCircle = styled.div`
 const FooterLabel = styled.span`
   font-size: 10px;
   color: #777777;
+  user-select: none;
 `;
 
 const Footer = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const menuItems = [
     { id: 1, label: 'HOME', path: '/' },
-    { id: 2, label: 'COMMUNITY', path: '/community' },
-    { id: 3, label: 'PHOTO', path: '/photo' },
-    { id: 4, label: 'MYPAGE', path: '/mypage' },
+    { id: 2, label: 'Work', path: '/workcommunity' },
+    { id: 3, label: 'Dog', path: '/dogcommunity' },
+    { id: 4, label: 'PHOTO', path: '/photo' },
+    { id: 5, label: 'MYPAGE', path: '/mypage' },
   ];
-
-  const currentPageId = 1;
 
   return (
     <FooterBar>
       {menuItems.map((item) => (
-        <FooterItemWrapper key={item.id} onClick={() => navigate(item.path)}>
-          <FooterCircle $isActive={item.id === currentPageId} />
+        <FooterItemWrapper
+          key={item.id}
+          onClick={() => navigate(item.path)}
+          aria-label={item.label}
+        >
+          <FooterCircle
+            $isActive={
+              location.pathname === item.path ||
+              (item.path !== '/' && location.pathname.startsWith(item.path))
+            }
+          />
           <FooterLabel>{item.label}</FooterLabel>
         </FooterItemWrapper>
       ))}

@@ -1,23 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const Box = styled.div`
+  width: 100%;
+  height: 130px;
+  background-color: transparent;
+  display: block;
+`;
+
 const MainPageWrapper = styled.div`
-  padding-top: 140px;
   width: 100%;
   max-width: 600px;
-  height: 100vh;
-  display: flex;
+  min-height: 100vh;
   margin: 0 auto;
   background-color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding-bottom: 63px;
+  animation: ${fadeIn} 0.5s ease;
+  box-sizing: border-box;
+
+  @media (max-width: 480px) {
+    padding: 10px;
+    box-shadow: none;
+  }
 `;
 
 const ContentSection = styled.section`
   width: 100%;
-  height: 1070px; /* 메인 페이지 표시 영역 */
+  height: 1000px;
   overflow-y: auto;
   padding: 10px;
   box-sizing: border-box;
@@ -39,14 +62,14 @@ const Wording = styled.div`
   font-size: 17px;
   align-items: center;
   color: #ff9900;
+  user-select: none;
 `;
 
 const SlideImageContainer = styled.div`
-  width: 550px;
-  height: 250px;
   margin: 10px auto;
   overflow: hidden;
   position: relative;
+  user-select: none;
 `;
 
 const SlideTrack = styled.div.withConfig({
@@ -56,7 +79,6 @@ const SlideTrack = styled.div.withConfig({
   transition: transform 0.5s ease-in-out;
   transform: translateX(${(props) => props.imagePosition}%);
   will-change: transform;
-  //브라우저가 transform 속성의 변경을 예상하고 성능 최적화를 미리 준비하도록 돕는 CSS 속성 추가
 `;
 
 const SlideImage = styled.img`
@@ -75,6 +97,7 @@ const CommunityHeader = styled.div`
   padding: 0 20px;
   margin: 0px;
   cursor: pointer;
+  user-select: none;
 `;
 
 const CommunityTitle = styled.h2`
@@ -97,6 +120,7 @@ const CommunityItem = styled.div`
   border-bottom: 1px solid #ddd;
   cursor: pointer;
   transition: background-color 0.2s;
+  user-select: none;
 
   &:hover {
     background-color: #f9f9f9;
@@ -109,7 +133,7 @@ const CommunityIcon = styled.div`
   background-color: #eee;
   border-radius: 5px;
   margin-right: 15px;
-  background-image: url('/placeholder-image.png'); /* 기본 이미지 설정 */
+  background-image: url('/placeholder-image.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -134,6 +158,8 @@ const WeatherContainer = styled.section`
   background-color: #fff8e1;
   border-radius: 10px;
   transition: transform 0.2s ease;
+  user-select: none;
+
   &:hover {
     transform: scale(1.02);
   }
@@ -183,6 +209,7 @@ const NoticeHeader = styled.div`
   padding: 0 20px;
   margin: 0px;
   cursor: pointer;
+  user-select: none;
 `;
 
 const NoticeTitle = styled.h2`
@@ -205,6 +232,7 @@ const NoticePostItem = styled.div`
   border-bottom: 1px solid #ddd;
   cursor: pointer;
   transition: background-color 0.2s;
+  user-select: none;
 
   &:hover {
     background-color: #f9f9f9;
@@ -217,7 +245,7 @@ const NoticeIcon = styled.div`
   background-color: #eee;
   border-radius: 5px;
   margin-right: 15px;
-  background-image: url('/placeholder-image.png'); /* 기본 이미지 설정 */
+  background-image: url('/placeholder-image.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -242,6 +270,7 @@ const CustomerServiceHeader = styled.div`
   padding: 0 20px;
   margin: 5px 0 0 0;
   cursor: pointer;
+  user-select: none;
 `;
 
 const CustomerServiceTitle = styled.h2`
@@ -261,17 +290,20 @@ function MainPage() {
   const navigate = useNavigate();
 
   return (
-    <MainPageWrapper>
-      <Header title='Home' />
-      <ContentSection>
-        <MainWording />
-        <MainBanner />
-        <CommunityList />
-        <WeatherSection />
-        <NoticeSection />
-        <CustomerServiceSection />
-      </ContentSection>
-    </MainPageWrapper>
+    <>
+      <MainPageWrapper>
+        <Box />
+        <Header title='Home' />
+        <ContentSection>
+          <MainWording />
+          <MainBanner />
+          <CommunityList />
+          <WeatherSection />
+          <NoticeSection />
+          <CustomerServiceSection />
+        </ContentSection>
+      </MainPageWrapper>
+    </>
   );
 }
 
@@ -340,7 +372,6 @@ const MainBanner = () => {
               key={i}
               src={image}
               alt={`강아지 사진 ${i + 1}`}
-              //강아지 사진 설명 수정 alt slide -> '강아지 사진'
             ></SlideImage>
           ))}
         </SlideTrack>
@@ -349,19 +380,44 @@ const MainBanner = () => {
   );
 };
 
-// community 섹션 추가(정적 데이터)
 const CommunityList = () => {
   const navigate = useNavigate();
 
-  const communities = [
-    { id: 1, category: 'COMMUNITY NAME', postTitle: 'TITLE', path: '/post/1' },
-    { id: 2, category: 'COMMUNITY NAME', postTitle: 'TITLE', path: '/post/2' },
-    { id: 3, category: 'COMMUNITY NAME', postTitle: 'TITLE', path: '/post/3' },
-  ];
+  const [communities, setCommunities] = useState([
+    {
+      id: 1,
+      category: '커뮤니티',
+      postTitle: '산책메이트 커뮤니티',
+      path: '/workcommunity',
+    },
+    {
+      id: 2,
+      category: '커뮤니티',
+      postTitle: '강아지 커뮤니티',
+      path: '/dogcommunity',
+    },
+  ]);
+
+  useEffect(() => {
+    const fetchCommunityData = async () => {
+      try {
+        const response = await fetch('/api/community');
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          setCommunities(data.data.communities);
+        }
+      } catch (error) {
+        console.error('커뮤니티 데이터를 가져오는 데 실패했습니다:', error);
+      }
+    };
+
+    fetchCommunityData();
+  }, []);
 
   return (
     <>
-      <CommunityHeader onClick={() => navigate('/community')}>
+      <CommunityHeader onClick={() => navigate('/workcommunity')}>
         <CommunityTitle>커뮤니티</CommunityTitle>
         <CommunityArrow>›</CommunityArrow>
       </CommunityHeader>
@@ -500,10 +556,27 @@ const WeatherSection = () => {
 const NoticeSection = () => {
   const navigate = useNavigate();
 
-  const notices = [
-    { id: 1, date: 'yyyy - mm - dd', postTitle: 'TITLE', path: '/notice/1' },
-    { id: 2, date: 'yyyy - mm - dd', postTitle: 'TITLE', path: '/notice/2' },
-  ];
+  const [notices, setNotices] = useState([
+    { id: 1, date: '2024-11-01', postTitle: '공지 1', path: '/notice/1' },
+    { id: 2, date: '2024-11-02', postTitle: '공지 2', path: '/notice/2' },
+  ]);
+
+  useEffect(() => {
+    const fetchNoticeData = async () => {
+      try {
+        const response = await fetch('/api/notices');
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          setNotices(data.data.notices);
+        }
+      } catch (error) {
+        console.error('공지 데이터를 가져오는 데 실패했습니다:', error);
+      }
+    };
+
+    fetchNoticeData();
+  }, []);
 
   return (
     <>
