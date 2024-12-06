@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 
 // 전체 화면 Wrapper
 const FullScreenWrapper = styled.div`
@@ -11,13 +12,12 @@ const FullScreenWrapper = styled.div`
   margin: 0;
 `;
 
-// JoinWrapper: 박스 너비를 첫 화면과 동일하게 설정, 색상은 기존 유지
 const JoinWrapper = styled.div`
   padding: 30px;
-  width: 300px; /* 첫 화면과 동일한 가로 너비 */
+  width: 300px;
   border: 1px solid #f5b041;
   border-radius: 20px;
-  background-color: #ffffff; /* 기존 색상 유지 */
+  background-color: #ffffff;
 `;
 
 const Title = styled.h1`
@@ -29,6 +29,7 @@ const Title = styled.h1`
 
 const InputWrapper = styled.div`
   margin-bottom: 20px;
+  position: relative;
 `;
 
 const Input = styled.input`
@@ -62,6 +63,23 @@ const Button = styled.button`
   }
 `;
 
+const SmallButton = styled.button`
+  position: absolute;
+  right: 5px;
+  top: 10px;
+  height: 30px;
+  background-color: #f5b041;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  &:hover {
+    background-color: #f39c12;
+  }
+`;
+
 const RegionSelectorWrapper = styled.div`
   display: flex;
   gap: 10px;
@@ -88,34 +106,49 @@ function JoinPage() {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [emailChecked, setEmailChecked] = useState(false);
+  const [nicknameChecked, setNicknameChecked] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    if (e.target.name === 'email') setEmailChecked(false);
+    if (e.target.name === 'nickname') setNicknameChecked(false);
   };
 
   const validate = () => {
     const newErrors = {};
 
+    // 이메일 유효성 검증
     if (!form.email) {
       newErrors.email = '이메일을 입력해주세요.';
     } else if (!/\S+@\S+\.\S+/.test(form.email)) {
       newErrors.email = '유효한 이메일 주소를 입력해주세요.';
+    } else if (!emailChecked) {
+      newErrors.email = '이메일 중복 확인이 필요합니다.';
     }
 
+    // 비밀번호 유효성 검증 (8자리 이상, 특수문자 포함)
     if (!form.password) {
       newErrors.password = '비밀번호를 입력해주세요.';
-    } else if (form.password.length < 6) {
-      newErrors.password = '비밀번호는 최소 6자리여야 합니다.';
+    } else if (form.password.length < 8) {
+      newErrors.password = '비밀번호는 최소 8자리여야 합니다.';
+    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(form.password)) {
+      newErrors.password = '비밀번호에 특수문자가 포함되어야 합니다.';
     }
 
     if (form.password !== form.confirmPassword) {
       newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
     }
 
+    // 닉네임 검증
     if (!form.nickname) {
       newErrors.nickname = '닉네임을 입력해주세요.';
+    } else if (!nicknameChecked) {
+      newErrors.nickname = '닉네임 중복 확인이 필요합니다.';
     }
 
+    // 지역 및 동 선택 검증
     if (!form.district) {
       newErrors.district = '구를 선택해주세요.';
     }
@@ -129,11 +162,51 @@ function JoinPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const checkEmail = async () => {
+    try {
+      await axios.post(
+        'https://b07f-58-226-253-157.ngrok-free.app/api/v1/auth/check-email',
+        { email: form.email }
+      );
+      setEmailChecked(true);
+      alert('사용 가능한 이메일입니다.');
+    } catch (error) {
+      console.error('이메일 확인 오류:', error);
+      alert('이메일 확인 중 문제가 발생했습니다.');
+    }
+  };
+
+  const checkNickname = async () => {
+    try {
+      await axios.post(
+        'https://b07f-58-226-253-157.ngrok-free.app/api/v1/auth/check-nickname',
+        { nickname: form.nickname }
+      );
+      setNicknameChecked(true);
+      alert('사용 가능한 닉네임입니다.');
+    } catch (error) {
+      console.error('닉네임 확인 오류:', error);
+      alert('닉네임 확인 중 문제가 발생했습니다.');
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      console.log('회원가입 정보:', form);
-      // 서버로 데이터 전송 로직 추가
+      setLoading(true);
+      try {
+        await axios.post(
+          'https://b07f-58-226-253-157.ngrok-free.app/api/v1/auth/register',
+          form
+        );
+        alert('회원가입 성공! 로그인 페이지로 이동합니다.');
+        window.location.href = '/login';
+      } catch (error) {
+        console.error('회원가입 에러:', error);
+        alert('회원가입 중 문제가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -150,6 +223,9 @@ function JoinPage() {
               onChange={handleChange}
               error={errors.email}
             />
+            <SmallButton type='button' onClick={checkEmail}>
+              중복 확인
+            </SmallButton>
             {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
           </InputWrapper>
           <InputWrapper>
@@ -182,6 +258,9 @@ function JoinPage() {
               onChange={handleChange}
               error={errors.nickname}
             />
+            <SmallButton type='button' onClick={checkNickname}>
+              중복 확인
+            </SmallButton>
             {errors.nickname && <ErrorMessage>{errors.nickname}</ErrorMessage>}
           </InputWrapper>
           <RegionSelectorWrapper>
@@ -208,7 +287,9 @@ function JoinPage() {
           {errors.neighborhood && (
             <ErrorMessage>{errors.neighborhood}</ErrorMessage>
           )}
-          <Button type='submit'>JOIN</Button>
+          <Button type='submit' disabled={loading}>
+            {loading ? '가입 중...' : 'JOIN'}
+          </Button>
         </form>
       </JoinWrapper>
     </FullScreenWrapper>
