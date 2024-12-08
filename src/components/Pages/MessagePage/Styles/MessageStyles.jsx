@@ -301,7 +301,6 @@ export const MessageReceiver = styled.div`
   span {
     font-size: 14px;
     font-weight: bold;
-    color: #333;
   }
 `;
 
@@ -324,7 +323,7 @@ export const EmptyStateWrapper = styled.div`
 `;
 export const ModalBody = styled.div`
   padding: 20px;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.6;
   color: #333;
   max-height: 60vh;

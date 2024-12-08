@@ -192,6 +192,7 @@ const SentMessagesPage = () => {
             onDelete={handleDeleteMessage} // 메시지 삭제 핸들러
             hasMore={state.hasMore} // 추가 데이터 여부
             onLoadMore={fetchMessages} // 추가 데이터 로드
+            isLoading={state.isLoading}
           />
         )}
       </ContentSection>

@@ -24,10 +24,7 @@ const SentMessageSection = ({
   const [toastState, setToastState] = useState({
     message: '',
     type: '',
-    onConfirm: null,
-    onCancel: null,
   });
-
   const observerRef = useRef(null);
   const lastMessageRef = useRef(null);
 
@@ -41,16 +38,7 @@ const SentMessageSection = ({
   const handleDeleteClick = useCallback(
     (e, messageId) => {
       e.stopPropagation();
-      setToastState({
-        message: '메시지를 삭제하시겠습니까?',
-        type: 'confirm',
-        onConfirm: () => {
-          onDelete(messageId);
-        },
-        onCancel: () => {
-          setToastState({ message: '', type: '' });
-        },
-      });
+      onDelete(messageId);
     },
     [onDelete]
   );

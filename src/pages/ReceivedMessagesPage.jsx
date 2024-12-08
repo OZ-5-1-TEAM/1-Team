@@ -126,6 +126,16 @@ const ReceivedMessagesPage = () => {
     }
   };
 
+  const deleteMessage = async (id) => {
+    try {
+      await axiosInstance.delete(`/api/messages/${id}/`);
+      showNotification('메시지가 성공적으로 삭제되었습니다.', 'success');
+      refetchReceived();
+    } catch (error) {
+      showNotification('메시지 삭제에 실패했습니다.', 'error');
+    }
+  };
+
   const handleCloseModal = () => {
     setReplyMode(false);
     setMessage('');
@@ -145,9 +155,9 @@ const ReceivedMessagesPage = () => {
             messages={receivedMessages?.messages || []}
             type='received'
             onReply={handleReply}
-            onDelete={(id) =>
-              showNotification(`메시지 ID ${id}가 삭제되었습니다.`, 'success')
-            }
+            onDelete={(id) => {
+              deleteMessage(id);
+            }}
           />
         </ContentSection>
       )}
