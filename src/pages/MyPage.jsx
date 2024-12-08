@@ -5,12 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// 전체 페이지 Wrapper
+// Styled Components
 const PageWrapper = styled.div`
-  padding-top: 140px; /* 헤더 여백 */
+  padding-top: 140px;
   width: 100%;
   max-width: 600px;
-  min-height: calc(100vh - 60px); /* Footer 높이 보정 */
+  min-height: calc(100vh - 60px);
   margin: 0 auto;
   background-color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -19,14 +19,12 @@ const PageWrapper = styled.div`
   flex-direction: column;
 `;
 
-// 섹션 Wrapper
 const Section = styled.section`
   width: 100%;
   padding: 20px;
   border-bottom: 1px solid #ddd;
 `;
 
-// 프로필 섹션 스타일 정의
 const ProfileSection = styled(Section)`
   display: flex;
   align-items: center;
@@ -45,6 +43,9 @@ const ProfileImage = styled.div`
   height: 70px;
   background-color: #ddd;
   border-radius: 50%;
+  background-image: ${(props) => (props.src ? `url(${props.src})` : 'none')};
+  background-size: cover;
+  background-position: center;
 `;
 
 const ProfileDetails = styled.div`
@@ -63,22 +64,6 @@ const ProfileEmail = styled.p`
   font-size: 14px;
   color: #999;
   margin: 5px 0 0 0;
-`;
-
-const ProfileIcons = styled.div`
-  display: flex;
-  gap: 15px;
-  position: absolute;
-  top: 20px;
-  right: 20px;
-`;
-
-const ProfileIcon = styled.button`
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: #f5b041;
-  cursor: pointer;
 `;
 
 const EditButton = styled.button`
@@ -103,7 +88,7 @@ const SectionTitle = styled.h3`
   font-size: 16px;
   font-weight: bold;
   color: #f5b041;
-  cursor: pointer; /* 클릭 가능하도록 설정 */
+  cursor: pointer;
 `;
 
 const ButtonGroup = styled.div`
@@ -130,6 +115,9 @@ const Box = styled.div`
   height: 100px;
   background-color: #f5f5f5;
   border-radius: 10px;
+  background-image: ${(props) => (props.src ? `url(${props.src})` : 'none')};
+  background-size: cover;
+  background-position: center;
 `;
 
 const VerticalSectionBody = styled.div`
@@ -185,17 +173,20 @@ const FooterActionButton = styled.button`
 function MyPage() {
   const navigate = useNavigate();
 
-  // State
+  // States
   const [profile, setProfile] = useState({});
   const [pets, setPets] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Fetch data
+  // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        setIsLoading(true);
+        setError(null);
+
         const [profileResponse, petsResponse, likedPostsResponse] =
           await Promise.all([
             axios.get('/api/v1/users/me'),
@@ -206,19 +197,23 @@ function MyPage() {
         setProfile(profileResponse.data || {});
         setPets(petsResponse.data?.pets || []);
         setLikedPosts(likedPostsResponse.data?.posts || []);
-      } catch (error) {
-        console.error('데이터를 가져오는 데 실패했습니다:', error);
+      } catch (err) {
+        console.error('데이터 가져오기 오류:', err);
+        setError('데이터를 가져오는 데 실패했습니다.');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
-  // 로딩 처리
-  if (loading) {
+  if (isLoading) {
     return <div>로딩 중...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
   }
 
   return (
@@ -229,16 +224,12 @@ function MyPage() {
         {/* 프로필 섹션 */}
         <ProfileSection>
           <ProfileInfo>
-            <ProfileImage />
+            <ProfileImage src={profile.profilePhoto} />
             <ProfileDetails>
               <ProfileName>{profile.nickname || '닉네임 없음'}</ProfileName>
               <ProfileEmail>{profile.email || '이메일 없음'}</ProfileEmail>
             </ProfileDetails>
           </ProfileInfo>
-          <ProfileIcons>
-            <ProfileIcon onClick={() => navigate('/mate')}>🐾</ProfileIcon>
-            <ProfileIcon onClick={() => navigate('/message')}>✉️</ProfileIcon>
-          </ProfileIcons>
           <EditButton onClick={() => navigate('/edit')}>EDIT</EditButton>
         </ProfileSection>
 
@@ -258,8 +249,8 @@ function MyPage() {
             </SectionTitle>
           </SectionHeader>
           <HorizontalSectionBody>
-            <Box />
-            <Box />
+            <Box src={profile.profilePhoto} />
+            <Box src={profile.additionalPhoto} />
           </HorizontalSectionBody>
         </Section>
 
@@ -282,13 +273,34 @@ function MyPage() {
           <HorizontalSectionBody>
             {pets.length > 0 ? (
               pets.map((pet) => (
-                <Box key={pet.id}>
+                <Box key={pet.id} src={pet.photo}>
                   <p>{pet.name}</p>
                   <p>{pet.breed}</p>
                 </Box>
               ))
             ) : (
               <p>등록된 반려견이 없습니다.</p>
+            )}
+          </HorizontalSectionBody>
+        </Section>
+
+        {/* 반려견 사진 섹션 */}
+        <Section>
+          <SectionHeader>
+            <SectionTitle>반려견 사진</SectionTitle>
+          </SectionHeader>
+          <HorizontalSectionBody>
+            {pets.length > 0 ? (
+              pets.map((pet) => (
+                <Box
+                  key={`photo-${pet.id}`}
+                  src={pet.additionalPhoto || pet.photo}
+                >
+                  <p>{pet.name}</p>
+                </Box>
+              ))
+            ) : (
+              <p>등록된 반려견 사진이 없습니다.</p>
             )}
           </HorizontalSectionBody>
         </Section>
