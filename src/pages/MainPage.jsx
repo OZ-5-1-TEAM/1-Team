@@ -536,16 +536,18 @@ const WeatherSection = () => {
     );
   }
 
-  if (isError) {
+  if (isError || weatherData.error) {
     return (
-      <WeatherContainer>
+      <WeatherContainer onClick={() => navigate('/weather')}>
         <Title>날씨</Title>
         <WeatherInfo>
           <WeatherRow>
             <WeatherIcon>
               <img src='/weather/default.png' alt='날씨 아이콘' />
             </WeatherIcon>
-            <Description>날씨 정보를 가져오는 데 실패했습니다.</Description>
+            <Description>
+              {weatherData.error || '날씨 정보를 가져오는 데 실패했습니다.'}
+            </Description>
           </WeatherRow>
         </WeatherInfo>
       </WeatherContainer>
