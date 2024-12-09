@@ -19,66 +19,17 @@ const MessagePage = () => {
   const [message, setMessage] = useState('');
   const [notification, setNotification] = useState({ message: '', type: '' });
 
-  // API 연결시 더미 데이터 삭제
-  const dummyReceived = {
-    messages: [
-      {
-        id: 1,
-        sender: {
-          id: 2,
-          nickname: 'John Doe',
-          profile_image: '/logo/gaerangmari_logo.jpeg',
-        },
-        content: '안녕하세요, 산책 같이 하실래요?',
-        created_at: '2024-12-02T15:00:00Z',
-        is_read: false,
-        formattedTimestamp: new Date('2024-12-02T15:00:00Z').toLocaleString(
-          'ko-KR'
-        ),
-      },
-    ],
-  };
-
-  const dummySent = {
-    messages: [
-      {
-        id: 1,
-        receiver: { id: 4, nickname: 'Alice' },
-        content: '감사합니다!',
-        created_at: '2024-12-02T12:45:00Z',
-        is_read: true,
-        formattedTimestamp: new Date('2024-12-02T12:45:00Z').toLocaleString(
-          'ko-KR'
-        ),
-      },
-    ],
-  };
-  // 여기까지 더미 데이터
-
   const {
-    data: receivedMessages = dummyReceived,
+    data: receivedMessages = { messages: [] },
     isLoading: receivedLoading,
     refetch: refetchReceived,
-  } = useFetch('/api/messages/received', dummyReceived);
+  } = useFetch('/messages/received', { messages: [] });
 
   const {
-    data: sentMessages = dummySent,
+    data: sentMessages = { messages: [] },
     isLoading: sentLoading,
     refetch: refetchSent,
-  } = useFetch('/api/messages/sent', dummySent);
-
-  // API 연결 시 아래로 바꿈
-  // const {
-  //   data: receivedMessages = { messages: [] },
-  //   isLoading: receivedLoading,
-  //   refetch: refetchReceived,
-  // } = useFetch('/api/messages/received', { messages: [] });
-
-  // const {
-  //   data: sentMessages = { messages: [] },
-  //   isLoading: sentLoading,
-  //   refetch: refetchSent,
-  // } = useFetch('/api/messages/sent', { messages: [] });
+  } = useFetch('/messages/sent', { messages: [] });
 
   const showNotification = (message, type) => {
     setNotification({ message, type });
