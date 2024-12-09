@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import useFetch from '../hooks/useFetch';
+import api from '../api/axiosInstance';
 
 const fadeIn = keyframes`
   from {
@@ -183,10 +185,19 @@ const WeatherRow = styled.div`
   align-items: center;
 `;
 
-const WeatherIcon = styled.span`
-  color: #ff9900;
-  font-size: 30px;
+const WeatherIcon = styled.div`
+  width: 30px;
+  height: 30px;
   margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 `;
 
 const Temperature = styled.span`
@@ -437,122 +448,128 @@ const CommunityList = () => {
   );
 };
 
-const getWalkingRecommendation = (
-  condition,
-  rainProbability,
-  fineDust,
-  temperature
-) => {
-  let recommendation = '';
-  let icon = '';
+const DUMMY_WEATHER_DATA = {
+  temperature: 8.81,
+  humidity: 42,
+  wind_speed: 6.81,
+  precipitation_probability: 0,
+  weather_code: 1000,
+};
 
-  if (
-    rainProbability > 70 ||
-    condition === 'THUNDERSTORM' ||
-    condition === 'HEAVY RAIN'
-  ) {
-    recommendation = '⛈️ 폭우가 내리고 있어 산책하기 적합하지 않은 날씨입니다.';
-    icon = '/weather/storm.png';
-  } else if (condition === 'RAIN') {
-    recommendation = '🌧️ 비가 와서 산책을 피하는 것이 좋습니다.';
-    icon = '/weather/rainy.png';
-  } else if (fineDust === 'VERY BAD') {
-    recommendation = '😷 미세먼지가 매우 나빠서 외출을 자제하세요.';
-    icon = '/weather/dusty.png';
-  } else if (fineDust === 'BAD') {
-    recommendation = '😷 미세먼지가 나빠 산책을 자제하는 것이 좋습니다.';
-    icon = '/weather/dusty.png';
-  } else if (temperature < 0) {
-    recommendation = '❄️ 기온이 매우 낮아 산책하기 적합하지 않습니다.';
-    icon = '/weather/cold.png';
-  } else if (temperature > 35) {
-    recommendation =
-      '🔥 너무 더운 날씨입니다. 산책 시 충분히 수분을 섭취하세요.';
-    icon = '/weather/hot.png';
-  } else if (condition === 'CLEAR') {
-    recommendation = '☀️ 맑고 따뜻한 날씨입니다. 산책하기 좋습니다.';
-    icon = '/weather/sunny.png';
-  } else if (condition === 'PARTLY CLOUDY') {
-    recommendation = '🌤️ 약간의 구름이 있지만 산책하기 좋은 날씨입니다.';
-    icon = '/weather/partly cloudy.png';
-  } else if (condition === 'CLOUDY') {
-    recommendation = '🌥️ 흐린 날씨이지만 산책하기 무리는 없습니다.';
-    icon = '/weather/cloudy.png';
-  } else if (condition === 'SNOW') {
-    recommendation = '❄️ 눈이 내려 산책에 주의가 필요합니다.';
-    icon = '/weather/snow.png';
-  } else if (condition === 'DRIZZLE') {
-    recommendation = '🌦️ 가벼운 이슬비가 내립니다. 우산을 챙기세요.';
-    icon = '/weather/drizzle.png';
-  } else {
-    recommendation = '날씨 정보를 기준으로 산책 여부를 판단하세요.';
-    icon = '/weather/default.png';
-  }
-
-  return { recommendation, icon };
+const WEATHER_CODES = {
+  1000: { text: '맑음', icon: 'sunny.png' },
+  1001: { text: '흐림', icon: 'cloudy.png' },
+  1100: { text: '대체로 맑음', icon: 'partly_cloudy.png' },
+  2000: { text: '안개', icon: 'fog.png' },
+  2100: { text: '옅은 안개', icon: 'light_fog.png' },
+  4000: { text: '이슬비', icon: 'drizzle.png' },
+  4001: { text: '비', icon: 'rainy.png' },
+  4200: { text: '강한 비', icon: 'storm.png' },
 };
 
 const WeatherSection = () => {
   const navigate = useNavigate();
-
-  const [weather, setWeather] = useState({
-    temperature: null,
-    condition: null,
-    recommendation: '날씨 정보를 가져오는 중입니다...',
-    icon: '',
+  const [weatherInfo, setWeatherInfo] = useState({
+    condition: '',
+    recommendation: '',
+    icon: 'default.png',
   });
 
+  const {
+    data: weatherData,
+    isLoading,
+    isError,
+  } = useFetch('/api/weathers/current/', DUMMY_WEATHER_DATA);
+
   useEffect(() => {
-    const fetchWeatherData = async () => {
-      try {
-        const response = await fetch('/api/weather');
-        const data = await response.json();
+    if (!weatherData) return;
 
-        if (data.status === 'success') {
-          const weatherData = data.data.weather;
-          const { recommendation, icon } = getWalkingRecommendation(
-            weatherData.condition,
-            weatherData.rainProbability,
-            weatherData.fineDust
-          );
-
-          setWeather({
-            temperature: weatherData.temperature,
-            condition: weatherData.condition,
-            recommendation,
-            icon,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch weather data:', error);
-        setWeather({
-          temperature: '-',
-          condition: 'UNKNOWN',
-          recommendation: '날씨 정보를 가져오는 데 실패했습니다.',
-          icon: '❌',
-        });
-      }
+    const weatherCode = WEATHER_CODES[weatherData.weather_code] || {
+      text: '알 수 없음',
+      icon: 'default.png',
     };
+    let recommendation = '';
 
-    fetchWeatherData();
-  }, []);
+    if (
+      weatherData.precipitation_probability > 70 ||
+      weatherData.weather_code === 4200
+    ) {
+      recommendation = '폭우가 내리고 있어 산책하기 적합하지 않은 날씨입니다.';
+    } else if (weatherData.weather_code === 4001) {
+      recommendation = '비가 와서 산책을 피하는 것이 좋습니다.';
+    } else if (weatherData.temperature < 0) {
+      recommendation = '기온이 매우 낮아 산책하기 적합하지 않습니다.';
+    } else if (weatherData.temperature > 35) {
+      recommendation =
+        '너무 더운 날씨입니다. 산책 시 충분히 수분을 섭취하세요.';
+    } else {
+      const recommendations = {
+        1000: '맑고 따뜻한 날씨입니다. 산책하기 좋습니다.',
+        1001: '흐린 날씨이지만 산책하기 무리는 없습니다.',
+        1100: '약간의 구름이 있지만 산책하기 좋은 날씨입니다.',
+        2000: '안개가 있으니 산책 시 주의하세요.',
+        2100: '옅은 안개가 있으니 산책 시 주의하세요.',
+        4000: '가벼운 이슬비가 내립니다. 우산을 챙기세요.',
+      };
+      recommendation =
+        recommendations[weatherData.weather_code] ||
+        '날씨 정보를 기준으로 산책 여부를 판단하세요.';
+    }
+
+    setWeatherInfo({
+      condition: weatherCode.text,
+      recommendation,
+      icon: weatherCode.icon,
+    });
+  }, [weatherData]);
+
+  if (isLoading) {
+    return (
+      <WeatherContainer>
+        <Title>날씨</Title>
+        <WeatherInfo>
+          <WeatherRow>
+            <Description>날씨 정보를 가져오는 중입니다...</Description>
+          </WeatherRow>
+        </WeatherInfo>
+      </WeatherContainer>
+    );
+  }
+
+  if (isError) {
+    return (
+      <WeatherContainer>
+        <Title>날씨</Title>
+        <WeatherInfo>
+          <WeatherRow>
+            <WeatherIcon>
+              <img src='/weather/default.png' alt='날씨 아이콘' />
+            </WeatherIcon>
+            <Description>날씨 정보를 가져오는 데 실패했습니다.</Description>
+          </WeatherRow>
+        </WeatherInfo>
+      </WeatherContainer>
+    );
+  }
 
   return (
     <WeatherContainer onClick={() => navigate('/weather')}>
       <Title>날씨</Title>
       <WeatherInfo>
         <WeatherRow>
-          <WeatherIcon>{weather.icon}</WeatherIcon>
-          <Temperature>
-            {weather.temperature ? `${weather.temperature}°C` : '-'}
-          </Temperature>
-          <Description>{weather.recommendation}</Description>
+          <WeatherIcon>
+            <img
+              src={`/weather/${weatherInfo.icon}`}
+              alt={weatherInfo.condition}
+            />
+          </WeatherIcon>
+          <Temperature>{`${weatherData.temperature.toFixed(1)}°C`}</Temperature>
+          <Description>{weatherInfo.recommendation}</Description>
         </WeatherRow>
       </WeatherInfo>
     </WeatherContainer>
   );
 };
-
 const NoticeSection = () => {
   const navigate = useNavigate();
 
