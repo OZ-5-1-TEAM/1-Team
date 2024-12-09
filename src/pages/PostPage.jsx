@@ -155,6 +155,7 @@ const PostPage = () => {
         neighborhood,
         content,
         images,
+        dog_size,
       });
 
       if (response.status === 201) {

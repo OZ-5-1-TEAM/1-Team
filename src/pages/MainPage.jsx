@@ -388,7 +388,7 @@ const CommunityList = () => {
       id: 1,
       category: '커뮤니티',
       postTitle: '산책메이트 커뮤니티',
-      path: '/workcommunity',
+      path: '/walkcommunity',
     },
     {
       id: 2,
@@ -417,7 +417,7 @@ const CommunityList = () => {
 
   return (
     <>
-      <CommunityHeader onClick={() => navigate('/workcommunity')}>
+      <CommunityHeader onClick={() => navigate('/walkcommunity')}>
         <CommunityTitle>커뮤니티</CommunityTitle>
         <CommunityArrow>›</CommunityArrow>
       </CommunityHeader>

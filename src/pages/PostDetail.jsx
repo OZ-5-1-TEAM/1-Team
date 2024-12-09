@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import Button from '../components/Button';
 
 const PageWrapper = styled.div`
-  padding-top: 130px;
+  padding-top: 100px !important;
   max-width: 600px;
   margin: 0 auto;
   padding: 20px;
@@ -100,6 +100,8 @@ const dummyPosts = {
     content: '게시물 내용 1입니다.',
     district: '강남구',
     neighborhood: '삼성동',
+    nickname: '꾸앵',
+    dog_size: '소형견',
     created_at: Date.now(),
   },
   2: {
@@ -108,6 +110,8 @@ const dummyPosts = {
     content: '게시물 내용 2입니다.',
     district: '서초구',
     neighborhood: '반포동',
+    nickname: '꾸앵',
+    dog_size: '소형견',
     created_at: Date.now(),
   },
 };
@@ -130,8 +134,10 @@ const PostDetail = () => {
     const fetchedPost = dummyPosts[parsedId] || {
       title: '알 수 없는 게시물',
       content: '해당 게시물을 찾을 수 없습니다.',
-      district: 'N/A',
-      neighborhood: 'N/A',
+      district: '강남구',
+      neighborhood: '삼성동',
+      nickname: '꾸앵',
+      dog_size: '소형견',
       created_at: Date.now(),
     };
     setPost(fetchedPost);
@@ -165,9 +171,10 @@ const PostDetail = () => {
           <PostHeader>
             <Title>{post.title}</Title>
             <Info>
-              지역: {post.district} {post.neighborhood} | 작성일:{' '}
-              {new Date(post.created_at).toLocaleDateString()}
+              닉네임:{post.nickname} | 지역: {post.district} {post.neighborhood}{' '}
+              | {post.dog_size}
             </Info>
+            <Info>작성일: {new Date(post.created_at).toLocaleString()}</Info>
           </PostHeader>
           <Content>{post.content}</Content>
         </>
