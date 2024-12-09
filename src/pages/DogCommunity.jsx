@@ -7,7 +7,8 @@ import debounce from 'lodash.debounce';
 import Button from '../components/Button';
 import { useNavigate, Link, Outlet } from 'react-router-dom';
 import FilterComponent from '../components/FilterComponent';
-import api from '../api/axiosInstance.jsx';
+import axios from 'axios';
+import api from '../api/axiosInstance';
 
 const MainPageWrapper = styled.div`
   padding-top: 130px;
@@ -235,13 +236,11 @@ function DogCommunity() {
   const fetchInitialPosts = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const response = await api.get('posts', {
-        headers: {
-          Accept: 'application/json', // JSON 요청을 명시
-        },
+      const response = await api.get(`/v1/posts`, {
         params: {
-          ...filters,
+          ...filters, // 필터링 조건
           keyword: searchQuery,
           sort: 'latest',
           page: 1,
@@ -249,14 +248,16 @@ function DogCommunity() {
         },
       });
 
-      console.log('Response data:', response.data);
-      console.log('Request URL:', response.config.url);
-      setPosts(response.data.posts || []);
-      currentPage.current = 2; // 다음 페이지 설정
-      setHasMore(response.data.posts?.length > 0);
+      setPosts(response.data || []);
+      currentPage.current = 2;
+      setHasMore((response.data || []).length > 0);
     } catch (err) {
       console.error('게시물 초기 로드 실패:', err);
-      setError('게시물을 불러오는 데 실패했습니다.');
+      if (err.response?.status === 401) {
+        setError('로그인이 필요합니다.');
+      } else {
+        setError('게시물을 불러오는 데 실패했습니다.');
+      }
       setPosts([]);
     } finally {
       setLoading(false);
@@ -268,11 +269,9 @@ function DogCommunity() {
     if (!hasMore || loading) return;
     setLoading(true);
     setError(null);
+
     try {
-      const response = await api.get('posts', {
-        headers: {
-          Accept: 'application/json',
-        },
+      const response = await api.get(`/v1/posts`, {
         params: {
           ...filters,
           keyword: searchQuery,
@@ -282,9 +281,9 @@ function DogCommunity() {
         },
       });
 
-      setPosts((prevPosts) => [...prevPosts, ...(response.data.posts || [])]);
+      setPosts((prevPosts) => [...prevPosts, ...(response.data || [])]);
       currentPage.current += 1;
-      setHasMore(response.data.posts?.length > 0);
+      setHasMore((response.data || []).length > 0);
     } catch (err) {
       console.error('추가 게시물 로드 실패:', err);
       setError('추가 게시물을 불러오는 데 실패했습니다.');
@@ -315,7 +314,7 @@ function DogCommunity() {
     debounce((query) => {
       setSearchQuery(query);
       currentPage.current = 1;
-      fetchInitialPosts(); // 검색어 변경 시 초기화
+      fetchInitialPosts();
     }, 500),
     [fetchInitialPosts]
   );
