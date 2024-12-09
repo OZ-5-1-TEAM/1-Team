@@ -65,6 +65,21 @@ const ProfileEmail = styled.p`
   color: #999;
   margin: 5px 0 0 0;
 `;
+const ProfileIcons = styled.div`
+  display: flex;
+  gap: 15px;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+`;
+
+const ProfileIcon = styled.button`
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #f5b041;
+  cursor: pointer;
+`;
 
 const EditButton = styled.button`
   position: absolute;
@@ -230,6 +245,10 @@ function MyPage() {
               <ProfileEmail>{profile.email || '이메일 없음'}</ProfileEmail>
             </ProfileDetails>
           </ProfileInfo>
+          <ProfileIcons>
+            <ProfileIcon onClick={() => navigate('/mate')}>🐾</ProfileIcon>
+            <ProfileIcon onClick={() => navigate('/message')}>✉️</ProfileIcon>
+          </ProfileIcons>
           <EditButton onClick={() => navigate('/edit')}>EDIT</EditButton>
         </ProfileSection>
 
