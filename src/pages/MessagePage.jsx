@@ -23,13 +23,13 @@ const MessagePage = () => {
     data: receivedMessages = { messages: [] },
     isLoading: receivedLoading,
     refetch: refetchReceived,
-  } = useFetch('/messages/received', { messages: [] });
+  } = useFetch('/v1/messages/received/', { messages: [] });
 
   const {
     data: sentMessages = { messages: [] },
     isLoading: sentLoading,
     refetch: refetchSent,
-  } = useFetch('/messages/sent', { messages: [] });
+  } = useFetch('/v1/messages/sent/', { messages: [] });
 
   const showNotification = (message, type) => {
     setNotification({ message, type });

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import api from '../api/axiosInstance';
 
 function useFetch(url, dummyData) {
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +25,7 @@ function useFetch(url, dummyData) {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(url);
+        const response = await api.get(url);
         const result = await response.json();
         setData(result);
       } catch (error) {
