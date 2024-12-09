@@ -220,7 +220,7 @@ const generateDummyPosts = (startId = 1, count = 10) =>
     created_at: `2024.12.03 15:05`,
   }));
 
-function WorkCommunity() {
+function WalkCommunity() {
   const [posts, setPosts] = useState(generateDummyPosts());
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -407,4 +407,4 @@ function WorkCommunity() {
   );
 }
 
-export default WorkCommunity;
+export default WalkCommunity;

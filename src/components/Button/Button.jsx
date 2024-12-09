@@ -20,7 +20,13 @@ const StyledButton = styled.button`
           background-color: #8f8e94;
         `;
       case 'send':
+        return css`
+          background-color: #ffe082;
+        `;
       case 'reply':
+        return css`
+          background-color: #ffe082;
+        `;
       case 'request':
         return css`
           background-color: #ffe082;
