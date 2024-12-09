@@ -75,7 +75,10 @@ const Button = styled.button`
 `;
 
 function LoginPage() {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({
+    email: 'admin@example.com',
+    password: 'admin1234!',
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -109,8 +112,9 @@ function LoginPage() {
           'http://43.201.242.157:8000/api/v1/users/login',
           form
         );
-        const { access_token } = response.data;
-        localStorage.setItem('access_token', access_token);
+        const { access, refresh } = response.data;
+        localStorage.setItem('access_token', access);
+        localStorage.setItem('refresh_token', refresh);
         alert('로그인 성공!');
         window.location.href = '/dashboard'; // 로그인 후 리다이렉트
       } catch (error) {
