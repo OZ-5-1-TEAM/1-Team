@@ -106,7 +106,7 @@ function LoginPage() {
       setLoading(true);
       try {
         const response = await axios.post(
-          'http://43.201.242.157:8000/api/v1/users/login/',
+          'http://43.201.242.157:8000/api/v1/users/login',
           form
         );
         const { access_token } = response.data;
