@@ -248,16 +248,19 @@ function DogCommunity() {
         },
       });
 
-      setPosts(response.data || []);
+      // 응답 데이터의 results를 posts로 설정
+      setPosts(response.data.results || []);
       currentPage.current = 2;
-      setHasMore((response.data || []).length > 0);
+      setHasMore((response.data.results || []).length > 0);
     } catch (err) {
       console.error('게시물 초기 로드 실패:', err);
+
       if (err.response?.status === 401) {
         setError('로그인이 필요합니다.');
       } else {
         setError('게시물을 불러오는 데 실패했습니다.');
       }
+
       setPosts([]);
     } finally {
       setLoading(false);
@@ -281,9 +284,10 @@ function DogCommunity() {
         },
       });
 
-      setPosts((prevPosts) => [...prevPosts, ...(response.data || [])]);
+      // 기존 posts에 추가 데이터를 결합
+      setPosts((prevPosts) => [...prevPosts, ...(response.data.results || [])]);
       currentPage.current += 1;
-      setHasMore((response.data || []).length > 0);
+      setHasMore((response.data.results || []).length > 0);
     } catch (err) {
       console.error('추가 게시물 로드 실패:', err);
       setError('추가 게시물을 불러오는 데 실패했습니다.');
@@ -373,46 +377,50 @@ function DogCommunity() {
         />
       </FilterContainerWrapper>
       <PostListContainer>
-        {posts.map((post, index) => (
-          <PostItem
-            key={`${post.id}-${index}`} // 고유한 key 값
-            ref={index === posts.length - 1 ? lastPostRef : null}
-          >
-            <Link
-              to={`/dogcommunity/postdetail/${post.id}`}
-              style={{
-                textDecoration: 'none',
-                color: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                width: '100%',
-              }}
+        {Array.isArray(posts) && posts.length > 0 ? (
+          posts.map((post, index) => (
+            <PostItem
+              key={`${post.id}-${index}`} // 고유한 key 값
+              ref={index === posts.length - 1 ? lastPostRef : null}
             >
-              <PostImage />
-              <PostContentWrapper>
-                <PostTitle>{post.title}</PostTitle>
-                <PostNinknameAndSize>
-                  <PostNinkname>{post.dog_size}</PostNinkname>
-                  <PostNinkname>{post.nickname}</PostNinkname>
-                </PostNinknameAndSize>
-                <PostStats>
-                  <PostStat>❤️ {post.likes_count}</PostStat>
-                  <PostStat>💬 {post.comments_count}</PostStat>
-                </PostStats>
-                <PostMeta>
-                  <PostLocationAndDate>
-                    <PostLocation>
-                      {post.district}-{post.neighborhood}
-                    </PostLocation>
-                    <PostDate>
-                      {new Date(post.created_at).toLocaleString()}
-                    </PostDate>
-                  </PostLocationAndDate>
-                </PostMeta>
-              </PostContentWrapper>
-            </Link>
-          </PostItem>
-        ))}
+              <Link
+                to={`/dogcommunity/postdetail/${post.id}`}
+                style={{
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                }}
+              >
+                <PostImage />
+                <PostContentWrapper>
+                  <PostTitle>{post.title}</PostTitle>
+                  <PostNinknameAndSize>
+                    <PostNinkname>{post.dog_size}</PostNinkname>
+                    <PostNinkname>{post.nickname}</PostNinkname>
+                  </PostNinknameAndSize>
+                  <PostStats>
+                    <PostStat>❤️ {post.likes_count}</PostStat>
+                    <PostStat>💬 {post.comments_count}</PostStat>
+                  </PostStats>
+                  <PostMeta>
+                    <PostLocationAndDate>
+                      <PostLocation>
+                        {post.district}-{post.neighborhood}
+                      </PostLocation>
+                      <PostDate>
+                        {new Date(post.created_at).toLocaleString()}
+                      </PostDate>
+                    </PostLocationAndDate>
+                  </PostMeta>
+                </PostContentWrapper>
+              </Link>
+            </PostItem>
+          ))
+        ) : (
+          <ErrorMessage>게시물이 없습니다.</ErrorMessage>
+        )}
         {(loading || error) && (
           <SkeletonWrapper>
             {Array.from({ length: 15 }).map((_, i) => (
