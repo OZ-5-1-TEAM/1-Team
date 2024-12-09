@@ -164,10 +164,9 @@ function JoinPage() {
 
   const checkEmail = async () => {
     try {
-      await axios.post(
-        'https://b07f-58-226-253-157.ngrok-free.app/api/v1/auth/check-email',
-        { email: form.email }
-      );
+      await axios.post('http://43.201.242.157:8000/api/v1/users/register', {
+        email: form.email,
+      });
       setEmailChecked(true);
       alert('사용 가능한 이메일입니다.');
     } catch (error) {
@@ -178,10 +177,9 @@ function JoinPage() {
 
   const checkNickname = async () => {
     try {
-      await axios.post(
-        'https://b07f-58-226-253-157.ngrok-free.app/api/v1/auth/check-nickname',
-        { nickname: form.nickname }
-      );
+      await axios.post('http://43.201.242.157:8000/api/v1/users/register', {
+        nickname: form.nickname,
+      });
       setNicknameChecked(true);
       alert('사용 가능한 닉네임입니다.');
     } catch (error) {
@@ -196,7 +194,7 @@ function JoinPage() {
       setLoading(true);
       try {
         await axios.post(
-          'https://b07f-58-226-253-157.ngrok-free.app/api/v1/auth/register',
+          'http://43.201.242.157:8000/api/v1/users/register',
           form
         );
         alert('회원가입 성공! 로그인 페이지로 이동합니다.');

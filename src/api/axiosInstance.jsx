@@ -5,7 +5,7 @@ let isRefreshing = false;
 let refreshSubscribers = [];
 
 // 환경 변수에서 읽기
-const BASE_URL = `https://50a3-58-226-253-157.ngrok-free.app/api/v1`;
+const BASE_URL = `http://43.201.242.157:8000/api/v1`;
 const ACCESS_TOKEN = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMzNDEzMzU3LCJpYXQiOjE3MzM0MDI1NTcsImp0aSI6ImE4MTExMTUzYWE4YzQ3YmU4ODhkMGQ2ZTUyYTI3M2Q5IiwidXNlcl9pZCI6MX0.i_m67u9_7V857O2l4FubiI7n1AQBmV1VKlj7wmWl8zo`;
 const REFRESH_TOKEN = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTczNzYzMTI2NywiaWF0IjoxNzMzMzExMjY3LCJqdGkiOiIzNDk3ODYyNTIzYzU0ZDkyOWEzNTAxNzI2YTlmZWNlYyIsInVzZXJfaWQiOjh9.pyvfFVdrr9rQOs6L20Gd4kPOHYjneSdVU2mygETkZwg`;
 
