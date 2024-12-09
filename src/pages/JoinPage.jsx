@@ -164,7 +164,7 @@ function JoinPage() {
 
   const checkEmail = async () => {
     try {
-      await axios.post('http://43.201.242.157:8000/api/v1/users/register', {
+      await axios.post('http://43.201.242.157:8000/api/v1/users', {
         email: form.email,
       });
       setEmailChecked(true);
@@ -177,7 +177,7 @@ function JoinPage() {
 
   const checkNickname = async () => {
     try {
-      await axios.post('http://43.201.242.157:8000/api/v1/users/register', {
+      await axios.post('http://43.201.242.157:8000/api/v1/users', {
         nickname: form.nickname,
       });
       setNicknameChecked(true);
@@ -193,10 +193,7 @@ function JoinPage() {
     if (validate()) {
       setLoading(true);
       try {
-        await axios.post(
-          'http://43.201.242.157:8000/api/v1/users/register',
-          form
-        );
+        await axios.post('http://43.201.242.157:8000/api/v1/users', form);
         alert('회원가입 성공! 로그인 페이지로 이동합니다.');
         window.location.href = '/login';
       } catch (error) {
