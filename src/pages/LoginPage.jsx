@@ -112,7 +112,7 @@ function LoginPage() {
         const { access_token } = response.data;
         localStorage.setItem('access_token', access_token);
         alert('로그인 성공!');
-        window.location.href = '/dashboard'; // 로그인 후 리다이렉트
+        window.location.href = '/'; // 로그인 후 리다이렉트
       } catch (error) {
         console.error('로그인 에러:', error);
         if (error.response?.status === 401) {
