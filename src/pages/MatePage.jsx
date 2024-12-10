@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import useFetch from '../hooks/useFetch'; // useFetch 활용
-import api from '../api/axiosInstance'; // axiosInstance 활용
+import useFetch from '../hooks/useFetch';
+import api from '../api/axiosInstance';
 import MatePageHeader from '../components/Pages/MatePage/MatePageHeader';
 import MessageModal from '../components/Pages/MessagePage/MessageModal';
 import MateSection from '../components/Pages/MatePage/MateSection';
@@ -42,43 +42,55 @@ const ContentSection = styled.section`
 `;
 
 const MatePage = () => {
-  // 더미 데이터
-  const dummyMates = [
-    { id: 1, name: 'John', image: '/placeholder-image.png' },
-    { id: 2, name: 'Jane', image: '/placeholder-image.png' },
-  ];
-
-  const dummyMateRequests = [
-    { id: 3, name: 'Mike', image: '/placeholder-image.png' },
-    { id: 4, name: 'Anna', image: '/placeholder-image.png' },
-  ];
-
-  // 친구 목록 및 요청 목록 관리
-  const {
-    data: matesData,
-    isLoading: matesLoading,
-    refetch: refetchMates,
-  } = useFetch('/api/friends/', dummyMates);
-  const {
-    data: requestsData,
-    isLoading: requestsLoading,
-    refetch: refetchRequests,
-  } = useFetch('/api/friends/request/', dummyMateRequests);
-
-  const [newMateName, setNewMateName] = useState(''); // 새로운 친구 추가
-  const [message, setMessage] = useState(''); // 쪽지 내용
-  const [selectedMate, setSelectedMate] = useState(null); // 선택된 친구
-  const [notification, setNotification] = useState({ message: '', type: '' }); // 알림 메시지
-  const [searchQuery, setSearchQuery] = useState(''); // 검색 쿼리
-  const [filteredMates, setFilteredMates] = useState(dummyMates); // 필터된 친구 목록
-  const [isMessageModalVisible, setIsMessageModalVisible] = useState(false); // 메시지 모달 상태
+  const [matesData, setMatesData] = useState([]);
+  const [requestsData, setRequestsData] = useState([]);
+  const [newMateName, setNewMateName] = useState('');
+  const [message, setMessage] = useState('');
+  const [selectedMate, setSelectedMate] = useState(null);
+  const [notification, setNotification] = useState({ message: '', type: '' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredMates, setFilteredMates] = useState([]);
+  const [isMessageModalVisible, setIsMessageModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const showNotification = (message, type) => {
     setNotification({ message, type });
     setTimeout(() => setNotification({ message: '', type: '' }), 3000);
   };
 
-  // 친구 요청 보내기
+  const fetchMates = async () => {
+    try {
+      const response = await api.get('/v1/friends/');
+      const mates = Array.isArray(response.data) ? response.data : [];
+      setMatesData(mates);
+      setFilteredMates(mates);
+    } catch (error) {
+      console.error('친구 목록 조회 실패:', error);
+      setMatesData([]);
+      setFilteredMates([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchRequests = async () => {
+    try {
+      const response = await api.get('/v1/friends/');
+      const requests = Array.isArray(response.data)
+        ? response.data.filter((friend) => friend.status === 'pending')
+        : [];
+      setRequestsData(requests);
+    } catch (error) {
+      console.error('친구 요청 목록 조회 실패:', error);
+      setRequestsData([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchMates();
+    fetchRequests();
+  }, []);
+
   const handleAddMate = async () => {
     if (!newMateName.trim()) {
       showNotification('닉네임을 입력해주세요!', 'error');
@@ -86,90 +98,77 @@ const MatePage = () => {
     }
 
     try {
-      const response = await api.post('/api/friends/request/', {
+      const response = await api.post('/v1/friends/request/', {
         to_user: newMateName,
       });
 
       if (response.status === 201) {
         showNotification('친구 요청이 성공적으로 전송되었습니다!', 'success');
         setNewMateName('');
-        refetchRequests(); // 요청 목록 새로고침
+        fetchRequests();
       }
     } catch (error) {
-      console.error('친구 요청 실패:', error);
       showNotification('메이트 추가 요청에 실패했습니다.', 'error');
     }
   };
 
-  // 친구 요청 수락
   const handleAcceptRequest = async (requestId) => {
     try {
-      const response = await api.put(`/api/friends/${requestId}/`, {
+      const response = await api.put(`/v1/friends/${requestId}/`, {
         status: 'accepted',
       });
 
       if (response.status === 200) {
-        refetchMates(); // 친구 목록 새로고침
-        refetchRequests(); // 요청 목록 새로고침
+        fetchMates();
+        fetchRequests();
         showNotification('친구 요청을 수락했습니다.', 'success');
       }
     } catch (error) {
-      console.error('요청 수락 실패:', error);
       showNotification('요청 수락에 실패했습니다.', 'error');
     }
   };
 
-  // 친구 요청 거절
   const handleRejectRequest = async (requestId) => {
     try {
-      const response = await api.put(`/api/friends/${requestId}/`, {
+      const response = await api.put(`/v1/friends/${requestId}/`, {
         status: 'rejected',
       });
 
       if (response.status === 200) {
-        refetchRequests(); // 요청 목록 새로고침
+        fetchRequests();
         showNotification('요청을 거절했습니다.', 'success');
       }
     } catch (error) {
-      console.error('요청 거절 실패:', error);
       showNotification('요청 거절에 실패했습니다.', 'error');
     }
   };
 
-  // 친구 삭제
   const handleDeleteMate = async (id) => {
     try {
-      await api.put(`/api/friends/${id}/`, { status: 'rejected' });
-      refetchMates(); // 친구 목록 새로고침
+      await api.put(`/v1/friends/${id}/`, { status: 'rejected' });
+      fetchMates();
       showNotification('메이트가 삭제되었습니다.', 'success');
     } catch (error) {
-      console.error('메이트 삭제 실패:', error);
       showNotification('메이트 삭제에 실패했습니다.', 'error');
     }
   };
 
-  // 검색 기능
   const handleSearch = () => {
     if (!searchQuery.trim()) {
-      showNotification('검색어를 입력해주세요!', 'error');
-      setFilteredMates(matesData || dummyMates);
+      setFilteredMates(matesData);
       return;
     }
 
-    const result = (matesData || dummyMates).filter((mate) =>
-      mate.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    if (result.length === 0) {
-      showNotification('검색 결과가 없습니다.', 'error');
-    } else {
-      showNotification(`검색 결과: ${result.length}명`, 'success');
-    }
+    const result =
+      matesData.filter((mate) =>
+        mate?.friend?.nickname
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      ) || [];
 
     setFilteredMates(result);
   };
 
-  // 쪽지 전송
   const handleSendMessage = async () => {
     if (!selectedMate) {
       showNotification('쪽지를 보낼 메이트를 선택해주세요!', 'error');
@@ -181,8 +180,8 @@ const MatePage = () => {
     }
 
     try {
-      await api.post('/api/messages/', {
-        receiver: selectedMate.id,
+      await api.post('/v1/messages/', {
+        receiver: selectedMate.friend.id,
         content: message,
       });
 
@@ -191,27 +190,26 @@ const MatePage = () => {
       setSelectedMate(null);
       setIsMessageModalVisible(false);
     } catch (error) {
-      console.error('쪽지 전송 실패:', error);
       showNotification('쪽지 전송에 실패했습니다.', 'error');
     }
   };
 
-  useEffect(() => {
-    setFilteredMates(matesData || dummyMates); // 초기 데이터 설정
-  }, [matesData]);
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <MainPageWrapper>
       <MatePageHeader notification={notification} />
       <ContentSection>
         <MateSection
-          mateRequests={requestsData || dummyMateRequests}
+          mateRequests={requestsData || []}
           handleAcceptRequest={handleAcceptRequest}
           handleRejectRequest={handleRejectRequest}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           handleSearch={handleSearch}
-          filteredMates={filteredMates}
+          filteredMates={filteredMates || []}
           setSelectedMate={(mate) => {
             setSelectedMate(mate);
             setIsMessageModalVisible(true);
