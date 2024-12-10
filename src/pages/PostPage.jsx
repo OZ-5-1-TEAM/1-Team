@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
+import api from '../api/axiosInstance';
 
 const PageWrapper = styled.div`
   padding-top: 90px !important;
@@ -100,7 +101,7 @@ const PostPage = () => {
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [content, setContent] = useState('');
-  const [dogSize, setDogSize] = useState('');
+  const [dog_size, setDogSize] = useState('');
   const [images, setImages] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -138,15 +139,15 @@ const PostPage = () => {
 
     try {
       const formData = new FormData();
-      formData.append('category', category);
       formData.append('title', title);
+      formData.append('content', content);
+      formData.append('category', category);
       formData.append('district', district);
       formData.append('neighborhood', neighborhood);
-      formData.append('content', content);
-      formData.append('dog_size', dogSize); // 선택 항목 추가
+      formData.append('dog_size', dog_size); // 선택 항목 추가
       images.forEach((image, index) => formData.append(`images`, image)); // 파일 배열 추가
 
-      const response = await api.post('/posts', formData);
+      const response = await api.post('/v1/posts/', formData);
 
       console.log('Form submitted:', {
         category,
@@ -165,7 +166,13 @@ const PostPage = () => {
       }
     } catch (error) {
       console.error('게시글 작성 실패:', error);
-      setErrorMessage('게시글 작성 중 오류가 발생했습니다. 다시 시도해주세요.');
+      if (error.response?.status === 401) {
+        setErrorMessage('로그인이 필요합니다.');
+      } else {
+        setErrorMessage(
+          '게시글 작성 중 오류가 발생했습니다. 다시 시도해주세요.'
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -188,8 +195,8 @@ const PostPage = () => {
             required
           >
             <option value=''>커뮤니티 카테고리 선택</option>
-            <option value='dog'>강아지 커뮤니티</option>
-            <option value='mate'>산책메이트 커뮤니티</option>
+            <option value='care'>강아지 커뮤니티</option>
+            <option value='walk'>산책메이트 커뮤니티</option>
           </Select>
 
           <StyledLabel htmlFor='titleInput'>제목</StyledLabel>
@@ -229,7 +236,7 @@ const PostPage = () => {
           <StyledLabel htmlFor='dogSizeSelect'>강아지 크기</StyledLabel>
           <Select
             id='dogSizeSelect'
-            value={dogSize}
+            value={dog_size}
             onChange={(e) => setDogSize(e.target.value)}
           >
             <option value=''>선택 안함</option>

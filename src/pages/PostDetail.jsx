@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Button from '../components/Button';
+import api from '../api/axiosInstance';
 
 const PageWrapper = styled.div`
   padding-top: 100px !important;
@@ -92,66 +93,71 @@ const CommentActions = styled.div`
   gap: 10px;
 `;
 
-// 더미 게시물 데이터
-const dummyPosts = {
-  1: {
-    id: 1,
-    title: '게시물 제목 1',
-    content: '게시물 내용 1입니다.',
-    district: '강남구',
-    neighborhood: '삼성동',
-    nickname: '꾸앵',
-    dog_size: '소형견',
-    created_at: Date.now(),
-  },
-  2: {
-    id: 2,
-    title: '게시물 제목 2',
-    content: '게시물 내용 2입니다.',
-    district: '서초구',
-    neighborhood: '반포동',
-    nickname: '꾸앵',
-    dog_size: '소형견',
-    created_at: Date.now(),
-  },
-};
-
-// 더미 댓글 데이터
-const dummyComments = [
-  { id: 1, author: '사용자1', content: '이건 정말 멋진 게시물이네요!' },
-  { id: 2, author: '사용자2', content: '도움이 많이 됐어요. 감사합니다.' },
-];
-
 const PostDetail = () => {
   const { id } = useParams(); // URL에서 id 가져오기
-  const parsedId = parseInt(id, 10); // 문자열 id를 숫자로 변환
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // 현재 로그인한 사용자 ID
+  const currentUserId = localStorage.getItem('user_id');
 
   useEffect(() => {
-    // 더미 데이터를 기반으로 게시물 정보 설정
-    const fetchedPost = dummyPosts[parsedId] || {
-      title: '알 수 없는 게시물',
-      content: '해당 게시물을 찾을 수 없습니다.',
-      district: '강남구',
-      neighborhood: '삼성동',
-      nickname: '꾸앵',
-      dog_size: '소형견',
-      created_at: Date.now(),
-    };
-    setPost(fetchedPost);
+    const fetchPostDetails = () => {
+      setLoading(true);
+      api
+        .get(`/v1/posts/${id}`)
+        .then((response) => {
+          const postData = response.data;
 
-    // 더미 댓글 데이터 설정
-    setComments(dummyComments);
-  }, [parsedId]);
+          // 게시물 정보 설정
+          setPost({
+            id: postData.id,
+            title: postData.title,
+            content: postData.content,
+            district: postData.author_profile?.district || '알 수 없음',
+            neighborhood: postData.author_profile?.neighborhood || '알 수 없음',
+            nickname: postData.author_profile?.nickname || '익명 사용자',
+            dog_size: postData.dog_size || '알 수 없음',
+            created_at: postData.created_at,
+          });
+
+          console.log(post);
+          // 댓글 설정
+          const formattedComments = (postData.comments || []).map(
+            (comment) => ({
+              id: comment.id,
+              authorId: comment.author.id,
+              author: comment.author.nickname,
+              content: comment.content,
+              created_at: comment.created_at,
+            })
+          );
+          setComments(formattedComments);
+        })
+        .catch((err) => {
+          console.error('게시물 로드 실패:', err);
+          setError('게시물을 불러오는 데 실패했습니다.');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
+
+    fetchPostDetails();
+  }, [id]);
+  console.log(post);
 
   const handleAddComment = () => {
     if (newComment.trim()) {
       const newCommentData = {
         id: Date.now(),
+        authorId: currentUserId,
         author: '나',
         content: newComment,
+        created_at: new Date().toISOString(),
       };
       setComments((prevComments) => [newCommentData, ...prevComments]);
       setNewComment('');
@@ -164,6 +170,16 @@ const PostDetail = () => {
     );
   };
 
+  const isCommentDeletable = (authorId) => authorId === Number(currentUserId);
+
+  if (loading) {
+    return <p>게시물을 불러오는 중...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+  console.log(post);
   return (
     <PageWrapper>
       {post ? (
@@ -179,7 +195,7 @@ const PostDetail = () => {
           <Content>{post.content}</Content>
         </>
       ) : (
-        <p>게시물을 불러오는 중...</p>
+        <p>게시물을 찾을 수 없습니다.</p>
       )}
 
       <CommentsSection>
@@ -202,9 +218,11 @@ const PostDetail = () => {
               <CommentAuthor>{comment.author}</CommentAuthor>
               <CommentText>{comment.content}</CommentText>
               <CommentActions>
-                <Button onClick={() => handleDeleteComment(comment.id)}>
-                  삭제
-                </Button>
+                {isCommentDeletable(comment.authorId) && (
+                  <Button onClick={() => handleDeleteComment(comment.id)}>
+                    삭제
+                  </Button>
+                )}
               </CommentActions>
             </CommentItem>
           ))}
