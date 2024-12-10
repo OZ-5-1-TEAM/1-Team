@@ -75,10 +75,7 @@ const Button = styled.button`
 `;
 
 function LoginPage() {
-  const [form, setForm] = useState({
-    email: 'admin@example.com',
-    password: 'admin1234!',
-  });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 

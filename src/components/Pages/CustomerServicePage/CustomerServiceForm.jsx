@@ -193,12 +193,6 @@ function CustomerServiceForm({ onSubmit, onCancel }) {
             required
           />
         </AddressInputWrapper>
-        <CustomAddressInput
-          id='custom_address'
-          type='text'
-          placeholder='직접 입력 주소'
-          onChange={handleAddressChange}
-        />
       </AddressWrapper>
       <Label htmlFor='content'>내용</Label>
       <TextArea

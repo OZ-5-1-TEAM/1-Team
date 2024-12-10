@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import api from '../api/axiosInstance'; // axiosInstance를 가져옴
 
 // 전체 화면 Wrapper
 const FullScreenWrapper = styled.div`
@@ -128,7 +128,7 @@ function JoinPage() {
       newErrors.email = '이메일 중복 확인이 필요합니다.';
     }
 
-    // 비밀번호 유효성 검증 (8자리 이상, 특수문자 포함)
+    // 비밀번호 유효성 검증
     if (!form.password) {
       newErrors.password = '비밀번호를 입력해주세요.';
     } else if (form.password.length < 8) {
@@ -164,11 +164,15 @@ function JoinPage() {
 
   const checkEmail = async () => {
     try {
-      await axios.post('http://43.201.242.157:8000/api/v1/users', {
+      const response = await api.post('api/v1/users/check-email/', {
         email: form.email,
       });
-      setEmailChecked(true);
-      alert('사용 가능한 이메일입니다.');
+      if (response.data.available) {
+        alert('사용 가능한 이메일입니다.');
+        setEmailChecked(true);
+      } else {
+        alert('이미 사용 중인 이메일입니다.');
+      }
     } catch (error) {
       console.error('이메일 확인 오류:', error);
       alert('이메일 확인 중 문제가 발생했습니다.');
@@ -177,11 +181,15 @@ function JoinPage() {
 
   const checkNickname = async () => {
     try {
-      await axios.post('http://43.201.242.157:8000/api/v1/users', {
+      const response = await api.post('/v1/auth/check-nickname/', {
         nickname: form.nickname,
       });
-      setNicknameChecked(true);
-      alert('사용 가능한 닉네임입니다.');
+      if (response.data.available) {
+        alert('사용 가능한 닉네임입니다.');
+        setNicknameChecked(true);
+      } else {
+        alert('이미 사용 중인 닉네임입니다.');
+      }
     } catch (error) {
       console.error('닉네임 확인 오류:', error);
       alert('닉네임 확인 중 문제가 발생했습니다.');
@@ -193,12 +201,16 @@ function JoinPage() {
     if (validate()) {
       setLoading(true);
       try {
-        await axios.post('http://43.201.242.157:8000/api/v1/users', form);
+        await api.post('/users/signup/', form);
         alert('회원가입 성공! 로그인 페이지로 이동합니다.');
         window.location.href = '/login';
       } catch (error) {
         console.error('회원가입 에러:', error);
-        alert('회원가입 중 문제가 발생했습니다.');
+        if (error.response?.status === 409) {
+          alert('이미 사용 중인 이메일 또는 닉네임입니다.');
+        } else {
+          alert('회원가입 중 문제가 발생했습니다.');
+        }
       } finally {
         setLoading(false);
       }
