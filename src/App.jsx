@@ -26,6 +26,7 @@ import PostDetail from './pages/PostDetail';
 import { useState } from 'react';
 import GlobalStyle from './components/GlobalStyle';
 import Loading from './components/Loading';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 
 const theme = createTheme({
   palette: {
@@ -76,6 +77,7 @@ function App() {
           <Route path='/join' element={<JoinPage />} />
           <Route path='/login' element={<LoginPage />} />
           <Route path='/mypage' element={<MyPage />} />
+          <Route path='/password' element={<ChangePasswordPage />} />
           <Route
             path='/edit'
             element={<EditPage userData={userData} setUserData={setUserData} />}
