@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/axiosInstance';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -65,6 +65,7 @@ const ProfileEmail = styled.p`
   color: #999;
   margin: 5px 0 0 0;
 `;
+
 const ProfileIcons = styled.div`
   display: flex;
   gap: 15px;
@@ -81,10 +82,15 @@ const ProfileIcon = styled.button`
   cursor: pointer;
 `;
 
-const EditButton = styled.button`
+const ActionButtons = styled.div`
   position: absolute;
   bottom: 10px;
   right: 20px;
+  display: flex;
+  gap: 10px;
+`;
+
+const ActionButton = styled.button`
   background: none;
   border: none;
   font-size: 14px;
@@ -110,14 +116,6 @@ const ButtonGroup = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-`;
-
-const ActionButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 14px;
-  color: #f5b041;
-  cursor: pointer;
 `;
 
 const HorizontalSectionBody = styled.div`
@@ -195,19 +193,15 @@ function MyPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch data from API
+  // Fetch user data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        setError(null);
 
-        const [profileResponse, petsResponse, likedPostsResponse] =
-          await Promise.all([
-            axios.get('/api/v1/users/me'),
-            axios.get('/api/v1/pets'),
-            axios.get('/api/v1/posts/liked'),
-          ]);
+        const profileResponse = await api.get('/v1/users/me/');
+        const petsResponse = await api.get('/v1/pets/');
+        const likedPostsResponse = await api.get('/v1/posts/liked/');
 
         setProfile(profileResponse.data || {});
         setPets(petsResponse.data?.pets || []);
@@ -223,13 +217,22 @@ function MyPage() {
     fetchData();
   }, []);
 
-  if (isLoading) {
-    return <div>로딩 중...</div>;
-  }
+  // Logout logic
+  const handleLogout = async () => {
+    try {
+      await api.post('/v1/users/logout/');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      alert('로그아웃 성공!');
+      navigate('/login');
+    } catch (err) {
+      console.error('로그아웃 오류:', err);
+      alert('로그아웃 중 문제가 발생했습니다.');
+    }
+  };
 
-  if (error) {
-    return <div>{error}</div>;
-  }
+  if (isLoading) return <div>로딩 중...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <>
@@ -249,7 +252,12 @@ function MyPage() {
             <ProfileIcon onClick={() => navigate('/mate')}>🐾</ProfileIcon>
             <ProfileIcon onClick={() => navigate('/message')}>✉️</ProfileIcon>
           </ProfileIcons>
-          <EditButton onClick={() => navigate('/edit')}>EDIT</EditButton>
+          <ActionButtons>
+            <ActionButton onClick={() => navigate('/password')}>
+              PASSWORD
+            </ActionButton>
+            <ActionButton onClick={() => navigate('/edit')}>EDIT</ActionButton>
+          </ActionButtons>
         </ProfileSection>
 
         {/* 자기소개 섹션 */}
@@ -290,68 +298,34 @@ function MyPage() {
             </ButtonGroup>
           </SectionHeader>
           <HorizontalSectionBody>
-            {pets.length > 0 ? (
-              pets.map((pet) => (
-                <Box key={pet.id} src={pet.photo}>
-                  <p>{pet.name}</p>
-                  <p>{pet.breed}</p>
-                </Box>
-              ))
-            ) : (
-              <p>등록된 반려견이 없습니다.</p>
-            )}
+            {pets.map((pet) => (
+              <Box key={pet.id} src={pet.photo}>
+                <p>{pet.name}</p>
+                <p>{pet.breed}</p>
+              </Box>
+            ))}
           </HorizontalSectionBody>
         </Section>
 
-        {/* 반려견 사진 섹션 */}
+        {/* 내가 좋아요한 게시물 */}
         <Section>
           <SectionHeader>
-            <SectionTitle>반려견 사진</SectionTitle>
-          </SectionHeader>
-          <HorizontalSectionBody>
-            {pets.length > 0 ? (
-              pets.map((pet) => (
-                <Box
-                  key={`photo-${pet.id}`}
-                  src={pet.additionalPhoto || pet.photo}
-                >
-                  <p>{pet.name}</p>
-                </Box>
-              ))
-            ) : (
-              <p>등록된 반려견 사진이 없습니다.</p>
-            )}
-          </HorizontalSectionBody>
-        </Section>
-
-        {/* 내가 좋아요한 게시물 섹션 */}
-        <Section>
-          <SectionHeader>
-            <SectionTitle onClick={() => navigate('/likedposts')}>
-              내가 좋아요한 게시물
-            </SectionTitle>
+            <SectionTitle>내가 좋아요한 게시물</SectionTitle>
           </SectionHeader>
           <VerticalSectionBody>
-            {likedPosts.length > 0 ? (
-              likedPosts.map((post) => (
-                <CommunityItem key={post.id}>
-                  <CommunityDetails>
-                    <CommunityName>{post.category}</CommunityName>
-                    <CommunityTitle>{post.title}</CommunityTitle>
-                  </CommunityDetails>
-                </CommunityItem>
-              ))
-            ) : (
-              <p>좋아요한 게시물이 없습니다.</p>
-            )}
+            {likedPosts.map((post) => (
+              <CommunityItem key={post.id}>
+                <CommunityDetails>
+                  <CommunityName>{post.category}</CommunityName>
+                  <CommunityTitle>{post.title}</CommunityTitle>
+                </CommunityDetails>
+              </CommunityItem>
+            ))}
           </VerticalSectionBody>
         </Section>
 
-        {/* Footer Actions */}
         <FooterActions>
-          <FooterActionButton onClick={() => navigate('/logout')}>
-            LOGOUT
-          </FooterActionButton>
+          <FooterActionButton onClick={handleLogout}>LOGOUT</FooterActionButton>
           <FooterActionButton onClick={() => navigate('/withdraw')}>
             MEMBERSHIP WITHDRAWAL
           </FooterActionButton>
