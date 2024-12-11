@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import styled from 'styled-components';
+import Modal from '../components/Modal';
+import api from '../api/axiosInstance';
 
 // 전체 화면 Wrapper
 const FullScreenWrapper = styled.div`
@@ -11,13 +13,12 @@ const FullScreenWrapper = styled.div`
   margin: 0;
 `;
 
-// JoinWrapper: 박스 너비를 첫 화면과 동일하게 설정, 색상은 기존 유지
 const JoinWrapper = styled.div`
   padding: 30px;
-  width: 300px; /* 첫 화면과 동일한 가로 너비 */
+  width: 300px;
   border: 1px solid #f5b041;
   border-radius: 20px;
-  background-color: #ffffff; /* 기존 색상 유지 */
+  background-color: #ffffff;
 `;
 
 const Title = styled.h1`
@@ -29,6 +30,7 @@ const Title = styled.h1`
 
 const InputWrapper = styled.div`
   margin-bottom: 20px;
+  position: relative;
 `;
 
 const Input = styled.input`
@@ -62,6 +64,23 @@ const Button = styled.button`
   }
 `;
 
+const SmallButton = styled.button`
+  position: absolute;
+  right: 5px;
+  top: 10px;
+  height: 30px;
+  background-color: #f5b041;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  &:hover {
+    background-color: #f39c12;
+  }
+`;
+
 const RegionSelectorWrapper = styled.div`
   display: flex;
   gap: 10px;
@@ -81,41 +100,59 @@ function JoinPage() {
   const [form, setForm] = useState({
     email: '',
     password: '',
-    confirmPassword: '',
+    confirm_password: '',
     nickname: '',
     district: '',
     neighborhood: '',
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [emailChecked, setEmailChecked] = useState(false);
+  const [nicknameChecked, setNicknameChecked] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+
+    // 이메일 및 닉네임 중복 확인 초기화
+    if (e.target.name === 'email') setEmailChecked(false);
+    if (e.target.name === 'nickname') setNicknameChecked(false);
   };
 
   const validate = () => {
     const newErrors = {};
 
+    // 이메일 유효성 검증
     if (!form.email) {
       newErrors.email = '이메일을 입력해주세요.';
     } else if (!/\S+@\S+\.\S+/.test(form.email)) {
       newErrors.email = '유효한 이메일 주소를 입력해주세요.';
+    } else if (!emailChecked) {
+      newErrors.email = '이메일 중복 확인이 필요합니다.';
     }
 
+    // 비밀번호 유효성 검증
     if (!form.password) {
       newErrors.password = '비밀번호를 입력해주세요.';
-    } else if (form.password.length < 6) {
-      newErrors.password = '비밀번호는 최소 6자리여야 합니다.';
+    } else if (form.password.length < 8) {
+      newErrors.password = '비밀번호는 최소 8자리여야 합니다.';
+    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(form.password)) {
+      newErrors.password = '비밀번호에 특수문자가 포함되어야 합니다.';
     }
 
-    if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
+    if (form.password !== form.confirm_password) {
+      newErrors.confirm_password = '비밀번호가 일치하지 않습니다.';
     }
 
+    // 닉네임 검증
     if (!form.nickname) {
       newErrors.nickname = '닉네임을 입력해주세요.';
+    } else if (!nicknameChecked) {
+      newErrors.nickname = '닉네임 중복 확인이 필요합니다.';
     }
 
+    // 지역 및 동 선택 검증
     if (!form.district) {
       newErrors.district = '구를 선택해주세요.';
     }
@@ -125,20 +162,95 @@ function JoinPage() {
     }
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const checkEmail = async () => {
+    if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) {
+      setModalMessage('유효한 이메일 주소를 입력해주세요.');
+      return;
+    }
+    try {
+      const response = await api.post('/v1/users/check-email/', {
+        email: form.email,
+      });
+      if (response.data.available) {
+        setEmailChecked(true);
+        setModalMessage('사용 가능한 이메일입니다.');
+      } else {
+        setEmailChecked(false);
+        setModalMessage('이미 사용 중인 이메일입니다.');
+      }
+    } catch (error) {
+      console.error('이메일 확인 오류:', error);
+      setModalMessage('이메일 확인 중 문제가 발생했습니다.');
+    }
+  };
+
+  const checkNickname = async () => {
+    if (!form.nickname) {
+      setModalMessage('닉네임을 입력해주세요.');
+      return;
+    }
+    try {
+      const response = await api.post('/v1/users/check-nickname/', {
+        nickname: form.nickname,
+      });
+      if (response.data.available) {
+        setNicknameChecked(true);
+        setModalMessage('사용 가능한 닉네임입니다.');
+      } else {
+        setNicknameChecked(false);
+        setModalMessage('이미 사용 중인 닉네임입니다.');
+      }
+    } catch (error) {
+      console.error('닉네임 확인 오류:', error);
+      setModalMessage('닉네임 확인 중 문제가 발생했습니다.');
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      console.log('회원가입 정보:', form);
-      // 서버로 데이터 전송 로직 추가
+      setLoading(true);
+      try {
+        const payload = { ...form };
+
+        const response = await api.post('/v1/users/signup/', payload);
+        setModalMessage('회원가입 성공! 로그인 페이지로 이동합니다.');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      } catch (error) {
+        console.error('회원가입 에러:', error);
+
+        if (error.response) {
+          const status = error.response.status;
+          const errorData = error.response.data;
+
+          if (status === 400) {
+            setModalMessage(errorData.message || '입력 데이터를 확인해주세요.');
+          } else if (status === 409) {
+            setModalMessage('이미 사용 중인 이메일 또는 닉네임입니다.');
+          } else {
+            setModalMessage('회원가입 중 문제가 발생했습니다.');
+          }
+        } else {
+          setModalMessage(
+            '서버와 연결할 수 없습니다. 네트워크 상태를 확인해주세요.'
+          );
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   return (
     <FullScreenWrapper>
+      {modalMessage && (
+        <Modal message={modalMessage} onClose={() => setModalMessage('')} />
+      )}
       <JoinWrapper>
         <Title>JOIN</Title>
         <form onSubmit={handleSubmit}>
@@ -150,6 +262,9 @@ function JoinPage() {
               onChange={handleChange}
               error={errors.email}
             />
+            <SmallButton type='button' onClick={checkEmail}>
+              중복 확인
+            </SmallButton>
             {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
           </InputWrapper>
           <InputWrapper>
@@ -165,13 +280,13 @@ function JoinPage() {
           <InputWrapper>
             <Input
               type='password'
-              name='confirmPassword'
+              name='confirm_password'
               placeholder='비밀번호를 재입력하세요'
               onChange={handleChange}
-              error={errors.confirmPassword}
+              error={errors.confirm_password}
             />
-            {errors.confirmPassword && (
-              <ErrorMessage>{errors.confirmPassword}</ErrorMessage>
+            {errors.confirm_password && (
+              <ErrorMessage>{errors.confirm_password}</ErrorMessage>
             )}
           </InputWrapper>
           <InputWrapper>
@@ -182,6 +297,9 @@ function JoinPage() {
               onChange={handleChange}
               error={errors.nickname}
             />
+            <SmallButton type='button' onClick={checkNickname}>
+              중복 확인
+            </SmallButton>
             {errors.nickname && <ErrorMessage>{errors.nickname}</ErrorMessage>}
           </InputWrapper>
           <RegionSelectorWrapper>
@@ -208,7 +326,9 @@ function JoinPage() {
           {errors.neighborhood && (
             <ErrorMessage>{errors.neighborhood}</ErrorMessage>
           )}
-          <Button type='submit'>JOIN</Button>
+          <Button type='submit' disabled={loading}>
+            {loading ? '가입 중...' : 'JOIN'}
+          </Button>
         </form>
       </JoinWrapper>
     </FullScreenWrapper>

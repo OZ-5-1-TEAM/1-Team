@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import api from '../api/axiosInstance';
+import Loading from '../components/Loading';
 
 const fadeIn = keyframes`
   from {
@@ -96,7 +98,6 @@ const CommunityHeader = styled.div`
   justify-content: space-between;
   padding: 0 20px;
   margin: 0px;
-  cursor: pointer;
   user-select: none;
 `;
 
@@ -133,7 +134,7 @@ const CommunityIcon = styled.div`
   background-color: #eee;
   border-radius: 5px;
   margin-right: 15px;
-  background-image: url('/placeholder-image.png');
+  background-image: url('/placeholder-image.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -183,10 +184,19 @@ const WeatherRow = styled.div`
   align-items: center;
 `;
 
-const WeatherIcon = styled.span`
-  color: #ff9900;
-  font-size: 30px;
+const WeatherIcon = styled.div`
+  width: 30px;
+  height: 30px;
   margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 `;
 
 const Temperature = styled.span`
@@ -245,7 +255,7 @@ const NoticeIcon = styled.div`
   background-color: #eee;
   border-radius: 5px;
   margin-right: 15px;
-  background-image: url('/placeholder-image.png');
+  background-image: url('/placeholder-image.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -268,7 +278,7 @@ const CustomerServiceHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  margin: 5px 0 0 0;
+  margin: 5px 0 0 -5px;
   cursor: pointer;
   user-select: none;
 `;
@@ -379,16 +389,15 @@ const MainBanner = () => {
     </>
   );
 };
-
 const CommunityList = () => {
   const navigate = useNavigate();
-
+  const [loading, setLoading] = useState(true);
   const [communities, setCommunities] = useState([
     {
       id: 1,
       category: '커뮤니티',
       postTitle: '산책메이트 커뮤니티',
-      path: '/workcommunity',
+      path: '/walkcommunity',
     },
     {
       id: 2,
@@ -398,28 +407,10 @@ const CommunityList = () => {
     },
   ]);
 
-  useEffect(() => {
-    const fetchCommunityData = async () => {
-      try {
-        const response = await fetch('/api/community');
-        const data = await response.json();
-
-        if (data.status === 'success') {
-          setCommunities(data.data.communities);
-        }
-      } catch (error) {
-        console.error('커뮤니티 데이터를 가져오는 데 실패했습니다:', error);
-      }
-    };
-
-    fetchCommunityData();
-  }, []);
-
   return (
     <>
-      <CommunityHeader onClick={() => navigate('/workcommunity')}>
+      <CommunityHeader>
         <CommunityTitle>커뮤니티</CommunityTitle>
-        <CommunityArrow>›</CommunityArrow>
       </CommunityHeader>
       {communities.map((community) => (
         <CommunityItem
@@ -437,116 +428,114 @@ const CommunityList = () => {
   );
 };
 
-const getWalkingRecommendation = (
-  condition,
-  rainProbability,
-  fineDust,
-  temperature
-) => {
-  let recommendation = '';
-  let icon = '';
+const WEATHER_CODES = {
+  1000: { text: '맑음', icon: 'sunny.png' },
+  1001: { text: '흐림', icon: 'cloudy.png' },
+  1100: { text: '대체로 맑음', icon: 'partly_cloudy.png' },
+  2000: { text: '안개', icon: 'fog.png' },
+  2100: { text: '옅은 안개', icon: 'light_fog.png' },
+  4000: { text: '이슬비', icon: 'drizzle.png' },
+  4001: { text: '비', icon: 'rainy.png' },
+  4200: { text: '강한 비', icon: 'storm.png' },
+};
 
+const getWeatherRecommendation = (weatherData) => {
   if (
-    rainProbability > 70 ||
-    condition === 'THUNDERSTORM' ||
-    condition === 'HEAVY RAIN'
+    weatherData.precipitation_probability > 70 ||
+    weatherData.weather_code === 4200
   ) {
-    recommendation = '⛈️ 폭우가 내리고 있어 산책하기 적합하지 않은 날씨입니다.';
-    icon = '/weather/storm.png';
-  } else if (condition === 'RAIN') {
-    recommendation = '🌧️ 비가 와서 산책을 피하는 것이 좋습니다.';
-    icon = '/weather/rainy.png';
-  } else if (fineDust === 'VERY BAD') {
-    recommendation = '😷 미세먼지가 매우 나빠서 외출을 자제하세요.';
-    icon = '/weather/dusty.png';
-  } else if (fineDust === 'BAD') {
-    recommendation = '😷 미세먼지가 나빠 산책을 자제하는 것이 좋습니다.';
-    icon = '/weather/dusty.png';
-  } else if (temperature < 0) {
-    recommendation = '❄️ 기온이 매우 낮아 산책하기 적합하지 않습니다.';
-    icon = '/weather/cold.png';
-  } else if (temperature > 35) {
-    recommendation =
-      '🔥 너무 더운 날씨입니다. 산책 시 충분히 수분을 섭취하세요.';
-    icon = '/weather/hot.png';
-  } else if (condition === 'CLEAR') {
-    recommendation = '☀️ 맑고 따뜻한 날씨입니다. 산책하기 좋습니다.';
-    icon = '/weather/sunny.png';
-  } else if (condition === 'PARTLY CLOUDY') {
-    recommendation = '🌤️ 약간의 구름이 있지만 산책하기 좋은 날씨입니다.';
-    icon = '/weather/partly cloudy.png';
-  } else if (condition === 'CLOUDY') {
-    recommendation = '🌥️ 흐린 날씨이지만 산책하기 무리는 없습니다.';
-    icon = '/weather/cloudy.png';
-  } else if (condition === 'SNOW') {
-    recommendation = '❄️ 눈이 내려 산책에 주의가 필요합니다.';
-    icon = '/weather/snow.png';
-  } else if (condition === 'DRIZZLE') {
-    recommendation = '🌦️ 가벼운 이슬비가 내립니다. 우산을 챙기세요.';
-    icon = '/weather/drizzle.png';
-  } else {
-    recommendation = '날씨 정보를 기준으로 산책 여부를 판단하세요.';
-    icon = '/weather/default.png';
+    return '폭우가 내리고 있어 산책하기 적합하지 않은 날씨입니다.';
+  } else if (weatherData.weather_code === 4001) {
+    return '비가 와서 산책을 피하는 것이 좋습니다.';
+  } else if (weatherData.temperature < 0) {
+    return '기온이 매우 낮아 산책하기 적합하지 않습니다.';
+  } else if (weatherData.temperature > 35) {
+    return '너무 더운 날씨입니다. 산책 시 충분히 수분을 섭취하세요.';
   }
 
-  return { recommendation, icon };
+  const recommendations = {
+    1000: '맑고 따뜻한 날씨입니다. 산책하기 좋습니다.',
+    1001: '흐린 날씨이지만 산책하기 무리는 없습니다.',
+    1100: '약간의 구름이 있지만 산책하기 좋은 날씨입니다.',
+    2000: '안개가 있으니 산책 시 주의하세요.',
+    2100: '옅은 안개가 있으니 산책 시 주의하세요.',
+    4000: '가벼운 이슬비가 내립니다. 우산을 챙기세요.',
+  };
+
+  return (
+    recommendations[weatherData.weather_code] ||
+    '날씨 정보를 기준으로 산책 여부를 판단하세요.'
+  );
 };
 
 const WeatherSection = () => {
   const navigate = useNavigate();
-
-  const [weather, setWeather] = useState({
-    temperature: null,
-    condition: null,
+  const [weatherInfo, setWeatherInfo] = useState({
+    condition: '날씨 정보를 가져오는 중입니다...',
     recommendation: '날씨 정보를 가져오는 중입니다...',
-    icon: '',
+    icon: 'default.png',
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchWeatherData = async () => {
+    try {
+      const response = await api.get('/v1/weathers/current/');
+      const data = response.data;
+
+      const weatherCode = WEATHER_CODES[data.weather_code] || {
+        text: '알 수 없음',
+        icon: 'default.png',
+      };
+
+      const recommendation = getWeatherRecommendation(data);
+
+      setWeatherInfo({
+        condition: weatherCode.text,
+        recommendation,
+        icon: weatherCode.icon,
+        temperature: data.temperature,
+      });
+    } catch (err) {
+      console.error('날씨 정보를 가져오는데 실패했습니다:', err);
+      setError('날씨 정보를 가져오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchWeatherData = async () => {
-      try {
-        const response = await fetch('/api/weather');
-        const data = await response.json();
-
-        if (data.status === 'success') {
-          const weatherData = data.data.weather;
-          const { recommendation, icon } = getWalkingRecommendation(
-            weatherData.condition,
-            weatherData.rainProbability,
-            weatherData.fineDust
-          );
-
-          setWeather({
-            temperature: weatherData.temperature,
-            condition: weatherData.condition,
-            recommendation,
-            icon,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch weather data:', error);
-        setWeather({
-          temperature: '-',
-          condition: 'UNKNOWN',
-          recommendation: '날씨 정보를 가져오는 데 실패했습니다.',
-          icon: '❌',
-        });
-      }
-    };
-
     fetchWeatherData();
   }, []);
+
+  if (loading) {
+    return (
+      <WeatherContainer>날씨 정보를 불러오는 중입니다...</WeatherContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <WeatherContainer onClick={() => navigate('/weather')}>
+        <Title>날씨</Title>
+        <Description>{error}</Description>
+      </WeatherContainer>
+    );
+  }
 
   return (
     <WeatherContainer onClick={() => navigate('/weather')}>
       <Title>날씨</Title>
       <WeatherInfo>
         <WeatherRow>
-          <WeatherIcon>{weather.icon}</WeatherIcon>
-          <Temperature>
-            {weather.temperature ? `${weather.temperature}°C` : '-'}
-          </Temperature>
-          <Description>{weather.recommendation}</Description>
+          <WeatherIcon>
+            <img
+              src={`/weather/${weatherInfo.icon}`}
+              alt={weatherInfo.condition}
+            />
+          </WeatherIcon>
+          <Temperature>{`${weatherInfo.temperature.toFixed(1)}°C`}</Temperature>
+          <Description>{weatherInfo.recommendation}</Description>
         </WeatherRow>
       </WeatherInfo>
     </WeatherContainer>
@@ -555,27 +544,36 @@ const WeatherSection = () => {
 
 const NoticeSection = () => {
   const navigate = useNavigate();
-
   const [notices, setNotices] = useState([
     { id: 1, date: '2024-11-01', postTitle: '공지 1', path: '/notice/1' },
     { id: 2, date: '2024-11-02', postTitle: '공지 2', path: '/notice/2' },
   ]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchNoticeData = async () => {
+    const fetchNotices = async () => {
       try {
-        const response = await fetch('/api/notices');
-        const data = await response.json();
-
-        if (data.status === 'success') {
-          setNotices(data.data.notices);
+        const response = await api.get('/v1/notices');
+        console.log('Notices Response:', response); // 응답 구조 확인
+        if (response.data?.data) {
+          // data.data 구조 확인
+          setNotices(
+            response.data.data.map((notice) => ({
+              id: notice.id,
+              date: notice.created_at,
+              postTitle: notice.title,
+              path: `/notice/${notice.id}`,
+            }))
+          );
         }
       } catch (error) {
-        console.error('공지 데이터를 가져오는 데 실패했습니다:', error);
+        console.error('Failed to fetch notices:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchNoticeData();
+    fetchNotices();
   }, []);
 
   return (

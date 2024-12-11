@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/axiosInstance';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Loading from '../components/Loading';
+import Modal from '../components/Modal';
 
-// 전체 페이지 Wrapper
+// Styled Components
 const PageWrapper = styled.div`
-  padding-top: 140px; /* 헤더 여백 */
+  padding-top: 140px;
   width: 100%;
   max-width: 600px;
-  min-height: calc(100vh - 60px); /* Footer 높이 보정 */
+  min-height: calc(100vh - 60px);
   margin: 0 auto;
   background-color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -19,14 +21,12 @@ const PageWrapper = styled.div`
   flex-direction: column;
 `;
 
-// 섹션 Wrapper
 const Section = styled.section`
   width: 100%;
   padding: 20px;
   border-bottom: 1px solid #ddd;
 `;
 
-// 프로필 섹션 스타일 정의
 const ProfileSection = styled(Section)`
   display: flex;
   align-items: center;
@@ -45,6 +45,9 @@ const ProfileImage = styled.div`
   height: 70px;
   background-color: #ddd;
   border-radius: 50%;
+  background-image: ${(props) => (props.src ? `url(${props.src})` : 'none')};
+  background-size: cover;
+  background-position: center;
 `;
 
 const ProfileDetails = styled.div`
@@ -81,10 +84,15 @@ const ProfileIcon = styled.button`
   cursor: pointer;
 `;
 
-const EditButton = styled.button`
+const ActionButtons = styled.div`
   position: absolute;
   bottom: 10px;
   right: 20px;
+  display: flex;
+  gap: 10px;
+`;
+
+const ActionButton = styled.button`
   background: none;
   border: none;
   font-size: 14px;
@@ -103,21 +111,13 @@ const SectionTitle = styled.h3`
   font-size: 16px;
   font-weight: bold;
   color: #f5b041;
-  cursor: pointer; /* 클릭 가능하도록 설정 */
+  cursor: pointer;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-`;
-
-const ActionButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 14px;
-  color: #f5b041;
-  cursor: pointer;
 `;
 
 const HorizontalSectionBody = styled.div`
@@ -130,6 +130,9 @@ const Box = styled.div`
   height: 100px;
   background-color: #f5f5f5;
   border-radius: 10px;
+  background-image: ${(props) => (props.src ? `url(${props.src})` : 'none')};
+  background-size: cover;
+  background-position: center;
 `;
 
 const VerticalSectionBody = styled.div`
@@ -185,41 +188,63 @@ const FooterActionButton = styled.button`
 function MyPage() {
   const navigate = useNavigate();
 
-  // State
+  // States
   const [profile, setProfile] = useState({});
   const [pets, setPets] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Fetch data
+  // Fetch user data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-        const [profileResponse, petsResponse, likedPostsResponse] =
-          await Promise.all([
-            axios.get('/api/v1/users/me'),
-            axios.get('/api/v1/pets'),
-            axios.get('/api/v1/posts/liked'),
-          ]);
+        setIsLoading(true);
 
+        const profileResponse = await api.get('/v1/users/me/');
+        // const petsResponse = await api.get('/v1/pets/');
+        // const likedPostsResponse = await api.get('/v1/posts/liked/');
         setProfile(profileResponse.data || {});
-        setPets(petsResponse.data?.pets || []);
-        setLikedPosts(likedPostsResponse.data?.posts || []);
-      } catch (error) {
-        console.error('데이터를 가져오는 데 실패했습니다:', error);
+        // setPets(petsResponse.data?.pets || []);
+        // setLikedPosts(likedPostsResponse.data?.posts || []);
+      } catch (err) {
+        console.error('데이터 가져오기 오류:', err);
+        setError('데이터를 가져오는 데 실패했습니다.');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  // 로딩 처리
-  if (loading) {
-    return <div>로딩 중...</div>;
-  }
+  // Logout logic
+  const handleLogout = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        alert('로그아웃 정보가 없습니다.');
+        navigate('/start');
+        return;
+      }
+
+      await api.post('/v1/users/logout', { refresh_token: refreshToken });
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      alert('로그아웃 성공!');
+      navigate('/start');
+    } catch (err) {
+      console.error('로그아웃 오류:', err);
+
+      // 에러 응답 처리
+      if (err.response?.status === 400) {
+        alert('잘못된 토큰입니다. 다시 로그인해주세요.');
+      } else {
+        alert('로그아웃 중 문제가 발생했습니다.');
+      }
+    }
+  };
+
+  if (isLoading) return <Loading />;
 
   return (
     <>
@@ -229,17 +254,24 @@ function MyPage() {
         {/* 프로필 섹션 */}
         <ProfileSection>
           <ProfileInfo>
-            <ProfileImage />
+            <ProfileImage
+              src={profile?.profilePhoto || '/placeholder-image.jpg'}
+            />
             <ProfileDetails>
-              <ProfileName>{profile.nickname || '닉네임 없음'}</ProfileName>
-              <ProfileEmail>{profile.email || '이메일 없음'}</ProfileEmail>
+              <ProfileName>{profile?.nickname || '닉네임 없음'}</ProfileName>
+              <ProfileEmail>{profile?.email || '이메일 없음'}</ProfileEmail>
             </ProfileDetails>
           </ProfileInfo>
           <ProfileIcons>
             <ProfileIcon onClick={() => navigate('/mate')}>🐾</ProfileIcon>
             <ProfileIcon onClick={() => navigate('/message')}>✉️</ProfileIcon>
           </ProfileIcons>
-          <EditButton onClick={() => navigate('/edit')}>EDIT</EditButton>
+          <ActionButtons>
+            <ActionButton onClick={() => navigate('/password')}>
+              PASSWORD
+            </ActionButton>
+            <ActionButton onClick={() => navigate('/edit')}>EDIT</ActionButton>
+          </ActionButtons>
         </ProfileSection>
 
         {/* 자기소개 섹션 */}
@@ -247,7 +279,7 @@ function MyPage() {
           <SectionHeader>
             <SectionTitle>자기소개</SectionTitle>
           </SectionHeader>
-          <p>{profile.intro || '자기소개를 입력해주세요.'}</p>
+          <p>{profile.bio || '자기소개를 입력해주세요.'}</p>
         </Section>
 
         {/* MY Photo 섹션 */}
@@ -258,8 +290,8 @@ function MyPage() {
             </SectionTitle>
           </SectionHeader>
           <HorizontalSectionBody>
-            <Box />
-            <Box />
+            <Box src={profile.profilePhoto} />
+            <Box src={profile.additionalPhoto} />
           </HorizontalSectionBody>
         </Section>
 
@@ -280,47 +312,34 @@ function MyPage() {
             </ButtonGroup>
           </SectionHeader>
           <HorizontalSectionBody>
-            {pets.length > 0 ? (
-              pets.map((pet) => (
-                <Box key={pet.id}>
-                  <p>{pet.name}</p>
-                  <p>{pet.breed}</p>
-                </Box>
-              ))
-            ) : (
-              <p>등록된 반려견이 없습니다.</p>
-            )}
+            {pets.map((pet) => (
+              <Box key={pet.id} src={pet.photo}>
+                <p>{pet.name}</p>
+                <p>{pet.breed}</p>
+              </Box>
+            ))}
           </HorizontalSectionBody>
         </Section>
 
-        {/* 내가 좋아요한 게시물 섹션 */}
+        {/* 내가 좋아요한 게시물 */}
         <Section>
           <SectionHeader>
-            <SectionTitle onClick={() => navigate('/likedposts')}>
-              내가 좋아요한 게시물
-            </SectionTitle>
+            <SectionTitle>내가 좋아요한 게시물</SectionTitle>
           </SectionHeader>
           <VerticalSectionBody>
-            {likedPosts.length > 0 ? (
-              likedPosts.map((post) => (
-                <CommunityItem key={post.id}>
-                  <CommunityDetails>
-                    <CommunityName>{post.category}</CommunityName>
-                    <CommunityTitle>{post.title}</CommunityTitle>
-                  </CommunityDetails>
-                </CommunityItem>
-              ))
-            ) : (
-              <p>좋아요한 게시물이 없습니다.</p>
-            )}
+            {likedPosts.map((post) => (
+              <CommunityItem key={post.id}>
+                <CommunityDetails>
+                  <CommunityName>{post.category}</CommunityName>
+                  <CommunityTitle>{post.title}</CommunityTitle>
+                </CommunityDetails>
+              </CommunityItem>
+            ))}
           </VerticalSectionBody>
         </Section>
 
-        {/* Footer Actions */}
         <FooterActions>
-          <FooterActionButton onClick={() => navigate('/logout')}>
-            LOGOUT
-          </FooterActionButton>
+          <FooterActionButton onClick={handleLogout}>LOGOUT</FooterActionButton>
           <FooterActionButton onClick={() => navigate('/withdraw')}>
             MEMBERSHIP WITHDRAWAL
           </FooterActionButton>

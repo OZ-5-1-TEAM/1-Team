@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import useFetch from '../hooks/useFetch';
+import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosInstance';
 import Header from '../components/Header';
 import MessageSection from '../components/Pages/MessagePage/MessageSection';
@@ -14,65 +13,56 @@ import {
 import Loading from '../components/Loading';
 
 const ReceivedMessagesPage = () => {
-  //API 연결 시 더미 데이터 삭제
-
-  const dummyReceived = {
-    messages: [
-      {
-        id: 1,
-        sender: {
-          id: 2,
-          nickname: 'John Doe',
-          profile_image: '/logo/gaerangmari_logo.jpeg',
-        },
-        content: '안녕하세요, 산책 같이 하실래요?',
-        created_at: '2024-12-02T15:00:00Z',
-        is_read: false,
-        formattedTimestamp: new Date('2024-12-02T15:00:00Z').toLocaleString(
-          'ko-KR'
-        ),
-      },
-      {
-        id: 2,
-        sender: {
-          id: 3,
-          nickname: 'Jane Smith',
-          profile_image: '/logo/gaerangmari_logo.jpeg',
-        },
-        content: '회의 일정이 변경되었습니다.',
-        created_at: '2024-12-03T09:30:00Z',
-        is_read: true,
-        formattedTimestamp: new Date('2024-12-03T09:30:00Z').toLocaleString(
-          'ko-KR'
-        ),
-      },
-    ],
-  };
-
   const [replyMode, setReplyMode] = useState(false);
   const [currentReply, setCurrentReply] = useState(null);
   const [message, setMessage] = useState('');
   const [notification, setNotification] = useState({ message: '', type: '' });
-
-  const { data: receivedMessages = dummyReceived, isLoading: receivedLoading } =
-    useFetch('/api/messages/received', dummyReceived);
-
-  //API 연결 시 아래로 변경
-  // const { data: receivedMessages = { messages: [] } } = useFetch('/api/messages/received', { messages: [] });
+  const [receivedMessages, setReceivedMessages] = useState({ messages: [] });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const showNotification = (message, type) => {
     setNotification({ message, type });
     setTimeout(() => setNotification({ message: '', type: '' }), 3000);
   };
 
+  const fetchMessages = async () => {
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const response = await axiosInstance.get('/v1/messages/received/');
+      console.log('API Response:', response);
+
+      if (response.data) {
+        setReceivedMessages(response.data);
+      } else {
+        throw new Error('데이터가 비어있습니다.');
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      setError(error.message);
+      showNotification(
+        '메시지를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.',
+        'error'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
   const markMessageAsRead = async (messageId) => {
     try {
       const response = await axiosInstance.put(
-        `/api/messages/${messageId}/read/`
+        `/v1/messages/${messageId}/read/`
       );
       if (response.status === 200) {
         showNotification('메시지가 읽음 처리되었습니다.', 'success');
-        refetchReceived();
+        fetchMessages();
       }
     } catch (error) {
       showNotification('읽음 처리에 실패했습니다.', 'error');
@@ -90,19 +80,34 @@ const ReceivedMessagesPage = () => {
       showNotification('메시지를 입력하세요.', 'error');
       return;
     }
+
     try {
-      const response = await axiosInstance.post('/api/messages/', {
+      const response = await axiosInstance.post('/v1/messages/', {
         receiver: currentReply.id,
         content: message,
       });
+
       if (response.status === 201) {
-        showNotification('메시지가 성공적으로 전송되었습니다!', 'success');
-        setReplyMode(false);
+        showNotification('메시지가 전송되었습니다!', 'success');
         setMessage('');
+        setReplyMode(false);
         setCurrentReply(null);
+        fetchMessages();
       }
     } catch (error) {
       showNotification('메시지 전송에 실패했습니다.', 'error');
+    }
+  };
+
+  const deleteMessage = async (id) => {
+    try {
+      const response = await axiosInstance.delete(`/v1/messages/${id}/`);
+      if (response.status === 204) {
+        showNotification('메시지가 삭제되었습니다.', 'success');
+        fetchMessages();
+      }
+    } catch (error) {
+      showNotification('메시지 삭제에 실패했습니다.', 'error');
     }
   };
 
@@ -116,8 +121,12 @@ const ReceivedMessagesPage = () => {
     <MainPageWrapper>
       <Box />
       <Header title='받은 쪽지함' />
-      {receivedLoading ? (
+      {isLoading ? (
         <Loading />
+      ) : error ? (
+        <ContentSection>
+          <div>에러가 발생했습니다. {error}</div>
+        </ContentSection>
       ) : (
         <ContentSection>
           <MessageSection
@@ -125,9 +134,7 @@ const ReceivedMessagesPage = () => {
             messages={receivedMessages?.messages || []}
             type='received'
             onReply={handleReply}
-            onDelete={(id) =>
-              showNotification(`메시지 ID ${id}가 삭제되었습니다.`, 'success')
-            }
+            onDelete={deleteMessage}
           />
         </ContentSection>
       )}
@@ -141,7 +148,6 @@ const ReceivedMessagesPage = () => {
           onClose={handleCloseModal}
         />
       )}
-
       <Notification {...notification} />
       <FixedImage src='/icon-192x192.webp' alt='dog foot icon' />
     </MainPageWrapper>

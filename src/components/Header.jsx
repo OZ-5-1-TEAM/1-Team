@@ -1,7 +1,7 @@
-// Header
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/axiosInstance';
 
 const HeaderContainer = styled.header`
   width: 100%;
@@ -27,8 +27,8 @@ const CommunityTitle = styled.div`
   margin: 0;
   cursor: pointer;
   user-select: none;
-  text-align: left; /* 왼쪽 정렬 고정 */
-  flex-shrink: 0; /* 줄어들지 않도록 설정 */
+  text-align: left;
+  flex-shrink: 0;
 `;
 
 const UserProfileWrapper = styled.div`
@@ -38,8 +38,8 @@ const UserProfileWrapper = styled.div`
   transition: all 0.2s ease-in-out;
 
   @media (max-width: 600px) {
-    flex-grow: 1; /* 공간 확보 */
-    justify-content: flex-end; /* 오른쪽으로 정렬 */
+    flex-grow: 1;
+    justify-content: flex-end;
   }
 `;
 
@@ -50,8 +50,8 @@ const UserName = styled.div`
   user-select: none;
 
   @media (max-width: 600px) {
-    font-size: 12px; /* 글자 크기 줄이기 */
-    margin-right: 5px; /* 간격 조정 */
+    font-size: 12px;
+    margin-right: 5px;
   }
 `;
 
@@ -60,22 +60,59 @@ const UserProfileCircle = styled.div`
   height: 38px;
   border-radius: 50%;
   background-color: #ffd700;
-
-  @media (max-width: 600px) {
-    width: 30px;
-    height: 30px; /* 크기 줄이기 */
-  }
+  background-image: ${(props) =>
+    `url(${props.profilePhoto || '/placeholder-image.jpg'})`};
+  background-size: cover;
+  background-position: center;
 `;
 
 const Header = ({ title }) => {
   const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState({
+    nickname: 'USER NAME',
+    profilePhoto: null,
+  });
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const accessToken = localStorage.getItem('access_token');
+      const refreshToken = localStorage.getItem('refresh_token');
+
+      if (accessToken && refreshToken) {
+        try {
+          const response = await api.get('/v1/users/me');
+          const { nickname, profilePhoto } = response.data;
+          setUserInfo({ nickname, profilePhoto });
+        } catch (err) {
+          console.error('사용자 정보를 가져오는 데 실패했습니다:', err);
+          // 로그인이 만료되었거나 실패한 경우 토큰 제거 및 로그인 페이지로 이동
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          navigate('/start');
+        }
+      }
+    };
+
+    fetchUserInfo();
+  }, [navigate]);
+
+  const handleUserClick = () => {
+    const accessToken = localStorage.getItem('access_token');
+    const refreshToken = localStorage.getItem('refresh_token');
+
+    if (accessToken && refreshToken) {
+      navigate('/mypage');
+    } else {
+      navigate('/start');
+    }
+  };
 
   return (
     <HeaderContainer>
       <CommunityTitle onClick={() => navigate('./')}>{title}</CommunityTitle>
-      <UserProfileWrapper onClick={() => navigate('./')}>
-        <UserName>USER NAME</UserName>
-        <UserProfileCircle />
+      <UserProfileWrapper onClick={handleUserClick}>
+        <UserName>{userInfo.nickname}</UserName>
+        <UserProfileCircle profilePhoto={userInfo.profilePhoto} />
       </UserProfileWrapper>
     </HeaderContainer>
   );

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Button from '../components/Button';
+import api from '../api/axiosInstance';
+import Loading from '../components/Loading';
 
 const PageWrapper = styled.div`
-  padding-top: 130px;
+  padding-top: 100px !important;
   max-width: 600px;
   margin: 0 auto;
   padding: 20px;
@@ -28,6 +30,7 @@ const Info = styled.div`
   font-size: 14px;
   color: #777;
   margin-top: 5px;
+  user-select: none;
 `;
 
 const Content = styled.div`
@@ -42,6 +45,13 @@ const Content = styled.div`
 
 const CommentsSection = styled.div`
   margin-top: 40px;
+  user-select: none;
+
+  h2 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
 `;
 
 const CommentInputContainer = styled.div`
@@ -53,8 +63,8 @@ const CommentInputContainer = styled.div`
 
 const CommentInput = styled.input`
   flex: 1;
-  height: 35px;
-  padding: 10px;
+  height: 30px;
+  padding: 8px;
   border: 1px solid #ddd;
   border-radius: 5px;
 
@@ -76,6 +86,7 @@ const CommentItem = styled.li`
 `;
 
 const CommentAuthor = styled.div`
+  display: flex;
   font-weight: bold;
   margin-bottom: 5px;
   font-size: 14px;
@@ -92,71 +103,231 @@ const CommentActions = styled.div`
   gap: 10px;
 `;
 
-// 더미 게시물 데이터
-const dummyPosts = {
-  1: {
-    id: 1,
-    title: '게시물 제목 1',
-    content: '게시물 내용 1입니다.',
-    district: '강남구',
-    neighborhood: '삼성동',
-    created_at: Date.now(),
-  },
-  2: {
-    id: 2,
-    title: '게시물 제목 2',
-    content: '게시물 내용 2입니다.',
-    district: '서초구',
-    neighborhood: '반포동',
-    created_at: Date.now(),
-  },
-};
+const Actions = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: left;
+`;
 
-// 더미 댓글 데이터
-const dummyComments = [
-  { id: 1, author: '사용자1', content: '이건 정말 멋진 게시물이네요!' },
-  { id: 2, author: '사용자2', content: '도움이 많이 됐어요. 감사합니다.' },
-];
+const CommentsButtons = styled.div`
+  display: flex;
+  margin-left: 10px;
+  margin-top: 2px;
+
+  Button {
+    margin-right: 5px;
+  }
+`;
 
 const PostDetail = () => {
-  const { id } = useParams(); // URL에서 id 가져오기
-  const parsedId = parseInt(id, 10); // 문자열 id를 숫자로 변환
+  const { id } = useParams();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const currentUserId = localStorage.getItem('user_id');
 
   useEffect(() => {
-    // 더미 데이터를 기반으로 게시물 정보 설정
-    const fetchedPost = dummyPosts[parsedId] || {
-      title: '알 수 없는 게시물',
-      content: '해당 게시물을 찾을 수 없습니다.',
-      district: 'N/A',
-      neighborhood: 'N/A',
-      created_at: Date.now(),
+    const fetchPostDetails = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get(`/v1/posts/${id}`);
+        const postData = response.data.data;
+
+        setPost({
+          id: postData.id,
+          title: postData.title,
+          content: postData.content,
+          district: postData.author_profile?.district || '알 수 없음',
+          neighborhood: postData.author_profile?.neighborhood || '알 수 없음',
+          nickname: postData.author_profile?.nickname || '익명 사용자',
+          dog_size: postData.dog_size || '알 수 없음',
+          likes_count: postData.likes_count,
+          comments_count: postData.comments_count,
+          is_liked: postData.is_liked,
+          created_at: postData.created_at,
+        });
+
+        const formatComments = (comments, level = 0) =>
+          comments.map((comment) => ({
+            id: comment.id,
+            authorId: comment.author,
+            author: comment.author_nickname,
+            content: comment.content,
+            created_at: comment.created_at,
+            level,
+            parent: comment.parent,
+            replies: formatComments(comment.replies || [], level + 1),
+          }));
+
+        const formattedComments = formatComments(postData.comments || []);
+        setComments(formattedComments);
+      } catch (err) {
+        console.error('게시물 로드 실패:', err);
+        setError('게시물을 불러오는 데 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
     };
-    setPost(fetchedPost);
 
-    // 더미 댓글 데이터 설정
-    setComments(dummyComments);
-  }, [parsedId]);
+    fetchPostDetails();
+  }, [id]);
 
-  const handleAddComment = () => {
-    if (newComment.trim()) {
-      const newCommentData = {
-        id: Date.now(),
-        author: '나',
-        content: newComment,
-      };
-      setComments((prevComments) => [newCommentData, ...prevComments]);
-      setNewComment('');
+  const handleLikePost = async () => {
+    try {
+      const response = await api.post(`/v1/posts/${id}/like`);
+      setPost((prevPost) => ({
+        ...prevPost,
+        likes_count: response.data.likes_count,
+        is_liked: response.data.is_liked,
+      }));
+    } catch (err) {
+      console.error('좋아요 처리 실패:', err);
+      alert('좋아요 처리에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
-  const handleDeleteComment = (commentId) => {
-    setComments((prevComments) =>
-      prevComments.filter((comment) => comment.id !== commentId)
-    );
+  const handleAddComment = async () => {
+    if (newComment.trim()) {
+      try {
+        const response = await api.post(`/v1/posts/${id}/comments/`, {
+          content: newComment,
+          parent: replyingTo?.id || null, // 부모 댓글 ID를 전달
+        });
+
+        const newCommentData = {
+          id: response.data.id,
+          authorId: currentUserId,
+          author: '나',
+          content: newComment,
+          created_at: new Date().toISOString(),
+          level: replyingTo ? replyingTo.level + 1 : 0,
+          parent: replyingTo?.id || null,
+          replies: [],
+        };
+
+        if (replyingTo) {
+          setComments((prevComments) =>
+            prevComments.map((comment) =>
+              comment.id === replyingTo.id
+                ? {
+                    ...comment,
+                    replies: [...comment.replies, newCommentData],
+                  }
+                : comment
+            )
+          );
+        } else {
+          setComments((prevComments) => [newCommentData, ...prevComments]);
+        }
+
+        setPost((prevPost) => ({
+          ...prevPost,
+          comments_count: prevPost.comments_count + 1,
+        }));
+
+        setNewComment('');
+        setReplyingTo(null);
+      } catch (err) {
+        console.error('댓글 작성 실패:', err);
+        alert('댓글 작성에 실패했습니다. 다시 시도해주세요.');
+      }
+    }
   };
+
+  const handleReply = (comment) => {
+    setReplyingTo(comment);
+    setNewComment(`@${comment.author} `); // 답글 태그 표시
+  };
+
+  const handleDeleteComment = async (commentId, authorId) => {
+    if (authorId !== Number(currentUserId)) {
+      alert('본인이 작성한 댓글만 삭제할 수 있습니다.');
+      return;
+    }
+
+    try {
+      await api.delete(`/v1/posts/${id}/comments/${commentId}/`);
+      setComments(
+        (prevComments) =>
+          prevComments
+            .map((comment) => {
+              // 댓글 및 대댓글 삭제 처리
+              if (comment.id === commentId) return null; // 삭제된 댓글은 null로 설정
+              if (comment.replies) {
+                comment.replies = comment.replies.filter(
+                  (reply) => reply.id !== commentId
+                );
+              }
+              return comment;
+            })
+            .filter(Boolean) // null 값 제거
+      );
+      alert('댓글이 삭제되었습니다.');
+    } catch (err) {
+      console.error('댓글 삭제 실패:', err);
+      alert('댓글 삭제에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+  const isCommentDeletable = (authorId) => authorId === Number(currentUserId);
+
+  // 새 댓글 입력 시 replyingTo 초기화 로직 추가
+  const handleCommentInputChange = (value) => {
+    setNewComment(value);
+
+    // 태그가 비어있거나 기존 @닉네임 형식이 삭제된 경우 초기화
+    if (!value.startsWith(`@${replyingTo?.author}`)) {
+      setReplyingTo(null);
+    }
+  };
+
+  const renderComments = (comments) =>
+    comments.map((comment) => (
+      <CommentItem
+        key={comment.id}
+        style={{ marginLeft: `${comment.level * 20}px` }}
+      >
+        <CommentAuthor>
+          {comment.author}{' '}
+          <CommentsButtons>
+            <Button
+              variant='reply'
+              size='sosmall'
+              onClick={() => handleReply(comment)}
+            >
+              답글
+            </Button>
+            <CommentActions>
+              <Button
+                variant='delete'
+                size='sosmall'
+                onClick={() => handleDeleteComment(comment.id)}
+              >
+                삭제
+              </Button>
+            </CommentActions>
+          </CommentsButtons>
+        </CommentAuthor>
+
+        <CommentText>{comment.content}</CommentText>
+        {comment.replies &&
+          comment.replies.length > 0 &&
+          renderComments(comment.replies)}
+      </CommentItem>
+    ));
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
 
   return (
     <PageWrapper>
@@ -165,14 +336,21 @@ const PostDetail = () => {
           <PostHeader>
             <Title>{post.title}</Title>
             <Info>
-              지역: {post.district} {post.neighborhood} | 작성일:{' '}
-              {new Date(post.created_at).toLocaleDateString()}
+              닉네임: {post.nickname} | 지역: {post.district}{' '}
+              {post.neighborhood} | {post.dog_size}
             </Info>
+            <Info>작성일: {new Date(post.created_at).toLocaleString()}</Info>
           </PostHeader>
           <Content>{post.content}</Content>
+          <Actions>
+            <LikeButton onClick={handleLikePost} isLiked={post.is_liked}>
+              {post.is_liked ? '🤍' : '❤️'} 좋아요 {post.likes_count}
+            </LikeButton>
+            <CommentCount>댓글 {post.comments_count}개</CommentCount>
+          </Actions>
         </>
       ) : (
-        <p>게시물을 불러오는 중...</p>
+        <p>게시물을 찾을 수 없습니다.</p>
       )}
 
       <CommentsSection>
@@ -184,27 +362,48 @@ const PostDetail = () => {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
           />
-          <Button onClick={handleAddComment} disabled={!newComment.trim()}>
+          <Button variant='send' onClick={handleAddComment}>
             등록
           </Button>
         </CommentInputContainer>
 
-        <CommentList>
-          {comments.map((comment) => (
-            <CommentItem key={comment.id}>
-              <CommentAuthor>{comment.author}</CommentAuthor>
-              <CommentText>{comment.content}</CommentText>
-              <CommentActions>
-                <Button onClick={() => handleDeleteComment(comment.id)}>
-                  삭제
-                </Button>
-              </CommentActions>
-            </CommentItem>
-          ))}
-        </CommentList>
+        {replyingTo && (
+          <p>
+            <strong>@{replyingTo.author}</strong> 님에게 답글 작성 중...
+          </p>
+        )}
+
+        <CommentList>{renderComments(comments)}</CommentList>
       </CommentsSection>
     </PageWrapper>
   );
 };
+
+const LikeButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  margin-right: 10px;
+  align-items: center;
+
+  &:hover {
+    opacity: 0.7;
+  }
+`;
+
+const CommentCount = styled.span`
+  background: none;
+  border: none;
+  color: ${(props) => (props.isLiked ? 'red' : 'black')};
+  font-size: 16px;
+  margin-top: 3.2px;
+  margin-right: 10px;
+  align-items: center;
+
+  &:hover {
+    opacity: 0.7;
+  }
+`;
 
 export default PostDetail;

@@ -4,13 +4,14 @@ import styled from 'styled-components';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+// Styled Components
 const PageWrapper = styled.div`
-  padding-top: 140px; /* Header 공간 확보 */
+  padding-top: 140px;
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
   background-color: #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 그림자 추가 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -20,7 +21,7 @@ const PageWrapper = styled.div`
 const FormWrapper = styled.form`
   width: 90%;
   margin: 20px 0;
-  padding-bottom: 60px; /* 하단 박스와 내용 겹침 방지 */
+  padding-bottom: 60px;
 `;
 
 const Title = styled.h1`
@@ -67,12 +68,9 @@ const UploadWrapper = styled.div`
 `;
 
 const UploadLabel = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
   font-size: 16px;
   color: #f5b041;
+  cursor: pointer;
 `;
 
 const Textarea = styled.textarea`
@@ -103,13 +101,14 @@ const SubmitButton = styled.button`
 const BottomSpacer = styled.div`
   width: 100%;
   height: 60px;
-  background-color: transparent; /* 빈 박스 배경 투명 */
+  background-color: transparent;
   position: fixed;
   bottom: 0;
   left: 0;
-  z-index: 10; /* 다른 요소 위에 배치 */
+  z-index: 10;
 `;
 
+// 반려견 정보 수정 페이지
 function PetEditPage({ petData, setPetData }) {
   const [form, setForm] = useState({
     name: petData?.name || '',
@@ -119,13 +118,13 @@ function PetEditPage({ petData, setPetData }) {
     gender: petData?.gender || '',
     intro: petData?.intro || '',
   });
+  const [profilePhoto, setProfilePhoto] = useState(null);
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const validate = () => {
     const newErrors = {};
-
     if (!form.name) newErrors.name = '반려견 이름을 입력해주세요.';
     if (!form.breed) newErrors.breed = '견종을 입력해주세요.';
     if (!form.age || isNaN(form.age))
@@ -138,23 +137,65 @@ function PetEditPage({ petData, setPetData }) {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors((prev) => ({
+          ...prev,
+          profilePhoto: '파일 크기는 5MB 이하로 제한됩니다.',
+        }));
+        return;
+      }
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          profilePhoto: 'JPEG 또는 PNG 형식의 이미지만 업로드 가능합니다.',
+        }));
+        return;
+      }
+      setErrors((prev) => ({ ...prev, profilePhoto: null }));
+      setProfilePhoto(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      setLoading(true);
-      try {
-        const response = await axios.put(`/api/v1/pets/${petData.id}`, form);
-        if (response.status === 200) {
-          alert('반려견 정보가 성공적으로 수정되었습니다.');
-          setPetData({ ...petData, ...form });
-          navigate('/mypage');
-        }
-      } catch (error) {
-        console.error('반려견 정보 수정 중 에러:', error);
-        alert('반려견 정보를 수정하는 데 문제가 발생했습니다.');
-      } finally {
-        setLoading(false);
+    if (!validate()) return;
+
+    const formData = new FormData();
+    formData.append('name', form.name);
+    formData.append('breed', form.breed);
+    formData.append('age', form.age);
+    formData.append('size', form.size);
+    formData.append('gender', form.gender);
+    formData.append('intro', form.intro);
+    if (profilePhoto) {
+      formData.append('profilePhoto', profilePhoto);
+    }
+
+    setIsLoading(true);
+    setErrors({});
+    try {
+      const response = await axios.put(`/api/v1/pets/${petData.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.status === 200) {
+        alert('반려견 정보가 성공적으로 수정되었습니다.');
+        setPetData({ ...petData, ...response.data });
+        navigate('/mypage');
       }
+    } catch (error) {
+      console.error('반려견 정보 수정 중 에러:', error);
+      setErrors((prev) => ({
+        ...prev,
+        server: '정보 수정 중 문제가 발생했습니다.',
+      }));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -178,7 +219,6 @@ function PetEditPage({ petData, setPetData }) {
           />
           {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
         </InputGroup>
-
         <InputGroup>
           <Input
             type='text'
@@ -190,7 +230,6 @@ function PetEditPage({ petData, setPetData }) {
           />
           {errors.breed && <ErrorMessage>{errors.breed}</ErrorMessage>}
         </InputGroup>
-
         <InputGroup>
           <Input
             type='text'
@@ -202,7 +241,6 @@ function PetEditPage({ petData, setPetData }) {
           />
           {errors.age && <ErrorMessage>{errors.age}</ErrorMessage>}
         </InputGroup>
-
         <InputGroup>
           <Select name='size' value={form.size} onChange={handleChange}>
             <option value=''>소형/중형/대형</option>
@@ -212,7 +250,6 @@ function PetEditPage({ petData, setPetData }) {
           </Select>
           {errors.size && <ErrorMessage>{errors.size}</ErrorMessage>}
         </InputGroup>
-
         <InputGroup>
           <Select name='gender' value={form.gender} onChange={handleChange}>
             <option value=''>성별</option>
@@ -221,7 +258,6 @@ function PetEditPage({ petData, setPetData }) {
           </Select>
           {errors.gender && <ErrorMessage>{errors.gender}</ErrorMessage>}
         </InputGroup>
-
         <UploadWrapper>
           <UploadLabel htmlFor='petPhoto'>
             📷 반려견 프로필 사진 등록하기
@@ -230,10 +266,12 @@ function PetEditPage({ petData, setPetData }) {
             id='petPhoto'
             type='file'
             accept='image/*'
-            onChange={(e) => console.log('업로드된 파일:', e.target.files[0])}
+            onChange={handleFileChange}
           />
+          {errors.profilePhoto && (
+            <ErrorMessage>{errors.profilePhoto}</ErrorMessage>
+          )}
         </UploadWrapper>
-
         <InputGroup>
           <Textarea
             name='intro'
@@ -243,12 +281,11 @@ function PetEditPage({ petData, setPetData }) {
           />
           {errors.intro && <ErrorMessage>{errors.intro}</ErrorMessage>}
         </InputGroup>
-
-        <SubmitButton type='submit' disabled={loading}>
-          {loading ? '수정 중...' : 'EDIT'}
+        {errors.server && <ErrorMessage>{errors.server}</ErrorMessage>}
+        <SubmitButton type='submit' disabled={isLoading}>
+          {isLoading ? '수정 중...' : 'EDIT'}
         </SubmitButton>
       </FormWrapper>
-
       <BottomSpacer />
     </PageWrapper>
   );

@@ -14,17 +14,16 @@ const FullScreenWrapper = styled.div`
 
 // 로고 Wrapper
 const LogoWrapper = styled.div`
-  text-align: center; /* 가로 기준 중앙 정렬 */
-  margin-bottom: 20px; /* 아래 로그인 폼과 간격 */
+  text-align: center;
+  margin-bottom: 20px;
 `;
 
 const Logo = styled.img`
-  display: inline-block; /* 중앙 정렬을 위한 inline-block 설정 */
-  width: 150px; /* 로고 너비 */
-  height: auto; /* 자동 비율 유지 */
+  display: inline-block;
+  width: 150px;
+  height: auto;
 `;
 
-// Wrapper: 회원가입 페이지와 동일한 스타일 유지
 const LoginWrapper = styled.div`
   padding: 30px;
   width: 300px;
@@ -107,16 +106,17 @@ function LoginPage() {
       setLoading(true);
       try {
         const response = await axios.post(
-          'https://api.example.com/api/v1/auth/login',
+          'http://43.201.242.157:8000/api/v1/users/login',
           form
         );
-        const { access_token } = response.data;
-        localStorage.setItem('access_token', access_token);
+        const { access, refresh } = response.data;
+        localStorage.setItem('access_token', access);
+        localStorage.setItem('refresh_token', refresh);
         alert('로그인 성공!');
-        window.location.href = '/dashboard'; // 로그인 후 리다이렉트
+        window.location.href = '/'; // 로그인 후 리다이렉트
       } catch (error) {
         console.error('로그인 에러:', error);
-        if (error.response && error.response.status === 401) {
+        if (error.response?.status === 401) {
           alert('이메일 또는 비밀번호가 올바르지 않습니다.');
         } else {
           alert('로그인 중 문제가 발생했습니다.');
@@ -131,7 +131,7 @@ function LoginPage() {
     <FullScreenWrapper>
       <LoginWrapper>
         <LogoWrapper>
-          <Logo src='/path/to/logo.png' alt='개랑말이 로고' />
+          <Logo src='/logo/gaerangmari_logo.jpeg' alt='개랑말이 로고' />
         </LogoWrapper>
         <Title>LOGIN</Title>
         <form onSubmit={handleSubmit}>

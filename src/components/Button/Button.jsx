@@ -20,10 +20,20 @@ const StyledButton = styled.button`
           background-color: #8f8e94;
         `;
       case 'send':
+        return css`
+          background-color: #ffe082;
+        `;
       case 'reply':
+        return css`
+          background-color: #ffe082;
+        `;
       case 'request':
         return css`
           background-color: #ffe082;
+        `;
+      case 'delete':
+        return css`
+          background-color: #e95555;
         `;
       default:
         return css`
@@ -48,6 +58,12 @@ const StyledButton = styled.button`
         return css`
           height: 25px;
           width: ${({ $width }) => $width || '120px'};
+        `;
+      case 'sosmall':
+        return css`
+          width: 30px;
+          height: 15px;
+          font-size: 0.7rem;
         `;
       default:
         return css`

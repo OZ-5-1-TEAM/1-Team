@@ -1,5 +1,4 @@
 //
-
 import React from 'react';
 import Button from '../../Button/Button';
 import {
@@ -8,7 +7,7 @@ import {
   MessageSender,
   MessageTimestamp,
   ButtonGroup,
-} from './styles/MessageStyles';
+} from './Styles/MessageStyles';
 
 const MessageItem = ({ message, type, onReply, onDelete }) => {
   const profile = type === 'received' ? message.sender : message.receiver;

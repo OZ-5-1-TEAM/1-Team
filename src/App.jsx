@@ -18,14 +18,16 @@ import MessagePage from './pages/MessagePage';
 import ReceivedMessagesPage from './pages/ReceivedMessagesPage';
 import SentMessagesPage from './pages/SentMessagesPage';
 import CustomerServicePage from './pages/CustomerServicePage';
-import WorkCommunity from './pages/WorkCommunity';
+import WalkCommunity from './pages/WalkCommunity';
 import DogCommunity from './pages/DogCommunity';
 import LikeCommunity from './pages/LikeCommunity';
 import PostPage from './pages/PostPage';
 import PostDetail from './pages/PostDetail';
+import Gallery from './pages/Gallery';
 import { useState } from 'react';
 import GlobalStyle from './components/GlobalStyle';
 import Loading from './components/Loading';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 
 const theme = createTheme({
   palette: {
@@ -76,6 +78,7 @@ function App() {
           <Route path='/join' element={<JoinPage />} />
           <Route path='/login' element={<LoginPage />} />
           <Route path='/mypage' element={<MyPage />} />
+          <Route path='/password' element={<ChangePasswordPage />} />
           <Route
             path='/edit'
             element={<EditPage userData={userData} setUserData={setUserData} />}
@@ -86,18 +89,20 @@ function App() {
             element={<PetEditPage petData={petData} setPetData={setPetData} />}
           />
           <Route path='/customerservice' element={<CustomerServicePage />} />
-          <Route path='/workcommunity' element={<WorkCommunity />}>
-            <Route path='postdetail/:id' element={<PostDetail />} />
-          </Route>
-          <Route path='/dogcommunity' element={<DogCommunity />}>
-            <Route path='postdetail/:id' element={<PostDetail />} />
-          </Route>
+          <Route path='/walkcommunity' element={<WalkCommunity />}></Route>
+          <Route
+            path='/walkcommunity/postdetail/:id'
+            element={<PostDetail />}
+          />
+          <Route path='/dogcommunity' element={<DogCommunity />}></Route>
+          <Route path='/dogcommunity/postdetail/:id' element={<PostDetail />} />
           <Route path='/likecommunity' element={<LikeCommunity />} />
           <Route path='/mate' element={<MatePage />} />
           <Route path='/message' element={<MessagePage />} />
           <Route path='/receivedmessages' element={<ReceivedMessagesPage />} />
           <Route path='/sentmessages' element={<SentMessagesPage />} />
           <Route path='/postpage' element={<PostPage />} />
+          <Route path='/gallery' element={<Gallery />} />
           <Route path='/loading' element={<Loading />} />
           {/* 경로를 소문자로 통일하십쇼 */}
           {/* 예시) path부분 소문자 통일 <Route path="/community" element={<Community />} /> */}

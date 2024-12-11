@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
+import api from '../api/axiosInstance';
+import Modal from '../components/Modal';
 
 const PageWrapper = styled.div`
   padding-top: 90px !important;
@@ -91,7 +93,7 @@ const HiddenInput = styled.input`
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px; /* Navbar와 버튼 사이 margin 추가 */
+  margin-bottom: 20px;
 `;
 
 const PostPage = () => {
@@ -100,12 +102,13 @@ const PostPage = () => {
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [content, setContent] = useState('');
-  const [dogSize, setDogSize] = useState('');
+  const [dog_size, setDogSize] = useState('');
   const [images, setImages] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const [showModal, setShowModal] = useState(false);
 
   // **이미지 URL 메모리 관리**
   useEffect(() => {
@@ -138,15 +141,23 @@ const PostPage = () => {
 
     try {
       const formData = new FormData();
-      formData.append('category', category);
       formData.append('title', title);
+      formData.append('content', content);
+      formData.append('category', category);
       formData.append('district', district);
       formData.append('neighborhood', neighborhood);
-      formData.append('content', content);
-      formData.append('dog_size', dogSize); // 선택 항목 추가
-      images.forEach((image, index) => formData.append(`images`, image)); // 파일 배열 추가
+      formData.append('dog_size', dog_size);
+      images.forEach((image, index) => {
+        console.log(`Image ${index}:`, image); // 이미지 디버그
+        formData.append('images', image);
+      });
 
-      const response = await api.post('/posts', formData);
+      // Authorization 헤더 포함
+      const access = localStorage.getItem('access_token');
+      const headers = {
+        Authorization: `Bearer ${access}`,
+        'Content-Type': 'multipart/form-data',
+      };
 
       console.log('Form submitted:', {
         category,
@@ -154,20 +165,44 @@ const PostPage = () => {
         district,
         neighborhood,
         content,
-        images,
+        dog_size,
       });
 
+      const response = await api.post('/v1/posts/', formData, { headers });
+
       if (response.status === 201) {
-        alert('게시글이 성공적으로 작성되었습니다!');
-        console.log('Response:', response.data);
-        navigate('/');
+        setShowModal(true);
       }
     } catch (error) {
       console.error('게시글 작성 실패:', error);
-      setErrorMessage('게시글 작성 중 오류가 발생했습니다. 다시 시도해주세요.');
+      if (error.response) {
+        console.error('응답 데이터:', error.response.data);
+        if (error.response.status === 401) {
+          setErrorMessage('로그인이 필요합니다. 다시 로그인해주세요.');
+        } else if (error.response.status === 400) {
+          setErrorMessage('입력 데이터를 확인해주세요.');
+        } else {
+          setErrorMessage(
+            '게시글 작성 중 오류가 발생했습니다. 다시 시도해주세요.'
+          );
+        }
+      } else if (error.request) {
+        console.error('요청 실패:', error.request);
+        setErrorMessage(
+          '서버에 연결할 수 없습니다. 네트워크 상태를 확인해주세요.'
+        );
+      } else {
+        console.error('오류 발생:', error.message);
+        setErrorMessage('알 수 없는 오류가 발생했습니다. 다시 시도해주세요.');
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    navigate('/');
   };
 
   const handleCancel = () => {
@@ -228,7 +263,7 @@ const PostPage = () => {
           <StyledLabel htmlFor='dogSizeSelect'>강아지 크기</StyledLabel>
           <Select
             id='dogSizeSelect'
-            value={dogSize}
+            value={dog_size}
             onChange={(e) => setDogSize(e.target.value)}
           >
             <option value=''>선택 안함</option>
@@ -254,7 +289,7 @@ const PostPage = () => {
                   type='file'
                   accept='image/*'
                   multiple
-                  ref={fileInputRef} // Attach ref to the hidden input
+                  ref={fileInputRef}
                   onChange={handleImageUpload}
                 />
                 +
@@ -281,6 +316,12 @@ const PostPage = () => {
           </ButtonContainer>
         </Form>
       </PageWrapper>
+      {showModal && (
+        <Modal
+          message='게시글이 성공적으로 작성되었습니다!'
+          onClose={closeModal}
+        />
+      )}
     </>
   );
 };

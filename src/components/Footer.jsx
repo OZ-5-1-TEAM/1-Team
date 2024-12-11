@@ -58,9 +58,9 @@ const Footer = () => {
 
   const menuItems = [
     { id: 1, label: 'HOME', path: '/' },
-    { id: 2, label: 'Work', path: '/workcommunity' },
+    { id: 2, label: 'Walk', path: '/walkcommunity' },
     { id: 3, label: 'Dog', path: '/dogcommunity' },
-    { id: 4, label: 'PHOTO', path: '/photo' },
+    { id: 4, label: 'Gallery', path: '/gallery' },
     { id: 5, label: 'MYPAGE', path: '/mypage' },
   ];
 

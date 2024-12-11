@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import Header from '../components/Header';
+import api from '../api/axiosInstance';
+import Loading from '../components/Loading';
 
 const fadeIn = keyframes`
   from {
@@ -12,12 +14,14 @@ const fadeIn = keyframes`
     transform: translateY(0);
   }
 `;
+
 const Box = styled.div`
   width: 100%;
   height: 130px;
   background-color: transparent;
   display: block;
 `;
+
 const MainPageWrapper = styled.div`
   width: 100%;
   max-width: 600px;
@@ -45,6 +49,7 @@ const ContentSection = styled.section`
   box-sizing: border-box;
   text-align: center;
   user-select: none;
+  position: relative;
 `;
 
 const WeatherIconContainer = styled.div`
@@ -159,133 +164,97 @@ const LoadingMessage = styled.p`
   font-style: italic;
 `;
 
-const ErrorMessage = styled.p`
-  font-size: 18px;
-  color: #ff4d4d;
-  font-weight: bold;
-`;
-
-const recommendationByCondition = {
-  storm: {
-    message: '⛈️ 폭우가 내리고 있어 산책하기 적합하지 않은 날씨입니다.',
-    icon: '/weather/storm.png',
-  },
-  rain: {
-    message: '🌧️ 비가 와서 산책을 피하는 것이 좋습니다.',
-    icon: '/weather/rainy.png',
-  },
-  veryBadDust: {
-    message: '😷 미세먼지가 매우 나빠서 외출을 자제하세요.',
-    icon: '/weather/dusty.png',
-  },
-  badDust: {
-    message: '😷 미세먼지가 나빠 산책을 자제하는 것이 좋습니다.',
-    icon: '/weather/dusty.png',
-  },
-  cold: {
-    message: '❄️ 기온이 매우 낮아 산책하기 적합하지 않습니다.',
-    icon: '/weather/cold.png',
-  },
-  hot: {
-    message: '🔥 너무 더운 날씨입니다. 산책 시 충분히 수분을 섭취하세요.',
-    icon: '/weather/hot.png',
-  },
-  clear: {
-    message: '☀️ 맑고 따뜻한 날씨입니다. 산책하기 좋습니다.',
-    icon: '/weather/sunny.png',
-  },
-  partlyCloudy: {
-    message: '🌤️ 약간의 구름이 있지만 산책하기 좋은 날씨입니다.',
-    icon: '/weather/partlyCloudy.png',
-  },
-  cloudy: {
-    message: '🌥️ 흐린 날씨이지만 산책하기 무리는 없습니다.',
-    icon: '/weather/cloudy.png',
-  },
-  snow: {
-    message: '❄️ 눈이 내려 산책에 주의가 필요합니다.',
-    icon: '/weather/snow.png',
-  },
-  drizzle: {
-    message: '🌦️ 가벼운 이슬비가 내립니다. 우산을 챙기세요.',
-    icon: '/weather/drizzle.png',
-  },
-  default: {
-    message: '날씨 정보를 기준으로 산책 여부를 판단하세요.',
-    icon: '/weather/default.png',
-  },
+const WEATHER_CODES = {
+  1000: { text: '맑음', icon: 'sunny.png' },
+  1001: { text: '흐림', icon: 'cloudy.png' },
+  1100: { text: '대체로 맑음', icon: 'partly_cloudy.png' },
+  2000: { text: '안개', icon: 'fog.png' },
+  2100: { text: '옅은 안개', icon: 'light_fog.png' },
+  4000: { text: '이슬비', icon: 'drizzle.png' },
+  4001: { text: '비', icon: 'rain.png' },
+  4200: { text: '강한 비', icon: 'heavy_rain.png' },
 };
 
-const getWalkingRecommendation = ({
-  condition,
-  rainProbability,
-  fineDust,
-  temperature,
-}) => {
-  if (
-    rainProbability > 70 ||
-    ['THUNDERSTORM', 'HEAVY RAIN'].includes(condition)
-  )
-    return recommendationByCondition.storm;
-  if (condition === 'RAIN') return recommendationByCondition.rain;
-  if (fineDust === 'VERY BAD') return recommendationByCondition.veryBadDust;
-  if (fineDust === 'BAD') return recommendationByCondition.badDust;
-  if (temperature < 0) return recommendationByCondition.cold;
-  if (temperature > 35) return recommendationByCondition.hot;
-
-  const conditionMapping = {
-    CLEAR: recommendationByCondition.clear,
-    PARTLYCLOUDY: recommendationByCondition.partlyCloudy,
-    CLOUDY: recommendationByCondition.cloudy,
-    SNOW: recommendationByCondition.snow,
-    DRIZZLE: recommendationByCondition.drizzle,
-  };
-
-  return conditionMapping[condition] || recommendationByCondition.default;
-};
-
-function WeatherPage() {
+const WeatherPage = () => {
   const [weather, setWeather] = useState({
     temperature: null,
-    condition: null,
-    wind: null,
-    humidity: null,
-    fineDust: null,
+    condition: '날씨 정보를 가져오는 중입니다...',
+    wind: '',
+    humidity: '',
     rainProbability: null,
     recommendation: '날씨 정보를 가져오는 중입니다...',
-    icon: '/icons/default.png',
+    icon: '/weather/default.png',
   });
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchWeatherData = async () => {
-      try {
-        setLoading(true);
-
-        const dummyData = {
-          temperature: 36,
-          condition: 'SNOW',
-          rainProbability: 10,
-          fineDust: 'GOOD',
-          wind: '10 km/h',
-          humidity: '54%',
-        };
-
-        const { message: recommendation, icon } =
-          getWalkingRecommendation(dummyData);
-
-        setWeather({ ...dummyData, recommendation, icon });
-        setError(null);
-      } catch (err) {
-        setError('날씨 정보를 가져오는 데 실패했습니다.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+  const updateWeatherData = (data) => {
+    const weatherCode = WEATHER_CODES[data.weather_code] || {
+      text: '알 수 없음',
+      icon: 'default.png',
     };
 
+    let recommendation = '';
+    if (data.precipitation_probability > 70 || data.weather_code === 4200) {
+      recommendation = '폭우가 내리고 있어 산책하기 적합하지 않은 날씨입니다.';
+    } else if (data.weather_code === 4001) {
+      recommendation = '비가 와서 산책을 피하는 것이 좋습니다.';
+    } else if (data.temperature < 0) {
+      recommendation = '기온이 매우 낮아 산책하기 적합하지 않습니다.';
+    } else if (data.temperature > 35) {
+      recommendation =
+        '너무 더운 날씨입니다. 산책 시 충분히 수분을 섭취하세요.';
+    } else {
+      const recommendations = {
+        1000: '맑고 따뜻한 날씨입니다. 산책하기 좋습니다.',
+        1001: '흐린 날씨이지만 산책하기 무리는 없습니다.',
+        1100: '약간의 구름이 있지만 산책하기 좋은 날씨입니다.',
+        2000: '안개가 있으니 산책 시 주의하세요.',
+        2100: '옅은 안개가 있으니 산책 시 주의하세요.',
+        4000: '가벼운 이슬비가 내립니다. 우산을 챙기세요.',
+      };
+      recommendation =
+        recommendations[data.weather_code] ||
+        '날씨 정보를 기준으로 산책 여부를 판단하세요.';
+    }
+
+    setWeather({
+      temperature: data.temperature,
+      condition: weatherCode.text,
+      wind: `${data.wind_speed} m/s`,
+      humidity: `${data.humidity}%`,
+      rainProbability: data.precipitation_probability,
+      recommendation,
+      icon: `/weather/${weatherCode.icon}`,
+    });
+  };
+
+  const fetchWeatherData = async () => {
+    try {
+      setIsLoading(true);
+
+      // GET 요청에 Authorization 헤더 추가
+      const response = await api.get('/v1/weathers/current/');
+      updateWeatherData(response.data);
+    } catch (error) {
+      console.error('날씨 정보를 가져오는데 실패했습니다:', error);
+
+      if (error.response?.status === 401) {
+        setError('인증 정보가 유효하지 않습니다. 다시 로그인해주세요.');
+      } else {
+        setError(
+          error.response?.data?.error || '날씨 정보를 불러오는데 실패했습니다.'
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchWeatherData();
+    const interval = setInterval(fetchWeatherData, 60 * 60 * 1000); // 1시간 간격으로 데이터 갱신
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -293,10 +262,10 @@ function WeatherPage() {
       <Box />
       <Header title='WEATHER ☀️' />
       <ContentSection>
-        {loading ? (
-          <LoadingMessage>로딩 중...</LoadingMessage>
+        {isLoading ? (
+          <Loading />
         ) : error ? (
-          <ErrorMessage>{error}</ErrorMessage>
+          <LoadingMessage>{error}</LoadingMessage>
         ) : (
           <>
             <WeatherIconContainer>
@@ -315,10 +284,6 @@ function WeatherPage() {
                   <span>{weather.humidity}</span>
                 </DetailItem>
                 <DetailItem>
-                  <span>Fine Dust:</span>
-                  <span>{weather.fineDust}</span>
-                </DetailItem>
-                <DetailItem>
                   <span>Rain Probability:</span>
                   <span>{weather.rainProbability}%</span>
                 </DetailItem>
@@ -328,9 +293,9 @@ function WeatherPage() {
           </>
         )}
       </ContentSection>
-      <FixedImage src='/icon-192x192.webp' alt='dog foot icon' />
+      <FixedImage src='/favicon.ico' />
     </MainPageWrapper>
   );
-}
+};
 
 export default WeatherPage;
