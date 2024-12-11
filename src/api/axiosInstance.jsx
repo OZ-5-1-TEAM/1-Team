@@ -4,7 +4,6 @@ import axios from 'axios';
 let isRefreshing = false;
 let refreshSubscribers = [];
 
-// 환경 변수에서 읽기
 const BASE_URL = `http://43.201.242.157:8000/api`;
 
 const onRefreshed = (token) => {
@@ -17,7 +16,10 @@ const addRefreshSubscriber = (callback) => {
 };
 
 const api = axios.create({
-  baseURL: BASE_URL, // 서버 URL
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // 요청 인터셉터
@@ -48,7 +50,7 @@ api.interceptors.response.use(
           onRefreshed(data.access);
         } catch (err) {
           isRefreshing = false;
-          localStorage.clear(); // 인증 실패 시 토큰 제거
+          localStorage.clear();
           // window.location.href = '/login';
           return Promise.reject(err);
         }

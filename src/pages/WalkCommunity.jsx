@@ -5,9 +5,9 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import debounce from 'lodash.debounce';
 import Button from '../components/Button';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Outlet } from 'react-router-dom';
 import FilterComponent from '../components/FilterComponent';
-import axios from 'axios';
+import api from '../api/axiosInstance';
 
 const MainPageWrapper = styled.div`
   padding-top: 130px;
@@ -18,7 +18,20 @@ const MainPageWrapper = styled.div`
   padding-bottom: 63px;
   min-height: 100vh;
   box-sizing: border-box;
-  font-family: 'Pretendard', sans-serif;
+`;
+
+const SkeletonWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 30px 0;
+`;
+
+const ErrorMessage = styled.div`
+  color: red;
+  font-size: 16px;
+  text-align: center;
+  margin-top: 20px;
 `;
 
 const SearchBarContainer = styled.div`
@@ -32,7 +45,7 @@ const SearchBarContainer = styled.div`
   z-index: 50;
   width: 100%;
   box-sizing: border-box;
-
+  user-select: none;
   @media (max-width: 425px) {
     padding: 10px 10px;
   }
@@ -124,19 +137,12 @@ const PostContentWrapper = styled.div`
   position: relative;
 `;
 
-const PostDetails = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  flex: 1;
-`;
-
 const PostTitle = styled.h4`
   font-size: 16px;
   color: #333;
   margin: 0;
   font-weight: bold;
-  margin: 20px 0 0px 10px;
+  margin: 20px 0 0 10px;
 `;
 
 const PostNinknameAndSize = styled.div`
@@ -200,57 +206,95 @@ const PostStat = styled.div`
   color: #777;
 `;
 
-// 더미 데이터 생성
-const generateDummyPosts = (startId = 1, count = 10) =>
-  Array.from({ length: count }, (_, i) => ({
-    id: `${startId + i}-${Date.now()}`, // 고유한 id 생성
-    title: `제목 ${startId + i}`,
-    content: `봉은사 근처 산책 파트너를 찾습니다...`,
-    author: {
-      nickname: `꾸앵`,
-    },
-    background: `/placeholder-image.jpg`,
-    location: {
-      district: `강남구`,
-      neighborhood: `삼성동`,
-    },
-    likes_count: `10`,
-    comments_count: `5`,
-    size: `소형견`,
-    created_at: `2024.12.03 15:05`,
-  }));
-
-function WalkCommunity() {
-  const [posts, setPosts] = useState(generateDummyPosts());
+function DogCommunity() {
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    region: '',
-    subRegion: '',
+    district: '',
+    neighborhood: '',
     size: '소형견',
     sortBy: '최신순',
   });
   const observer = useRef();
   const currentPostId = useRef(1);
+  const currentPage = useRef(1);
   const navigate = useNavigate();
 
-  // 무한 스크롤 fetch
-  const fetchPosts = useCallback(() => {
+  const category = 'mate';
+
+  // 초기 게시물 로드 함수
+  const fetchInitialPosts = useCallback(async () => {
     setLoading(true);
+    setError(null);
 
-    setTimeout(() => {
-      const newPosts = generateDummyPosts(currentPostId.current, 10);
-      currentPostId.current += 10;
-      setPosts((prevPosts) => [...prevPosts, ...newPosts]);
-      setLoading(false);
+    try {
+      const response = await api.get(`/v1/posts`, {
+        params: {
+          ...filters, // 필터링 조건
+          keyword: searchQuery,
+          sort: 'latest',
+          page: 1,
+          size: 10,
+          category,
+        },
+      });
 
-      if (currentPostId.current > 100) {
-        setHasMore(false);
+      // 응답 데이터의 results를 posts로 설정
+      const allPosts = response.data.data.results || [];
+      setPosts(allPosts);
+      currentPage.current = 2;
+      setHasMore(allPosts.length > 0);
+    } catch (err) {
+      console.error('오류 발생:', {
+        message: err.message,
+        code: err.code,
+        stack: err.stack,
+      });
+      if (err.response) {
+        console.error('응답 데이터:', err.response.data.data);
       }
-    }, 1000);
-  }, []);
+      setError('게시물을 불러오는 데 실패했습니다.');
+
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, searchQuery, category]);
+
+  // 무한 스크롤용 추가 게시물 로드 함수
+  const fetchMorePosts = useCallback(async () => {
+    if (!hasMore || loading) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await api.get(`/v1/posts`, {
+        params: {
+          ...filters,
+          keyword: searchQuery,
+          sort: 'latest',
+          page: currentPage.current,
+          size: 10,
+          category,
+        },
+      });
+
+      // 기존 posts에 추가 데이터를 결합
+      const allPosts = response.data.data.results || [];
+      setPosts((prevPosts) => [...prevPosts, ...allPosts]);
+      currentPage.current += 1;
+      setHasMore(allPosts.length > 0);
+    } catch (err) {
+      console.error('추가 게시물 로드 실패:', err);
+      setError('추가 게시물을 불러오는 데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, searchQuery, hasMore, loading, category]);
 
   // Lazy Loading 및 Infinite Scroll 처리
   const lastPostRef = useCallback(
@@ -260,50 +304,40 @@ function WalkCommunity() {
 
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && hasMore) {
-          fetchPosts();
+          fetchMorePosts();
         }
       });
 
       if (node) observer.current.observe(node);
     },
-    [loading, hasMore, fetchPosts]
+    [loading, hasMore, fetchMorePosts]
   );
 
-  // 첫 렌더링 시 더미 데이터 로드
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
-
-  // 검색어 변경 시 자동 검색
-  const searchPosts = useCallback(
+  // 검색어 변경 시 게시물 초기화 후 재검색
+  const handleSearchQueryChange = useCallback(
     debounce((query) => {
-      const filteredPosts = generateDummyPosts(1, 100).filter((post) =>
-        post.title.includes(query)
-      );
-      setPosts(filteredPosts);
-    }, 500), // 0.5초 debounce 적용
-    []
+      setSearchQuery(query);
+      currentPage.current = 1;
+      fetchInitialPosts();
+    }, 500),
+    [fetchInitialPosts]
   );
 
+  // 초기 데이터 로드
   useEffect(() => {
-    if (searchQuery) {
-      searchPosts(searchQuery);
-    } else {
-      fetchPosts(); // 검색어가 없을 경우 전체 데이터 가져오기
-    }
-  }, [searchQuery, searchPosts, fetchPosts]);
+    fetchInitialPosts();
+  }, [fetchInitialPosts]);
 
   const handleRefresh = () => {
     setFilters({
-      region: '',
-      subRegion: '',
+      district: '',
+      neighborhood: '',
       size: '소형견',
       sortBy: '최신순',
     });
     setSearchQuery('');
-    currentPostId.current = 1;
-    setPosts([]);
-    fetchPosts();
+    currentPage.current = 1;
+    fetchInitialPosts();
   };
 
   const handleWrite = () => {
@@ -323,7 +357,7 @@ function WalkCommunity() {
           type='text'
           placeholder='Search'
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => handleSearchQueryChange(e.target.value)}
         />
         <FilterControls>
           <CancelButton onClick={handleToggleFilters}>
@@ -343,68 +377,77 @@ function WalkCommunity() {
         />
       </FilterContainerWrapper>
       <PostListContainer>
-        {posts.map((post, index) => (
-          <PostItem
-            key={post.id} // 고유한 key 값
-            ref={index === posts.length - 1 ? lastPostRef : null}
-          >
-            <Link
-              to={`postdetail/${post.id}`}
-              style={{
-                textDecoration: 'none',
-                color: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                width: '100%',
-              }}
+        {Array.isArray(posts) && posts.length > 0 ? (
+          posts.map((post, index) => (
+            <PostItem
+              key={`${post.id}-${index}`} // 고유한 key 값
+              ref={index === posts.length - 1 ? lastPostRef : null}
             >
-              <PostImage />
-              <PostContentWrapper>
-                <PostTitle>{post.title}</PostTitle>
-                <PostNinknameAndSize>
-                  <PostNinkname>{post.size}</PostNinkname>
-                  <PostNinkname>{post.author.nickname}</PostNinkname>
-                </PostNinknameAndSize>
-                <PostStats>
-                  <PostStat>❤️ {post.likes_count}</PostStat>
-                  <PostStat>💬 {post.comments_count}</PostStat>
-                </PostStats>
-                <PostMeta>
-                  <PostLocationAndDate>
-                    <PostLocation>
-                      {post.location.district}-{post.location.neighborhood}
-                    </PostLocation>
-                    <PostDate>
-                      {new Date(post.created_at).toLocaleString()}
-                    </PostDate>
-                  </PostLocationAndDate>
-                </PostMeta>
-              </PostContentWrapper>
-            </Link>
-          </PostItem>
-        ))}
-        {loading &&
-          Array.from({ length: 15 }).map((_, i) => (
-            <PostItem key={`skeleton-${currentPostId.current}-${i}`}>
-              <Skeleton
-                width={70}
-                height={70}
-                style={{ marginRight: '15px' }}
-              />
-              <PostContentWrapper>
-                <Skeleton width={200} height={20} />
-                <Skeleton
-                  width={150}
-                  height={15}
-                  style={{ marginTop: '5px' }}
-                />
-              </PostContentWrapper>
-              <Skeleton width={100} height={15} />
+              <Link
+                to={`/dogcommunity/postdetail/${post.id}`}
+                style={{
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                }}
+              >
+                <PostImage />
+                <PostContentWrapper>
+                  <PostTitle>{post.title}</PostTitle>
+                  <PostNinknameAndSize>
+                    <PostNinkname>{post.dog_size}</PostNinkname>
+                    <PostNinkname>{post.nickname}</PostNinkname>
+                  </PostNinknameAndSize>
+                  <PostStats>
+                    <PostStat>❤️ {post.likes_count}</PostStat>
+                    <PostStat>💬 {post.comments_count}</PostStat>
+                  </PostStats>
+                  <PostMeta>
+                    <PostLocationAndDate>
+                      <PostLocation>
+                        {post.district}-{post.neighborhood}
+                      </PostLocation>
+                      <PostDate>
+                        {new Date(post.created_at).toLocaleString()}
+                      </PostDate>
+                    </PostLocationAndDate>
+                  </PostMeta>
+                </PostContentWrapper>
+              </Link>
             </PostItem>
-          ))}
+          ))
+        ) : (
+          <ErrorMessage>게시물이 없습니다.</ErrorMessage>
+        )}
+        {(loading || error) && (
+          <SkeletonWrapper>
+            {Array.from({ length: 15 }).map((_, i) => (
+              <PostItem key={`skeleton-${currentPostId.current}-${i}`}>
+                <Skeleton
+                  width={70}
+                  height={70}
+                  style={{ marginRight: '15px' }}
+                />
+                <PostContentWrapper>
+                  <Skeleton width={200} height={20} />
+                  <Skeleton
+                    width={150}
+                    height={15}
+                    style={{ marginTop: '5px' }}
+                  />
+                </PostContentWrapper>
+                <Skeleton width={100} height={15} />
+              </PostItem>
+            ))}
+          </SkeletonWrapper>
+        )}
+        {error && !loading && <ErrorMessage>{error}</ErrorMessage>}
       </PostListContainer>
+      <Outlet />
     </MainPageWrapper>
   );
 }
 
-export default WalkCommunity;
+export default DogCommunity;

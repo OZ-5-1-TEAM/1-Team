@@ -7,7 +7,6 @@ import debounce from 'lodash.debounce';
 import Button from '../components/Button';
 import { useNavigate, Link, Outlet } from 'react-router-dom';
 import FilterComponent from '../components/FilterComponent';
-import axios from 'axios';
 import api from '../api/axiosInstance';
 
 const MainPageWrapper = styled.div`
@@ -138,13 +137,6 @@ const PostContentWrapper = styled.div`
   position: relative;
 `;
 
-const PostDetails = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  flex: 1;
-`;
-
 const PostTitle = styled.h4`
   font-size: 16px;
   color: #333;
@@ -232,6 +224,8 @@ function DogCommunity() {
   const currentPage = useRef(1);
   const navigate = useNavigate();
 
+  const category = 'dog';
+
   // 초기 게시물 로드 함수
   const fetchInitialPosts = useCallback(async () => {
     setLoading(true);
@@ -245,27 +239,31 @@ function DogCommunity() {
           sort: 'latest',
           page: 1,
           size: 10,
+          category,
         },
       });
 
       // 응답 데이터의 results를 posts로 설정
-      setPosts(response.data.results || []);
+      const allPosts = response.data.data.results || [];
+      setPosts(allPosts);
       currentPage.current = 2;
-      setHasMore((response.data.results || []).length > 0);
+      setHasMore(allPosts.length > 0);
     } catch (err) {
-      console.error('게시물 초기 로드 실패:', err);
-
-      if (err.response?.status === 401) {
-        setError('로그인이 필요합니다.');
-      } else {
-        setError('게시물을 불러오는 데 실패했습니다.');
+      console.error('오류 발생:', {
+        message: err.message,
+        code: err.code,
+        stack: err.stack,
+      });
+      if (err.response) {
+        console.error('응답 데이터:', err.response.data.data);
       }
+      setError('게시물을 불러오는 데 실패했습니다.');
 
       setPosts([]);
     } finally {
       setLoading(false);
     }
-  }, [filters, searchQuery]);
+  }, [filters, searchQuery, category]);
 
   // 무한 스크롤용 추가 게시물 로드 함수
   const fetchMorePosts = useCallback(async () => {
@@ -281,20 +279,22 @@ function DogCommunity() {
           sort: 'latest',
           page: currentPage.current,
           size: 10,
+          category,
         },
       });
 
       // 기존 posts에 추가 데이터를 결합
-      setPosts((prevPosts) => [...prevPosts, ...(response.data.results || [])]);
+      const allPosts = response.data.data.results || [];
+      setPosts((prevPosts) => [...prevPosts, ...allPosts]);
       currentPage.current += 1;
-      setHasMore((response.data.results || []).length > 0);
+      setHasMore(allPosts.length > 0);
     } catch (err) {
       console.error('추가 게시물 로드 실패:', err);
       setError('추가 게시물을 불러오는 데 실패했습니다.');
     } finally {
       setLoading(false);
     }
-  }, [filters, searchQuery, hasMore, loading]);
+  }, [filters, searchQuery, hasMore, loading, category]);
 
   // Lazy Loading 및 Infinite Scroll 처리
   const lastPostRef = useCallback(
@@ -395,10 +395,14 @@ function DogCommunity() {
               >
                 <PostImage />
                 <PostContentWrapper>
-                  <PostTitle>{post.title}</PostTitle>
+                  <PostTitle>
+                    {post.title.length > 35
+                      ? `${post.title.substring(0, 35)}...`
+                      : post.title}
+                  </PostTitle>
                   <PostNinknameAndSize>
                     <PostNinkname>{post.dog_size}</PostNinkname>
-                    <PostNinkname>{post.nickname}</PostNinkname>
+                    <PostNinkname>{post.author_nickname}</PostNinkname>
                   </PostNinknameAndSize>
                   <PostStats>
                     <PostStat>❤️ {post.likes_count}</PostStat>

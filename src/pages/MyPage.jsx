@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosInstance';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Loading from '../components/Loading';
+import Modal from '../components/Modal';
 
 // Styled Components
 const PageWrapper = styled.div`
@@ -200,12 +202,11 @@ function MyPage() {
         setIsLoading(true);
 
         const profileResponse = await api.get('/v1/users/me/');
-        const petsResponse = await api.get('/v1/pets/');
-        const likedPostsResponse = await api.get('/v1/posts/liked/');
-
+        // const petsResponse = await api.get('/v1/pets/');
+        // const likedPostsResponse = await api.get('/v1/posts/liked/');
         setProfile(profileResponse.data || {});
-        setPets(petsResponse.data?.pets || []);
-        setLikedPosts(likedPostsResponse.data?.posts || []);
+        // setPets(petsResponse.data?.pets || []);
+        // setLikedPosts(likedPostsResponse.data?.posts || []);
       } catch (err) {
         console.error('데이터 가져오기 오류:', err);
         setError('데이터를 가져오는 데 실패했습니다.');
@@ -213,26 +214,37 @@ function MyPage() {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
   // Logout logic
   const handleLogout = async () => {
     try {
-      await api.post('/v1/users/logout/');
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        alert('로그아웃 정보가 없습니다.');
+        navigate('/start');
+        return;
+      }
+
+      await api.post('/v1/users/logout', { refresh_token: refreshToken });
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       alert('로그아웃 성공!');
-      navigate('/login');
+      navigate('/start');
     } catch (err) {
       console.error('로그아웃 오류:', err);
-      alert('로그아웃 중 문제가 발생했습니다.');
+
+      // 에러 응답 처리
+      if (err.response?.status === 400) {
+        alert('잘못된 토큰입니다. 다시 로그인해주세요.');
+      } else {
+        alert('로그아웃 중 문제가 발생했습니다.');
+      }
     }
   };
 
-  if (isLoading) return <div>로딩 중...</div>;
-  if (error) return <div>{error}</div>;
+  if (isLoading) return <Loading />;
 
   return (
     <>
@@ -242,10 +254,12 @@ function MyPage() {
         {/* 프로필 섹션 */}
         <ProfileSection>
           <ProfileInfo>
-            <ProfileImage src={profile.profilePhoto} />
+            <ProfileImage
+              src={profile?.profilePhoto || '/placeholder-image.jpg'}
+            />
             <ProfileDetails>
-              <ProfileName>{profile.nickname || '닉네임 없음'}</ProfileName>
-              <ProfileEmail>{profile.email || '이메일 없음'}</ProfileEmail>
+              <ProfileName>{profile?.nickname || '닉네임 없음'}</ProfileName>
+              <ProfileEmail>{profile?.email || '이메일 없음'}</ProfileEmail>
             </ProfileDetails>
           </ProfileInfo>
           <ProfileIcons>
@@ -265,7 +279,7 @@ function MyPage() {
           <SectionHeader>
             <SectionTitle>자기소개</SectionTitle>
           </SectionHeader>
-          <p>{profile.intro || '자기소개를 입력해주세요.'}</p>
+          <p>{profile.bio || '자기소개를 입력해주세요.'}</p>
         </Section>
 
         {/* MY Photo 섹션 */}
