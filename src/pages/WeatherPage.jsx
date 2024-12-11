@@ -164,14 +164,6 @@ const LoadingMessage = styled.p`
   font-style: italic;
 `;
 
-const DUMMY_WEATHER_DATA = {
-  temperature: 8,
-  humidity: 42,
-  wind_speed: 6.81,
-  precipitation_probability: 0,
-  weather_code: 1000,
-};
-
 const WEATHER_CODES = {
   1000: { text: '맑음', icon: 'sunny.png' },
   1001: { text: '흐림', icon: 'cloudy.png' },
@@ -179,19 +171,19 @@ const WEATHER_CODES = {
   2000: { text: '안개', icon: 'fog.png' },
   2100: { text: '옅은 안개', icon: 'light_fog.png' },
   4000: { text: '이슬비', icon: 'drizzle.png' },
-  4001: { text: '비', icon: 'rainy.png' },
-  4200: { text: '강한 비', icon: 'storm.png' },
+  4001: { text: '비', icon: 'rain.png' },
+  4200: { text: '강한 비', icon: 'heavy_rain.png' },
 };
 
 const WeatherPage = () => {
   const [weather, setWeather] = useState({
-    temperature: DUMMY_WEATHER_DATA.temperature,
-    condition: WEATHER_CODES[DUMMY_WEATHER_DATA.weather_code].text,
-    wind: `${DUMMY_WEATHER_DATA.wind_speed} m/s`,
-    humidity: `${DUMMY_WEATHER_DATA.humidity}%`,
-    rainProbability: DUMMY_WEATHER_DATA.precipitation_probability,
+    temperature: null,
+    condition: '날씨 정보를 가져오는 중입니다...',
+    wind: '',
+    humidity: '',
+    rainProbability: null,
     recommendation: '날씨 정보를 가져오는 중입니다...',
-    icon: `/weather/${WEATHER_CODES[DUMMY_WEATHER_DATA.weather_code].icon}`,
+    icon: '/weather/default.png',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -240,12 +232,20 @@ const WeatherPage = () => {
   const fetchWeatherData = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get('/v1/weathers/current');
+
+      // GET 요청에 Authorization 헤더 추가
+      const response = await api.get('/v1/weathers/current/');
       updateWeatherData(response.data);
     } catch (error) {
       console.error('날씨 정보를 가져오는데 실패했습니다:', error);
-      setError('날씨 정보를 불러오는데 실패했습니다.');
-      updateWeatherData(DUMMY_WEATHER_DATA);
+
+      if (error.response?.status === 401) {
+        setError('인증 정보가 유효하지 않습니다. 다시 로그인해주세요.');
+      } else {
+        setError(
+          error.response?.data?.error || '날씨 정보를 불러오는데 실패했습니다.'
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -253,7 +253,7 @@ const WeatherPage = () => {
 
   useEffect(() => {
     fetchWeatherData();
-    const interval = setInterval(fetchWeatherData, 60 * 60 * 1000);
+    const interval = setInterval(fetchWeatherData, 60 * 60 * 1000); // 1시간 간격으로 데이터 갱신
     return () => clearInterval(interval);
   }, []);
 

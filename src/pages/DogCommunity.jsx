@@ -7,7 +7,7 @@ import debounce from 'lodash.debounce';
 import Button from '../components/Button';
 import { useNavigate, Link, Outlet } from 'react-router-dom';
 import FilterComponent from '../components/FilterComponent';
-import api from '../api/axiosInstance.jsx';
+import api from '../api/axiosInstance';
 
 const MainPageWrapper = styled.div`
   padding-top: 130px;
@@ -137,13 +137,6 @@ const PostContentWrapper = styled.div`
   position: relative;
 `;
 
-const PostDetails = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  flex: 1;
-`;
-
 const PostTitle = styled.h4`
   font-size: 16px;
   color: #333;
@@ -231,67 +224,77 @@ function DogCommunity() {
   const currentPage = useRef(1);
   const navigate = useNavigate();
 
+  const category = 'dog';
+
   // 초기 게시물 로드 함수
   const fetchInitialPosts = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const response = await api.get('posts', {
-        headers: {
-          Accept: 'application/json', // JSON 요청을 명시
-        },
+      const response = await api.get(`/v1/posts`, {
         params: {
-          ...filters,
+          ...filters, // 필터링 조건
           keyword: searchQuery,
           sort: 'latest',
           page: 1,
           size: 10,
+          category,
         },
       });
 
-      console.log('Response data:', response.data);
-      console.log('Request URL:', response.config.url);
-      setPosts(response.data.posts || []);
-      currentPage.current = 2; // 다음 페이지 설정
-      setHasMore(response.data.posts?.length > 0);
+      // 응답 데이터의 results를 posts로 설정
+      const allPosts = response.data.data.results || [];
+      setPosts(allPosts);
+      currentPage.current = 2;
+      setHasMore(allPosts.length > 0);
     } catch (err) {
-      console.error('게시물 초기 로드 실패:', err);
+      console.error('오류 발생:', {
+        message: err.message,
+        code: err.code,
+        stack: err.stack,
+      });
+      if (err.response) {
+        console.error('응답 데이터:', err.response.data.data);
+      }
       setError('게시물을 불러오는 데 실패했습니다.');
+
       setPosts([]);
     } finally {
       setLoading(false);
     }
-  }, [filters, searchQuery]);
+  }, [filters, searchQuery, category]);
 
   // 무한 스크롤용 추가 게시물 로드 함수
   const fetchMorePosts = useCallback(async () => {
     if (!hasMore || loading) return;
     setLoading(true);
     setError(null);
+
     try {
-      const response = await api.get('posts', {
-        headers: {
-          Accept: 'application/json',
-        },
+      const response = await api.get(`/v1/posts`, {
         params: {
           ...filters,
           keyword: searchQuery,
           sort: 'latest',
           page: currentPage.current,
           size: 10,
+          category,
         },
       });
 
-      setPosts((prevPosts) => [...prevPosts, ...(response.data.posts || [])]);
+      // 기존 posts에 추가 데이터를 결합
+      const allPosts = response.data.data.results || [];
+      setPosts((prevPosts) => [...prevPosts, ...allPosts]);
       currentPage.current += 1;
-      setHasMore(response.data.posts?.length > 0);
+      setHasMore(allPosts.length > 0);
     } catch (err) {
       console.error('추가 게시물 로드 실패:', err);
       setError('추가 게시물을 불러오는 데 실패했습니다.');
     } finally {
       setLoading(false);
     }
-  }, [filters, searchQuery, hasMore, loading]);
+  }, [filters, searchQuery, hasMore, loading, category]);
 
   // Lazy Loading 및 Infinite Scroll 처리
   const lastPostRef = useCallback(
@@ -315,7 +318,7 @@ function DogCommunity() {
     debounce((query) => {
       setSearchQuery(query);
       currentPage.current = 1;
-      fetchInitialPosts(); // 검색어 변경 시 초기화
+      fetchInitialPosts();
     }, 500),
     [fetchInitialPosts]
   );
@@ -374,46 +377,54 @@ function DogCommunity() {
         />
       </FilterContainerWrapper>
       <PostListContainer>
-        {posts.map((post, index) => (
-          <PostItem
-            key={`${post.id}-${index}`} // 고유한 key 값
-            ref={index === posts.length - 1 ? lastPostRef : null}
-          >
-            <Link
-              to={`/dogcommunity/postdetail/${post.id}`}
-              style={{
-                textDecoration: 'none',
-                color: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                width: '100%',
-              }}
+        {Array.isArray(posts) && posts.length > 0 ? (
+          posts.map((post, index) => (
+            <PostItem
+              key={`${post.id}-${index}`} // 고유한 key 값
+              ref={index === posts.length - 1 ? lastPostRef : null}
             >
-              <PostImage />
-              <PostContentWrapper>
-                <PostTitle>{post.title}</PostTitle>
-                <PostNinknameAndSize>
-                  <PostNinkname>{post.dog_size}</PostNinkname>
-                  <PostNinkname>{post.nickname}</PostNinkname>
-                </PostNinknameAndSize>
-                <PostStats>
-                  <PostStat>❤️ {post.likes_count}</PostStat>
-                  <PostStat>💬 {post.comments_count}</PostStat>
-                </PostStats>
-                <PostMeta>
-                  <PostLocationAndDate>
-                    <PostLocation>
-                      {post.district}-{post.neighborhood}
-                    </PostLocation>
-                    <PostDate>
-                      {new Date(post.created_at).toLocaleString()}
-                    </PostDate>
-                  </PostLocationAndDate>
-                </PostMeta>
-              </PostContentWrapper>
-            </Link>
-          </PostItem>
-        ))}
+              <Link
+                to={`/dogcommunity/postdetail/${post.id}`}
+                style={{
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                }}
+              >
+                <PostImage />
+                <PostContentWrapper>
+                  <PostTitle>
+                    {post.title.length > 35
+                      ? `${post.title.substring(0, 35)}...`
+                      : post.title}
+                  </PostTitle>
+                  <PostNinknameAndSize>
+                    <PostNinkname>{post.dog_size}</PostNinkname>
+                    <PostNinkname>{post.author_nickname}</PostNinkname>
+                  </PostNinknameAndSize>
+                  <PostStats>
+                    <PostStat>❤️ {post.likes_count}</PostStat>
+                    <PostStat>💬 {post.comments_count}</PostStat>
+                  </PostStats>
+                  <PostMeta>
+                    <PostLocationAndDate>
+                      <PostLocation>
+                        {post.district}-{post.neighborhood}
+                      </PostLocation>
+                      <PostDate>
+                        {new Date(post.created_at).toLocaleString()}
+                      </PostDate>
+                    </PostLocationAndDate>
+                  </PostMeta>
+                </PostContentWrapper>
+              </Link>
+            </PostItem>
+          ))
+        ) : (
+          <ErrorMessage>게시물이 없습니다.</ErrorMessage>
+        )}
         {(loading || error) && (
           <SkeletonWrapper>
             {Array.from({ length: 15 }).map((_, i) => (

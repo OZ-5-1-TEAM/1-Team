@@ -2,6 +2,7 @@ import { useState } from 'react'; // React 삭제
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/axiosInstance';
 
 // Styled Components
 const PageWrapper = styled.div`
@@ -90,36 +91,22 @@ const ErrorMessage = styled.p`
 // 사용자 정보 수정 페이지 컴포넌트
 function EditPage({ userData, setUserData }) {
   const [form, setForm] = useState({
-    email: userData?.email || '',
-    password: '',
-    confirmPassword: '',
-    nickname: userData?.nickname || '',
-    intro: userData?.intro || '',
+    // nickname: userData?.nickname || '',
+    bio: userData?.bio || '',
   });
   const [errors, setErrors] = useState({});
   const [profilePhoto, setProfilePhoto] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // 로딩 상태 관리
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const validate = () => {
-    const newErrors = {};
-    if (!form.email) {
-      newErrors.email = '이메일을 입력해주세요.';
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      newErrors.email = '유효한 이메일 형식이 아닙니다.';
-    }
-
-    if (form.password && form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
-    }
-
-    if (!form.nickname) {
-      newErrors.nickname = '닉네임을 입력해주세요.';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  // const validate = () => {
+  //   const newErrors = {};
+  //   if (!form.nickname) {
+  //     newErrors.nickname = '닉네임을 입력해주세요.';
+  //   }
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0;
+  // };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -150,91 +137,39 @@ function EditPage({ userData, setUserData }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    // if (!validate()) return;
 
     const formData = new FormData();
-    formData.append('email', form.email);
-    formData.append('password', form.password);
-    formData.append('nickname', form.nickname);
-    formData.append('intro', form.intro);
+    // formData.append('nickname', form.nickname);
+    formData.append('bio', form.bio);
     if (profilePhoto) {
       formData.append('profilePhoto', profilePhoto);
     }
 
-    setIsLoading(true); // 로딩 상태 시작
+    setIsLoading(true);
     setErrors({});
     try {
-      const response = await fetch('/api/v1/users/update', {
-        method: 'PUT',
-        body: formData,
+      const response = await api.put('/v1/users/me/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }, // 헤더 명시
       });
 
-      if (!response.ok) {
-        if (response.status === 400) {
-          throw new Error('잘못된 요청입니다.');
-        } else if (response.status === 401) {
-          throw new Error('인증이 필요합니다.');
-        } else if (response.status === 500) {
-          throw new Error('서버 오류가 발생했습니다.');
-        } else {
-          throw new Error('요청 처리 중 문제가 발생했습니다.');
-        }
-      }
-
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.message || '알 수 없는 오류가 발생했습니다.');
-      }
-
-      setUserData(result.data);
+      setUserData(response.data); // 업데이트된 사용자 정보를 상태에 반영
       alert('정보가 성공적으로 업데이트되었습니다.');
       navigate('/mypage');
     } catch (error) {
       console.error('정보 업데이트 에러:', error);
-      setErrors((prev) => ({ ...prev, server: error.message }));
+      const errorMessage =
+        error.response?.data?.detail || '요청 처리 중 문제가 발생했습니다.';
+      setErrors((prev) => ({ ...prev, server: errorMessage }));
     } finally {
-      setIsLoading(false); // 로딩 상태 종료
+      setIsLoading(false);
     }
   };
-
   return (
     <PageWrapper>
       <Title>정보수정</Title>
       <FormWrapper onSubmit={handleSubmit}>
-        <InputGroup>
-          <Input
-            type='email'
-            name='email'
-            placeholder='이메일을 입력하세요'
-            value={form.email}
-            onChange={handleChange}
-            error={errors.email}
-          />
-          {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
-        </InputGroup>
-        <InputGroup>
-          <Input
-            type='password'
-            name='password'
-            placeholder='비밀번호를 입력하세요'
-            value={form.password}
-            onChange={handleChange}
-          />
-        </InputGroup>
-        <InputGroup>
-          <Input
-            type='password'
-            name='confirmPassword'
-            placeholder='비밀번호를 재확인하세요'
-            value={form.confirmPassword}
-            onChange={handleChange}
-            error={errors.confirmPassword}
-          />
-          {errors.confirmPassword && (
-            <ErrorMessage>{errors.confirmPassword}</ErrorMessage>
-          )}
-        </InputGroup>
-        <InputGroup>
+        {/* <InputGroup>
           <Input
             type='text'
             name='nickname'
@@ -244,7 +179,7 @@ function EditPage({ userData, setUserData }) {
             error={errors.nickname}
           />
           {errors.nickname && <ErrorMessage>{errors.nickname}</ErrorMessage>}
-        </InputGroup>
+        </InputGroup> */}
         <UploadWrapper>
           <UploadLabel htmlFor='profilePhoto'>
             📷 프로필 사진 등록하기
@@ -261,9 +196,9 @@ function EditPage({ userData, setUserData }) {
         </UploadWrapper>
         <InputGroup>
           <Textarea
-            name='intro'
+            name='bio'
             placeholder='자기소개를 입력하세요'
-            value={form.intro}
+            value={form.bio}
             onChange={handleChange}
           />
         </InputGroup>
@@ -278,9 +213,8 @@ function EditPage({ userData, setUserData }) {
 
 EditPage.propTypes = {
   userData: PropTypes.shape({
-    email: PropTypes.string,
-    nickname: PropTypes.string,
-    intro: PropTypes.string,
+    // nickname: PropTypes.string,
+    bio: PropTypes.string,
   }),
   setUserData: PropTypes.func.isRequired,
 };

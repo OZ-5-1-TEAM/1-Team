@@ -131,7 +131,7 @@ function LoginPage() {
     <FullScreenWrapper>
       <LoginWrapper>
         <LogoWrapper>
-          <Logo src='/path/to/logo.png' alt='개랑말이 로고' />
+          <Logo src='/logo/gaerangmari_logo.jpeg' alt='개랑말이 로고' />
         </LogoWrapper>
         <Title>LOGIN</Title>
         <form onSubmit={handleSubmit}>

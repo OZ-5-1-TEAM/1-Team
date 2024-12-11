@@ -23,6 +23,7 @@ import DogCommunity from './pages/DogCommunity';
 import LikeCommunity from './pages/LikeCommunity';
 import PostPage from './pages/PostPage';
 import PostDetail from './pages/PostDetail';
+import Gallery from './pages/Gallery';
 import { useState } from 'react';
 import GlobalStyle from './components/GlobalStyle';
 import Loading from './components/Loading';
@@ -101,6 +102,7 @@ function App() {
           <Route path='/receivedmessages' element={<ReceivedMessagesPage />} />
           <Route path='/sentmessages' element={<SentMessagesPage />} />
           <Route path='/postpage' element={<PostPage />} />
+          <Route path='/gallery' element={<Gallery />} />
           <Route path='/loading' element={<Loading />} />
           {/* 경로를 소문자로 통일하십쇼 */}
           {/* 예시) path부분 소문자 통일 <Route path="/community" element={<Community />} /> */}

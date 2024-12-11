@@ -111,7 +111,7 @@ function ChangePasswordPage() {
           new_password_confirm: form.confirmPassword,
         });
         alert('비밀번호가 성공적으로 변경되었습니다.');
-        window.location.href = '/login'; // 비밀번호 변경 후 로그인 페이지로 리다이렉트
+        window.location.href = '/start';
       } catch (error) {
         console.error('비밀번호 변경 오류:', error);
         if (error.response?.status === 400) {

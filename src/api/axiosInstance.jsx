@@ -4,7 +4,6 @@ import axios from 'axios';
 let isRefreshing = false;
 let refreshSubscribers = [];
 
-// 환경 변수에서 읽기
 const BASE_URL = `http://43.201.242.157:8000/api`;
 
 const onRefreshed = (token) => {
@@ -17,7 +16,10 @@ const addRefreshSubscriber = (callback) => {
 };
 
 const api = axios.create({
-  baseURL: BASE_URL, // 서버 URL
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // 요청 인터셉터
@@ -48,7 +50,7 @@ api.interceptors.response.use(
           onRefreshed(data.access);
         } catch (err) {
           isRefreshing = false;
-          localStorage.clear(); // 인증 실패 시 토큰 제거
+          localStorage.clear();
           // window.location.href = '/login';
           return Promise.reject(err);
         }
@@ -64,36 +66,3 @@ api.interceptors.response.use(
   }
 );
 export default api;
-
-// import axios from 'axios';
-
-// const api = axios.create({
-//   baseURL: 'http://localhost:3001/api/v1', // Express 서버 URL
-//   headers: {
-//     Authorization: `Bearer ${localStorage.getItem('access_token')}`, // 초기 토큰 설정
-//   },
-// });
-
-// // 요청 인터셉터
-// api.interceptors.request.use((config) => {
-//   const token = localStorage.getItem('access_token');
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
-
-// // 응답 인터셉터
-// api.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     const originalRequest = error.config;
-//     if (error.response && error.response.status === 401) {
-//       console.log('토큰 만료 처리 로직은 현재 비활성화 상태입니다.');
-//       return Promise.reject(error);
-//     }
-//     return Promise.reject(error);
-//   }
-// );
-
-// export default api;
